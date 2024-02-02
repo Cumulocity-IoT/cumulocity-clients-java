@@ -2,6 +2,12 @@ package com.cumulocity.sdk.client.cep.notification;
 
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 
+/**
+ * @deprecated This class is superseded by {@link
+ * com.cumulocity.rest.representation.notification.NotificationRepresentation.ManagedObjectNotificationRepresentation}.
+ * Use it based on {@link com.cumulocity.sdk.client.notification.NotificationSubscriberProducer}.
+ */
+@Deprecated
 public class ManagedObjectNotification {
     
     public ManagedObjectNotification() {}

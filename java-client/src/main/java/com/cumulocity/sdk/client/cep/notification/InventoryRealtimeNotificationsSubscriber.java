@@ -24,9 +24,7 @@ import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.notification.*;
 
 /**
- * This subscriber does not support realtime DELETE actions.
- * Please use instead InventoryRealtimeDeleteAwareNotificationsSubscriber.java
- *
+ * @deprecated Use {@link com.cumulocity.sdk.client.notification.NotificationSubscriberProducer} instead.
  */
 @Deprecated
 public class InventoryRealtimeNotificationsSubscriber implements Subscriber<String, ManagedObjectNotification> {

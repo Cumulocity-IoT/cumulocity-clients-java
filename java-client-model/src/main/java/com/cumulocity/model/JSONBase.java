@@ -1,5 +1,6 @@
 package com.cumulocity.model;
 
+import com.cumulocity.model.NotificationConverters.*;
 import com.cumulocity.model.audit.AuditChangeValueConverter;
 import org.joda.time.DateTime;
 import org.svenson.*;
@@ -72,6 +73,11 @@ public class JSONBase extends AbstractDynamicProperties {
         converters.add(new IDListTypeConverter());
         converters.add(new DateConverter());
         converters.add(new AuditChangeValueConverter());
+        converters.add(new DeletedManagedObjectConverter());
+        converters.add(new DeletedMeasurementConverter());
+        converters.add(new DeletedEventConverter());
+        converters.add(new DeletedAlarmConverter());
+        converters.add(new DeletedOperationConverter());
         return converters;
     }
 

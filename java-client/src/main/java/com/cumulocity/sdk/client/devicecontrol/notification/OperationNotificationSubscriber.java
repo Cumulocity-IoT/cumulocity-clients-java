@@ -6,6 +6,10 @@ import com.cumulocity.sdk.client.PlatformParameters;
 import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.notification.*;
 
+/**
+ * @deprecated Use {@link com.cumulocity.sdk.client.notification.NotificationSubscriberProducer} instead.
+ */
+@Deprecated
 public class OperationNotificationSubscriber implements Subscriber<GId, OperationRepresentation> {
     public static final String DEVICE_CONTROL_NOTIFICATIONS_URL = "notification/operations";
 
