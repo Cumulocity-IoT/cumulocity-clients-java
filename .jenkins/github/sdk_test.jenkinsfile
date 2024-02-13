@@ -54,7 +54,7 @@ def scm_checkout()
         checkout([
             $class: 'GitSCM',
             branches: [[name: "${params.TEST_BRANCH}"]],
-            userRemoteConfigs: [[url: 'git@github.com:SoftwareAG/cumulocity-clients-java.git', credentialsId:'jenkins-master']]
+            userRemoteConfigs: [[url: 'git@github.softwareag.com:IOTA/cumulocity-clients-java.git', credentialsId:'jenkins-master']]
         ])
         currentBuild.result = "SUCCESS"
     }
