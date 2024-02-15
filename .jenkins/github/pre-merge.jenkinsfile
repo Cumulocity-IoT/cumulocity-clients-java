@@ -543,7 +543,6 @@ def stopPipeline(String msg, Exception e) {
 // commons, possibly move to c8y-jenkins-common-steps ?
 def devInstanceOf(String label, String tld = 'dev.c8y.io') {
   String instance_name = env.JOB_NAME
-      .split("cumulocity-")[1]
       .replaceAll('[/_]', '-')
       .toLowerCase()
 
