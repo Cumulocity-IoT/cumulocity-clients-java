@@ -73,6 +73,7 @@ public class JSONBase extends AbstractDynamicProperties {
         converters.add(new IDListTypeConverter());
         converters.add(new DateConverter());
         converters.add(new AuditChangeValueConverter());
+        converters.add(new DeletedGeneralObjectConverter());
         converters.add(new DeletedManagedObjectConverter());
         converters.add(new DeletedMeasurementConverter());
         converters.add(new DeletedEventConverter());

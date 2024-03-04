@@ -223,6 +223,27 @@ public class NotificationRepresentation<T extends AbstractExtensibleRepresentati
     }
 
     /**
+     * This class exists for technical purpose and is used in cases
+     * where real-time notifications of any type are expected,
+     * but using Generics as with
+     * {@code NotificationRepresentation<AbstractExtensibleRepresentation>}
+     * is unsuitable.
+     *
+     * @see NotificationRepresentation
+     */
+    public static class GeneralNotificationRepresentation
+            extends NotificationRepresentation<AbstractExtensibleRepresentation> {
+
+        @Override
+        @JSONProperty
+        @JSONConverter(type = DeletedGeneralObjectConverter.class)
+        public AbstractExtensibleRepresentation getData() {
+            return super.getData();
+        }
+
+    }
+
+    /**
      * This class is the Java representation of real-time notifications for
      * {@linkplain ManagedObjectRepresentation Managed Objects}
      * returned by the real-time notification API.

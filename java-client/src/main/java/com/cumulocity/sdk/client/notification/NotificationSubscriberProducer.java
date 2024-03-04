@@ -163,4 +163,61 @@ public class NotificationSubscriberProducer {
                 .build();
     }
 
+    /**
+     * This class is used for identifying real-time notification
+     * subscription channels of the endpoint “{@code notification/realtime}”
+     * in the context of subscribers produced by
+     * {@link NotificationSubscriberProducer#getGeneralSubscriber()}.
+     */
+    public static final class RealtimeChannel {
+        public final NotificationType<?,?> type;
+        public final GId id;
+        private final String channelString;
+
+        public RealtimeChannel(NotificationType<?,?> type, GId id) {
+            this.type = type;
+            this.id = id;
+            String prefix = Endpoint.RealtimeNotifications.supportedChannelPrefixes.get(type);
+            if (prefix == null)
+                throw new IllegalArgumentException("Unsupported type " + type + ".");
+            this.channelString = prefix + id.getValue();
+        }
+
+        @Override
+        public String toString() {
+            return channelString;
+        }
+    }
+
+    /**
+     * Creates a real-time notifications subscriber for the endpoint
+     * “{@code notification/realtime}”. Such a subscriber can subscribe
+     * to notifications for any notification-aware type of domain model object.
+     * The subscription channel must be indicated at each subscribe operation:
+     * <pre>{@code
+     * producer.getGeneralSubscriber()
+     * .subscribe(new RealtimeChannel(NotificationType.ALARM, new GId("*")),
+     *         new SubscriptionListener<>() { ... });
+     * }</pre>
+     * While subscribers produced by this method are not bound to creating
+     * subscriptions for only one specific type of notification (e.&thinsp;g.
+     * alarm notifications), this comes with the trade-off of less specificity
+     * of the data type of the objects returned in subscription notifications
+     * ({@code GeneralNotificationRepresentation} instead of e.&thinsp;g.
+     * {@code AlarmNotificationRepresentation}).
+     *
+     * @return a subscriber with characteristics as described above
+     */
+    public Subscriber<RealtimeChannel, GeneralNotificationRepresentation>
+            getGeneralSubscriber() {
+
+        return new SubscriberBuilder<RealtimeChannel, GeneralNotificationRepresentation>()
+                .withParameters(parameters)
+                .withEndpoint(Endpoint.RealtimeNotifications.path)
+                .withSubscriptionNameResolver(channel -> channel.toString())
+                .withDataType(GeneralNotificationRepresentation.class)
+                .withMessageDeliveryAcknowlage(true)
+                .build();
+    }
+
 }
