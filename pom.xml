@@ -32,7 +32,7 @@
 
     <properties>
         <revision>1015.0.541</revision>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist></changelist>
         <cumulocity.core.version>${project.version}</cumulocity.core.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
