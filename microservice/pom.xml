@@ -15,7 +15,7 @@
         <changelist>-SNAPSHOT</changelist>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
 
         <spring-boot-dependencies.version>2.7.17</spring-boot-dependencies.version>
@@ -204,7 +204,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.0</version>
+                    <version>3.13.0</version>
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
@@ -340,7 +340,7 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.4</version>
+                        <version>0.8.12</version>
                         <configuration>
                             <destFile>${project.basedir}/../target/jacoco.exec</destFile>
                             <append>true</append>
