@@ -35,7 +35,7 @@
 
     <properties>
         <revision>1020.128.0</revision>
-        <changelist>-SNAPSHOT</changelist>
+        <changelist></changelist>
         <cumulocity-dependencies-tools.version>1020.40.0</cumulocity-dependencies-tools.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
