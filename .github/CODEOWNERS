@@ -1,8 +1,8 @@
 # Please add your entries following to the established alphabetical order
 
-java-mqtt-client @IOTA/c8y-data-in-motion
-lpwan-backend @IOTA/c8y-data-and-control
-microservice @IOTA/c8y-microservice-hosting
-mqtt-service @IOTA/c8y-data-in-motion
+java-mqtt-client @Cumulocity-IoT/c8y-data-in-motion
+lpwan-backend @Cumulocity-IoT/c8y-data-and-control
+microservice @Cumulocity-IoT/c8y-microservice-hosting
+mqtt-service @Cumulocity-IoT/c8y-data-in-motion
 
-/** @IOTA/c8y-platform-management
+/** @Cumulocity-IoT/c8y-platform-management
