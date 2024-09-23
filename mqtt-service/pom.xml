@@ -15,7 +15,6 @@
     <version>${revision}${changelist}</version>
     <packaging>pom</packaging>
     <name>Cumulocity :: SDK Java :: MQTT Service</name>
-    <url>https://www.softwareag.com/</url>
 
     <properties>
         <tootallnate.websocket.version>1.5.3</tootallnate.websocket.version>

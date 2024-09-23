@@ -31,8 +31,8 @@ pipeline {
                         dir('cumulocity-sdk') {
                             checkout resolveScm(
                                 source: [id: '_', $class: 'GitSCMSource',
-                                         remote: 'https://github.softwareag.com/IOTA/cumulocity-sdk',
-                                         credentialsId: 'Cumulocity-Jenkins',
+                                         remote: 'https://github.com/Cumulocity-IoT/cumulocity-sdk',
+                                         credentialsId: 'Cumulocity-jenkins-ghec',
                                          traits: [ gitBranchDiscovery() ]],
                                 targets: [env.BRANCH_NAME, env.CHANGE_BRANCH, env.CHANGE_TARGET])
                         }
