@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: IOTA/c8y-component-base/.github/actions/setup-java-maven@v1.0.0
+      - uses: Cumulocity-IoT/c8y-component-base/.github/actions/setup-java-maven@v1.0.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           C8Y_MVN_PUBLIC_USERNAME: ${{ secrets.C8Y_MVN_PUBLIC_USERNAME }}
@@ -48,7 +48,7 @@ jobs:
           echo "Setting VERSION to '$VERSION-build$(date +'%Y%m%d')-$HASH' (github.ref=${{ github.ref }})"
           echo "BUILD_ID=$VERSION-build$(date +'%Y%m%d')-$HASH" >> $GITHUB_ENV
           
-      - uses: IOTA/c8y-component-base/.github/actions/compliance/third-party-compliance-setup@compliance-v3
+      - uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/third-party-compliance-setup@compliance-v3
         with:
           component-name: ${{ env.COMPONENT_NAME }}
           build-id:       ${{ env.BUILD_ID }} # Use the build id generated during the build process (with a unique suffix for PRs)
@@ -58,16 +58,16 @@ jobs:
           tpsafe-rules-app-private-key: ${{ secrets.C8Y_TPSAFE_RULES_APP_PRIVATE_KEY }}
 
       - name: Uploading Gateway BOM file
-        uses: IOTA/c8y-component-base/.github/actions/compliance/third-party-upload@compliance-v3
+        uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/third-party-upload@compliance-v3
         with:
           cyclonedx-bom-files: ./target/java-sdk-bom.json # space-separated list of BOM files in CycloneDX format
 
       - name: Check approval
-        uses: IOTA/c8y-component-base/.github/actions/compliance/third-party-licensing-check@compliance-v3
+        uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/third-party-licensing-check@compliance-v3
         with:
           dry-run: ${{ contains(github.event.pull_request.labels.*.name, 'tp-request-skip') }} # during workflow dev/testing set this label on the PR; prevents submitting third party approval requests to TCA
       
-      - uses: IOTA/c8y-component-base/.github/actions/compliance/export@compliance-v3
+      - uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/export@compliance-v3
         name: Review Compliance Export  
         id: compliance-export
         if: always()

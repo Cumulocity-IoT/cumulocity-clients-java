@@ -22,9 +22,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GHE_TOKEN_PAT || github.token }}
+          token: ${{ github.token }}
 
-      - uses: IOTA/c8y-component-base/.github/actions/setup-java-maven@v1.0.0
+      - uses: Cumulocity-IoT/c8y-component-base/.github/actions/setup-java-maven@v1.0.0
         with:
           java-version: ${{ env.JAVA_VERSION }}
           C8Y_MVN_PUBLIC_USERNAME: ${{ secrets.C8Y_MVN_PUBLIC_USERNAME }}
