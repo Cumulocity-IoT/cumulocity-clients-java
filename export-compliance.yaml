@@ -12,8 +12,8 @@ ID of reference EPC survey where the last cryptography change occurred: 004188
 Date of last review or update by product team: 2024-03-04
 
 Product contacts:
-- martin.prodanov@softwareag.com
-- aleksander.fisz@softwareag.com
+- martin.prodanov@cumulocity.com
+- aleksander.fisz@cumulocity.com
 
 # Specify just one product code per EPC UNLESS you are building all product codes together
 # in the same build process, and they always need the same EPC answers
@@ -32,7 +32,7 @@ Product contacts:
    Cumulocity IoT Microservice SDK for Java is a library for easy development of microservices for Cumulocity IoT. More information can be found on
    https://cumulocity.com/guides/microservice-sdk/java/
   # Please provide a THREE sentence high-level description of the product's FUNCTION and PURPOSE and link to PRODUCT LITERATURE
-1.6) PMM representative eMail address: Jane.Porter@softwareag.com
+1.6) PMM representative eMail address: Jane.Porter@cumulocity.com
 1.7.4) Has any person of any 3rd Party (i.e. non-SAG, e.g. contractors, etc.) received or worked on the design and creation of this Surveyed Item prior to the submission of this survey for review?: true
 
 # Section 2 - Quick check (declassification criteria)
