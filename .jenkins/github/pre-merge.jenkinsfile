@@ -234,16 +234,13 @@ def agents_verify() {
             }
 
             stage('agents docker image') {
-              container('docker') {
-                withDockerRegistry(url:'http://registry.stage.c8y.io/testing',credentialsId:'registry_stage_robot_escaped') {
-                  try {
-                    sh """
-                      docker tag ssl-management-agent-server:latest registry.stage.c8y.io/testing/ssl-management-agent-server:${VERSIONS.currentSem}
-                      docker push registry.stage.c8y.io/testing/ssl-management-agent-server:${VERSIONS.currentSem}
-                    """
-                  } catch (e) {
-                    stopPipeline('Publish agent artifacts', e)
-                  }
+              withCredentials([
+                  usernamePassword(credentialsId: 'registry_stage_robot', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
+              ]) {
+                try {
+                  sh ".jenkins/scripts/mvn.sh -f ssl-management-agent/server deploy --define 'docker.image.version=${VERSIONS.currentSem}'"
+                } catch (e) {
+                  stopPipeline('Publish agent images', e)
                 }
               }
             }
