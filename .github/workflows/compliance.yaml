@@ -20,7 +20,7 @@ jobs:
       COMPONENT_NAME: java-sdk
       IDATA_CODE: CYJ
       TPP_FETCHER_URL: ${{ vars.C8Y_TPP_FETCHER_URL }}
-      JAVA_VERSION: '11'
+      JAVA_VERSION: '17'
 
     steps:
       - name: Checkout code

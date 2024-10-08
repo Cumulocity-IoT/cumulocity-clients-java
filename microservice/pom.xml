@@ -15,7 +15,7 @@
         <changelist>-SNAPSHOT</changelist>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
 
         <spring-boot-dependencies.version>2.7.17</spring-boot-dependencies.version>
@@ -287,7 +287,7 @@
                             <doctitle>Cumulocity Microservice SDK</doctitle>
                             <windowtitle>Cumulocity Microservice SDK</windowtitle>
                             <overview>${project.basedir}/javadoc/overview.html</overview>
-                            <source>8</source>
+                            <source>17</source>
                     </configuration>
                 </plugin>
             </plugins>
