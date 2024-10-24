@@ -125,6 +125,18 @@
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-core</artifactId>
 			<version>3.2.13</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<version>1.78.1</version>
 		</dependency>
 
 		<dependency>
