@@ -1,4 +1,4 @@
-package com.cumulocity.microservice.security.annotation;
+package com.cumulocity.microservice.security.configuration;
 
 import com.cumulocity.microservice.security.service.RoleService;
 import com.cumulocity.microservice.security.service.SecurityExpressionService;
@@ -18,7 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 @Lazy
 @Configuration
-@ConditionalOnBean(EnableWebSecurityConfiguration.class)
+@ConditionalOnBean(WebSecurityConfiguration.class)
 public class UserDetailsServiceConfiguration {
 
     @Bean

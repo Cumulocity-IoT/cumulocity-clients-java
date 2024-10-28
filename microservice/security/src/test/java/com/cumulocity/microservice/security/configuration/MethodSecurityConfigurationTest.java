@@ -1,4 +1,4 @@
-package com.cumulocity.microservice.security.annotation;
+package com.cumulocity.microservice.security.configuration;
 
 import com.cumulocity.microservice.security.service.SecurityExpressionService;
 import com.cumulocity.microservice.security.service.impl.SecurityExpressionServiceImpl;
@@ -15,9 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 
@@ -28,12 +26,12 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @SpringBootTest(classes = {
-        EnableGlobalMethodSecurityConfigurationTest.TestConfiguration.class,
-        EnableGlobalMethodSecurityConfiguration.class
+        MethodSecurityConfigurationTest.TestConfiguration.class,
+        MethodSecurityConfiguration.class
 })
-public class EnableGlobalMethodSecurityConfigurationTest {
+public class MethodSecurityConfigurationTest {
 
-    interface TestService {
+    public interface TestService {
         boolean doSomethingWhatRequiresFeatureEnabled();
 
         boolean doSomethingWhatRequiresServiceUser();
@@ -46,35 +44,31 @@ public class EnableGlobalMethodSecurityConfigurationTest {
         @Bean
         public TestService testService() {
             return new TestService() {
-                @PreAuthorize("isFeatureEnabled('feature-cep-custom-rule')")
+                @PreAuthorize("@c8yAuthz.isFeatureEnabled('feature-cep-custom-rule')")
                 public boolean doSomethingWhatRequiresFeatureEnabled() {
                     return true;
                 }
 
-                @PreAuthorize("isServiceUser('smartrule')")
+                @PreAuthorize("@c8yAuthz.isServiceUser('smartrule')")
                 public boolean doSomethingWhatRequiresServiceUser() {
                     return true;
                 }
 
-                @PreAuthorize("isCurrentTenantManagement()")
+                @PreAuthorize("@c8yAuthz.isCurrentTenantManagement()")
                 public boolean doSomethingWhatRequiresToBeTenantManagement() {
                     return true;
                 }
             };
         }
 
-        @Bean
+        @Bean(name = SecurityExpressionService.BEAN_NAME)
         public SecurityExpressionService securityExpressionService(ApplicationApi applications) {
             return new SecurityExpressionServiceImpl(applications);
         }
 
         @Bean
         public UserDetailsService userDetailsService() {
-            return new UserDetailsService() {
-                public UserDetails loadUserByUsername(String tenantAndUser) throws UsernameNotFoundException {
-                    return SecurityTestUtil.fromCumuloUsername(tenantAndUser);
-                }
-            };
+            return SecurityTestUtil::fromCumuloUsername;
         }
     }
 

@@ -18,7 +18,8 @@
         <java.version>17</java.version>
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
 
-        <spring-boot-dependencies.version>2.7.17</spring-boot-dependencies.version>
+        <spring-boot.version>2.7.18</spring-boot.version>
+        <spring-security.version>5.8.15</spring-security.version>
         <jetty.version>9.4.53.v20231009</jetty.version>
         <guava.version>32.0.1-jre</guava.version>
         <googleauth.version>1.1.1</googleauth.version>
@@ -66,11 +67,19 @@
                 <scope>import</scope>
             </dependency>
 
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-bom</artifactId>
+                <version>${spring-security.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- spring boot -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot-dependencies.version}</version>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
                 <exclusions>
@@ -87,7 +96,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
-                <version>${spring-boot-dependencies.version}</version>
+                <version>${spring-boot.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>com.vaadin.external.google</groupId>
@@ -233,7 +242,7 @@
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot-dependencies.version}</version>
+                    <version>${spring-boot.version}</version>
                     <executions>
                         <execution>
                             <goals>

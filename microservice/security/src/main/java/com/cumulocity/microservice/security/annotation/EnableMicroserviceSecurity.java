@@ -1,5 +1,6 @@
 package com.cumulocity.microservice.security.annotation;
 
+import com.cumulocity.microservice.security.configuration.*;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.Documented;
@@ -18,8 +19,8 @@ import java.lang.annotation.Target;
 @Import({
         TokenCacheConfiguration.class,
         ErrorControllerConfiguration.class,
-        EnableGlobalMethodSecurityConfiguration.class,
-        EnableWebSecurityConfiguration.class
+        MethodSecurityConfiguration.class,
+        WebSecurityConfiguration.class
 })
 public @interface EnableMicroserviceSecurity {
 }

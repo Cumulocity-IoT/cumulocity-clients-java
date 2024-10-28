@@ -1,4 +1,4 @@
-package com.cumulocity.microservice.security.annotation;
+package com.cumulocity.microservice.security.configuration;
 
 import com.cumulocity.microservice.context.annotation.EnableContextSupportConfiguration;
 import com.cumulocity.microservice.monitoring.actuator.annotation.EnableActuatorDefaultConfiguration;
@@ -19,10 +19,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,15 +29,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = {
-        EnableWebSecurityConfigurationTest.TestConfig.class,
+        WebSecurityConfigurationTest.TestConfig.class,
         EnableContextSupportConfiguration.class,
-        EnableWebSecurityConfiguration.class
+        WebSecurityConfiguration.class
 })
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "management.health.platform.enabled=true"
 })
-public class EnableWebSecurityConfigurationTest {
+public class WebSecurityConfigurationTest {
 
     @TestConfiguration
     @EnableAutoConfiguration

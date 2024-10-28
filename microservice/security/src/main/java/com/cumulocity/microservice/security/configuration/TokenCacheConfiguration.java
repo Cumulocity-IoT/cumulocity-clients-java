@@ -1,4 +1,4 @@
-package com.cumulocity.microservice.security.annotation;
+package com.cumulocity.microservice.security.configuration;
 
 import com.cumulocity.microservice.security.token.JwtAuthenticatedTokenCache;
 import com.cumulocity.microservice.security.token.JwtTokenAuthenticationGuavaCache;

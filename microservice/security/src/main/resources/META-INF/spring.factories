@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.cumulocity.microservice.security.annotation.UserDetailsServiceConfiguration
+com.cumulocity.microservice.security.configuration.UserDetailsServiceConfiguration

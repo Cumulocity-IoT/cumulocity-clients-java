@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 
 @Lazy
-@Service
+@Service(SecurityExpressionService.BEAN_NAME)
 @RequiredArgsConstructor
 public class SecurityExpressionServiceImpl implements SecurityExpressionService {
 

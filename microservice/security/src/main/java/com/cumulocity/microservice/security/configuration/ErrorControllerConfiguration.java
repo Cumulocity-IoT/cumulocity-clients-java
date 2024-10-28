@@ -1,4 +1,4 @@
-package com.cumulocity.microservice.security.annotation;
+package com.cumulocity.microservice.security.configuration;
 
 import com.cumulocity.microservice.security.controller.ErrorController;
 import org.springframework.beans.factory.ObjectProvider;
