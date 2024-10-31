@@ -7,7 +7,7 @@ import com.cumulocity.sdk.client.common.JavaSdkITBase;
 import org.apache.commons.codec.Resources;
 import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
 

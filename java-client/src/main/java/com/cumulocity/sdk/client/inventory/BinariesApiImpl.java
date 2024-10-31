@@ -7,7 +7,7 @@ import com.cumulocity.rest.representation.inventory.InventoryRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.sdk.client.RestConnector;
 import com.cumulocity.sdk.client.SDKException;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 public class BinariesApiImpl implements BinariesApi {
 

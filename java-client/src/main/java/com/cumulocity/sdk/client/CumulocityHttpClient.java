@@ -9,8 +9,8 @@ import org.glassfish.jersey.client.JerseyWebTarget;
 import org.glassfish.jersey.internal.util.collection.UnsafeValue;
 
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.Map;
 import java.util.regex.Matcher;

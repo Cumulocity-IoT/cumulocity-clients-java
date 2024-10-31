@@ -15,13 +15,13 @@ import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import static java.lang.String.format;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.apache.http.HttpStatus.SC_OK;
 
 @Slf4j

@@ -4,8 +4,8 @@ import com.cumulocity.microservice.context.credentials.UserCredentials;
 import com.cumulocity.microservice.security.filter.util.HttpRequestUtils.AuthorizationHeader;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Optional;
 

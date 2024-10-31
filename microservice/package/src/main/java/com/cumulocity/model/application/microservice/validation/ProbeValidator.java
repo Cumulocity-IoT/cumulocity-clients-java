@@ -1,8 +1,8 @@
 package com.cumulocity.model.application.microservice.validation;
 
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class ProbeValidator implements ConstraintValidator<ValidProbe, Probe> {
     @Override

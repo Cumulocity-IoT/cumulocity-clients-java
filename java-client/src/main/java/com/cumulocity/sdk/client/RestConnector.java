@@ -45,18 +45,18 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.*;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import static com.cumulocity.sdk.client.util.StringUtils.isNotBlank;
-import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
-import static javax.ws.rs.core.Response.Status.*;
+import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
+import static jakarta.ws.rs.core.Response.Status.*;
 import static org.glassfish.jersey.media.multipart.Boundary.addBoundary;
 
 @Slf4j

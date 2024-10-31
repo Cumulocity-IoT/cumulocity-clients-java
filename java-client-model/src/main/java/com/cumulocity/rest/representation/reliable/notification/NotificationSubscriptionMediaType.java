@@ -2,7 +2,7 @@ package com.cumulocity.rest.representation.reliable.notification;
 
 import com.cumulocity.rest.representation.CumulocityMediaType;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * We follow here convention from {@link MediaType} class, where we have both {@link MediaType}

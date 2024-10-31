@@ -3,7 +3,7 @@ package com.cumulocity.rest.representation;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

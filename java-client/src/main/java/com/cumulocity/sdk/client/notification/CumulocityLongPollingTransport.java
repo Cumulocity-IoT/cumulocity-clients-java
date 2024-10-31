@@ -26,9 +26,9 @@ import org.cometd.client.transport.HttpClientTransport;
 import org.cometd.client.transport.TransportListener;
 import org.glassfish.jersey.client.ClientProperties;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.text.ParseException;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.cumulocity.sdk.client.util.StringUtils.isNotBlank;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
-import static javax.ws.rs.core.HttpHeaders.COOKIE;
+import static jakarta.ws.rs.core.HttpHeaders.COOKIE;
 
 class CumulocityLongPollingTransport extends HttpClientTransport {
 

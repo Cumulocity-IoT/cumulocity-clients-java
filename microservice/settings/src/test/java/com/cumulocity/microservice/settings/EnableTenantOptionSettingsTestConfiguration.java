@@ -11,7 +11,7 @@ import com.google.common.base.Suppliers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 

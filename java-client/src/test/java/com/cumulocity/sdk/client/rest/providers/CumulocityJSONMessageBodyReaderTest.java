@@ -6,8 +6,8 @@ import org.mockito.Mockito;
 import org.svenson.JSONParseException;
 import org.svenson.SvensonRuntimeException;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.MessageBodyReader;
 import java.io.ByteArrayInputStream;
 import java.lang.annotation.Annotation;
 

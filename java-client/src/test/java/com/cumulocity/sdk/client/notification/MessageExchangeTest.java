@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableList;
 import org.cometd.bayeux.Message.Mutable;
 import org.cometd.client.transport.TransportListener;
 
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.core.Response;
 
 import org.cometd.common.TransportException;
 import org.hamcrest.collection.IsIterableWithSize;
@@ -30,7 +30,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

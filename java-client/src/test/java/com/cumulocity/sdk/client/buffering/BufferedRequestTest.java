@@ -2,7 +2,7 @@ package com.cumulocity.sdk.client.buffering;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.ws.rs.HttpMethod;
+import jakarta.ws.rs.HttpMethod;
 
 import org.junit.jupiter.api.Test;
 

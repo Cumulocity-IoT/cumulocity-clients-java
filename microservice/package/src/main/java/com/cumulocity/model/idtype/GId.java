@@ -5,7 +5,7 @@ import com.google.common.base.Function;
 import org.svenson.JSON;
 import org.svenson.JSONable;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public class GId extends ID implements JSONable {
 

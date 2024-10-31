@@ -6,7 +6,7 @@ import org.svenson.AbstractDynamicProperties;
 import org.svenson.JSONProperty;
 import org.svenson.converter.JSONConverter;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Map.Entry;
 

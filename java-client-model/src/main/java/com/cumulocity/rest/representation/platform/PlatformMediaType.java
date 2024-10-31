@@ -1,6 +1,6 @@
 package com.cumulocity.rest.representation.platform;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import com.cumulocity.rest.representation.CumulocityMediaType;
 

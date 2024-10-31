@@ -4,8 +4,8 @@ import com.cumulocity.model.Cpu;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class CpuLimitValidator implements ConstraintValidator<MinCpu, String> {
 

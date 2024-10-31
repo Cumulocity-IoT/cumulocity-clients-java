@@ -3,8 +3,8 @@ package com.cumulocity.sdk.client.interceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.client.spi.PostInvocationInterceptor;
 
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientResponseContext;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientResponseContext;
 import java.io.BufferedInputStream;
 
 @Slf4j

@@ -3,7 +3,7 @@ package com.cumulocity.microservice.security.filter.util;
 import org.bouncycastle.util.encoders.Base64;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;

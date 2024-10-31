@@ -29,9 +29,6 @@ public class LoggingEnvironmentRunListener implements SpringApplicationRunListen
     public LoggingEnvironmentRunListener(SpringApplication application, String[] args) {
     }
 
-    public void starting() {
-    }
-
     @Override
     public void starting(ConfigurableBootstrapContext bootstrapContext) {
     }
@@ -55,35 +52,16 @@ public class LoggingEnvironmentRunListener implements SpringApplicationRunListen
 
     }
 
-    public void started() {
-    }
-
-    @Override
-    public void started(ConfigurableApplicationContext context) {
-    }
-
     @Override
     public void started(ConfigurableApplicationContext context, Duration timeTaken) {
-        this.started(context);
-    }
-
-
-    @Override
-    public void running(ConfigurableApplicationContext context) {
     }
 
     @Override
     public void ready(ConfigurableApplicationContext context, Duration timeTaken) {
-        this.running(context);
     }
 
     @Override
     public void failed(ConfigurableApplicationContext context, Throwable exception) {
-    }
-
-    // temporary for backward compatibility with spring-boot 1.x
-    public void finished(ConfigurableApplicationContext context, Throwable exception) {
-        failed(context, exception);
     }
 
     public void initLogging(ConfigurationFileProvider configurationFileProvider) {

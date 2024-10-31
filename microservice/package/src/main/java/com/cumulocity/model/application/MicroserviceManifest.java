@@ -11,8 +11,8 @@ import lombok.Builder.Default;
 import org.svenson.JSONProperty;
 import org.svenson.JSONTypeHint;
 
-import javax.validation.Valid;
-import javax.validation.constraints.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import java.io.BufferedReader;
 import java.util.List;
 

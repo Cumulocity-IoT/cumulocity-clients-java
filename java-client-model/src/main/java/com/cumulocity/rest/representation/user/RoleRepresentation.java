@@ -3,7 +3,7 @@ package com.cumulocity.rest.representation.user;
 import com.cumulocity.rest.representation.AbstractExtensibleRepresentation;
 import org.svenson.JSONProperty;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 public class RoleRepresentation extends AbstractExtensibleRepresentation {
 

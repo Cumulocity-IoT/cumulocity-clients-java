@@ -6,7 +6,7 @@ import org.joda.time.DateTime;
 import org.svenson.JSONProperty;
 import org.svenson.converter.JSONConverter;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class SupportUserDetailsRepresentation extends AbstractExtensibleRepresentation {
 

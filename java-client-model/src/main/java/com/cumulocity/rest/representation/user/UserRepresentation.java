@@ -8,7 +8,7 @@ import org.svenson.JSONProperty;
 import org.svenson.JSONTypeHint;
 import org.svenson.converter.JSONConverter;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;

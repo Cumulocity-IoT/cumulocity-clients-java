@@ -8,7 +8,7 @@ import org.svenson.JSONTypeHint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 public class GroupRepresentation extends CustomPropertiesMapRepresentation {
 

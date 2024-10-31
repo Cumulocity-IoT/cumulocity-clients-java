@@ -16,8 +16,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.client.Client;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.client.Client;
 
 import java.util.Set;
 

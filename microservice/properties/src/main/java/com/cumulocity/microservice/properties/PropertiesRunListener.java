@@ -38,9 +38,6 @@ public class PropertiesRunListener implements SpringApplicationRunListener {
     public PropertiesRunListener(SpringApplication application, String[] args) {
     }
 
-    public void starting() {
-    }
-
     @Override
     public void starting(ConfigurableBootstrapContext bootstrapContext) {
     }
@@ -67,35 +64,16 @@ public class PropertiesRunListener implements SpringApplicationRunListener {
     public void contextLoaded(ConfigurableApplicationContext configurableApplicationContext) {
     }
 
-    public void started() {
-    }
-
-    @Override
-    public void started(ConfigurableApplicationContext context) {
-    }
-
     @Override
     public void started(ConfigurableApplicationContext context, Duration timeTaken) {
-        this.started(context);
-    }
-
-
-    @Override
-    public void running(ConfigurableApplicationContext context) {
     }
 
     @Override
     public void ready(ConfigurableApplicationContext context, Duration timeTaken) {
-        this.running(context);
     }
 
     @Override
     public void failed(ConfigurableApplicationContext context, Throwable exception) {
-    }
-
-    // temporary for backward compatibility with spring-boot 1.x
-    public void finished(ConfigurableApplicationContext context, Throwable exception) {
-        failed(context, exception);
     }
 
     private void processPropertySource(ConfigurableEnvironment environment, Iterable<Path> locations) {

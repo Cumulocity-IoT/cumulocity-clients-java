@@ -37,7 +37,7 @@ import com.cumulocity.sdk.client.RestConnector;
 import com.cumulocity.sdk.client.SDKException;
 import org.glassfish.jersey.client.ClientProperties;
 
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 
 class DefaultBayeuxClientProvider implements BayeuxSessionProvider {
 

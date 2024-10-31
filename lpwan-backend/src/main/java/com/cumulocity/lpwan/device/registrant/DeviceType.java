@@ -5,7 +5,7 @@
 
 package com.cumulocity.lpwan.device.registrant;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class DeviceType {
 

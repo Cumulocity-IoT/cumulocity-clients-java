@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import java.io.File;
 import java.nio.file.Path;
 
-import javax.ws.rs.HttpMethod;
+import jakarta.ws.rs.HttpMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

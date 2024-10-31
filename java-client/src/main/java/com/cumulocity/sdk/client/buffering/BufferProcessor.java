@@ -7,8 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.ProcessingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

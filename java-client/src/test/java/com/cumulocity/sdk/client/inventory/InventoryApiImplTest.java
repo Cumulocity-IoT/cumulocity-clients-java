@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import java.util.ArrayList;
 
 import static com.cumulocity.rest.representation.inventory.InventoryMediaType.MANAGED_OBJECT;

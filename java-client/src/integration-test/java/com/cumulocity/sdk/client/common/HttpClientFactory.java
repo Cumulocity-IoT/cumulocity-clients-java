@@ -24,8 +24,8 @@ import com.cumulocity.sdk.client.rest.providers.CumulocityJSONMessageBodyReader;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import java.io.IOException;
 import java.util.Properties;
 

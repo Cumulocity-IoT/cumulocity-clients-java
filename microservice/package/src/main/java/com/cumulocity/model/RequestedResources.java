@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import lombok.*;
 import org.svenson.JSONProperty;
 
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 
 import static com.cumulocity.model.Cpu.CPU_VALUE_PATTERN;
 import static com.cumulocity.model.DataSize.DATA_SIZE_VALUE_PATTERN;

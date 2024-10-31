@@ -5,9 +5,9 @@ import com.cumulocity.model.authentication.CumulocityCredentials;
 import com.cumulocity.model.authentication.CumulocityOAuthCredentials;
 import lombok.RequiredArgsConstructor;
 
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.HttpHeaders;
 import java.io.IOException;
 
 @RequiredArgsConstructor

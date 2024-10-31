@@ -7,7 +7,7 @@ import org.svenson.JSONProperty;
 
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 @EqualsAndHashCode(callSuper = false)
 public class ExternalIDRepresentation extends AbstractExtensibleRepresentation {

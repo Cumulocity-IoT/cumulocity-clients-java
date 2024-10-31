@@ -3,7 +3,7 @@ package com.cumulocity.rest.representation.application;
 import com.cumulocity.rest.representation.AbstractExtensibleRepresentation;
 import lombok.*;
 
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 @Data
 @ToString(exclude = "password")

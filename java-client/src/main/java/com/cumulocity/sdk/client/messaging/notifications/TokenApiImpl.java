@@ -9,11 +9,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.svenson.JSONParser;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import java.util.Base64;
 
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.OK;
 
 @Slf4j
 @RequiredArgsConstructor

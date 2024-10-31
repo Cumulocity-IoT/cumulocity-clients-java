@@ -24,7 +24,7 @@ import com.cumulocity.rest.representation.PageStatisticsRepresentation;
 import com.cumulocity.rest.representation.TestCollectionRepresentation;
 import com.cumulocity.rest.representation.measurement.MeasurementCollectionRepresentation;
 import com.cumulocity.sdk.client.common.UriMatcher;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
