@@ -26,11 +26,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.settings.Proxy;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.apache.maven.shared.filtering.MavenResourcesExecution;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
@@ -361,7 +363,9 @@ public class PackageMojo extends BaseMicroserviceMojo {
         log.info("Validating manifest");
         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), Charsets.UTF_8)) {
             final MicroserviceManifest manifest = MicroserviceManifest.from(reader);
-            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+            ValidatorFactory factory = Validation.byDefaultProvider().configure()
+                    .messageInterpolator(new ParameterMessageInterpolator())
+                    .buildValidatorFactory();
             Validator validator = factory.getValidator();
 
             Set<ConstraintViolation<MicroserviceManifest>> constraintViolations = validator.validate(manifest);

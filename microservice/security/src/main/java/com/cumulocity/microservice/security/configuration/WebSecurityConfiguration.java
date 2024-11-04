@@ -5,6 +5,7 @@ import com.cumulocity.microservice.security.filter.PreAuthenticateServletFilter;
 import com.cumulocity.microservice.security.filter.PrePostFiltersConfiguration;
 import com.cumulocity.microservice.security.token.CumulocityOAuthConfiguration;
 import com.cumulocity.microservice.security.token.CumulocityOAuthMicroserviceFilter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -12,10 +13,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,11 +55,13 @@ public class WebSecurityConfiguration {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   CumulocityOAuthMicroserviceFilter cumulocityOAuthMicroserviceFilter,
-                                                   PreAuthenticateServletFilter preAuthenticateServletFilter,
-                                                   PostAuthenticateServletFilter postAuthenticateServletFilter)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CumulocityOAuthMicroserviceFilter cumulocityOAuthMicroserviceFilter,
+            PreAuthenticateServletFilter preAuthenticateServletFilter,
+            PostAuthenticateServletFilter postAuthenticateServletFilter,
+            ObjectProvider<Customizer<SessionManagementConfigurer<HttpSecurity>>> sessionManagementConfigurer
+    ) throws Exception {
 
         if (securityRolesLoggersActuator.length == 0) {
             securityRolesLoggersActuator = new String[] {"TENANT_MANAGEMENT_ADMIN"};
@@ -64,14 +69,14 @@ public class WebSecurityConfiguration {
 
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/metadata", "/health", "/prometheus", "/metrics", "/version").permitAll()
+                        .requestMatchers("/metadata", "/health", "/prometheus", "/metrics", "/version", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/loggers/*", "/loggers").hasAnyRole(securityRolesLoggersActuator)
                         .anyRequest().fullyAuthenticated()
                 )
                 .httpBasic(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .securityContext(AbstractHttpConfigurer::disable)
-                .sessionManagement(AbstractHttpConfigurer::disable)
+                .sessionManagement(sessionManagementConfigurer.getIfAvailable(() -> AbstractHttpConfigurer::disable))
                 .requestCache(AbstractHttpConfigurer::disable);
 
         http.addFilterBefore(cumulocityOAuthMicroserviceFilter, BasicAuthenticationFilter.class);
