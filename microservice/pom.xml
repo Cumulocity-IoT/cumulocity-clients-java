@@ -25,6 +25,7 @@
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
         <guava.version>32.0.1-jre</guava.version>
+        <joda-time.version>2.10.10</joda-time.version>
         <nimbusds.version>9.41.2</nimbusds.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <spring-security.version>5.8.15</spring-security.version>
@@ -95,6 +96,11 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda-time.version}</version>
             </dependency>
 
             <!-- microservice libraries -->
@@ -169,6 +175,19 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.5.0</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-rules</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -265,33 +284,25 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <id>enforce-banned-dependencies</id>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <bannedDependencies>
-                                    <level>ERROR</level>
-                                    <excludes>
-                                        <exclude>org.bouncycastle:bcprov-jdk15on</exclude>
-                                    </excludes>
-                                    <message>Please don't use org.bouncycastle:bcprov-jdk15on. Instead use bcprov-jdk18on!</message>
-                                </bannedDependencies>
-                                <bannedDependencies>
-                                    <level>ERROR</level>
-                                    <excludes>
-                                        <exclude>org.bouncycastle:bcpkix-jdk15on</exclude>
-                                    </excludes>
-                                    <message>Please don't use org.bouncycastle:bcpkix-jdk15on. Instead use bcpkix-jdk18on!</message>
-                                </bannedDependencies>
-                            </rules>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <rules>
+                        <requireMavenVersion>
+                            <version>3.9</version>
+                        </requireMavenVersion>
+                        <requireJavaVersion>
+                            <version>${java.version}</version>
+                        </requireJavaVersion>
+                        <dependencyConvergence />
+                        <bannedDependencies>
+                            <excludes><exclude>commons-logging:commons-logging</exclude></excludes>
+                            <message>Dependency to commons-logging:commons-logging was replaced by org.slf4j:jcl-over-slf4j</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>org.bouncycastle:*-jdk15on</exclude></excludes>
+                            <message>Dependency to org.bouncycastle:*-jdk15on was replaced by org.bouncycastle:*-jdk18on</message>
+                        </bannedDependencies>
+                    </rules>
+                </configuration>
             </plugin>
 
             <plugin>
