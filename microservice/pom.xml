@@ -25,10 +25,9 @@
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
         <guava.version>32.0.1-jre</guava.version>
-        <joda-time.version>2.10.10</joda-time.version>
+        <joda-time.version>2.10.14</joda-time.version>
         <nimbusds.version>9.41.2</nimbusds.version>
-        <spring-boot.version>2.7.18</spring-boot.version>
-        <spring-security.version>5.8.15</spring-security.version>
+        <spring-boot.version>3.0.13</spring-boot.version>
     </properties>
 
     <modules>
@@ -52,13 +51,6 @@
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
 
             <!-- BOM DEPENDENCIES START -->
-            <dependency> <!-- before spring-boot-dependencies to override it -->
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-bom</artifactId>
-                <version>${spring-security.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -307,6 +299,38 @@
                         <bannedDependencies>
                             <excludes><exclude>commons-logging:commons-logging</exclude></excludes>
                             <message>Dependency to commons-logging:commons-logging was replaced by org.slf4j:jcl-over-slf4j</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.activation</exclude></excludes>
+                            <message>Dependency to javax.activation was replaced by jakarta.activation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.annotation</exclude></excludes>
+                            <message>Dependency to javax.annotation was replaced by jakarta.annotation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.el</exclude></excludes>
+                            <message>Dependency to javax.el was replaced by jakarta.el</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.mail</exclude></excludes>
+                            <message>Dependency to javax.mail was replaced by jakarta.mail</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.servlet</exclude></excludes>
+                            <message>Dependency to javax.servlet was replaced by jakarta.servlet</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.validation</exclude></excludes>
+                            <message>Dependency to javax.validation was replaced by jakarta.validation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.ws.rs</exclude></excludes>
+                            <message>Dependency to javax.ws.rs was replaced by jakarta.ws.rs</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.xml.bind</exclude></excludes>
+                            <message>Dependency to javax.xml.bind was replaced by jakarta.xml.bind</message>
                         </bannedDependencies>
                         <bannedDependencies>
                             <excludes><exclude>org.bouncycastle:*-jdk15on</exclude></excludes>

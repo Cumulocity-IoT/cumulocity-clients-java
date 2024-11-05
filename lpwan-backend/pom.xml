@@ -49,8 +49,8 @@
             <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -173,6 +173,38 @@
                         <bannedDependencies>
                             <excludes><exclude>commons-logging:commons-logging</exclude></excludes>
                             <message>Dependency to commons-logging:commons-logging was replaced by org.slf4j:jcl-over-slf4j</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.activation</exclude></excludes>
+                            <message>Dependency to javax.activation was replaced by jakarta.activation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.annotation</exclude></excludes>
+                            <message>Dependency to javax.annotation was replaced by jakarta.annotation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.el</exclude></excludes>
+                            <message>Dependency to javax.el was replaced by jakarta.el</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.mail</exclude></excludes>
+                            <message>Dependency to javax.mail was replaced by jakarta.mail</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.servlet</exclude></excludes>
+                            <message>Dependency to javax.servlet was replaced by jakarta.servlet</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.validation</exclude></excludes>
+                            <message>Dependency to javax.validation was replaced by jakarta.validation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.ws.rs</exclude></excludes>
+                            <message>Dependency to javax.ws.rs was replaced by jakarta.ws.rs</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.xml.bind</exclude></excludes>
+                            <message>Dependency to javax.xml.bind was replaced by jakarta.xml.bind</message>
                         </bannedDependencies>
                         <bannedDependencies>
                             <excludes><exclude>org.bouncycastle:*-jdk15on</exclude></excludes>

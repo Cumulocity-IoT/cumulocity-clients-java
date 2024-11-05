@@ -42,7 +42,7 @@
 	<properties>
 		<maven-plugin-version>3.2.5</maven-plugin-version>
 		<docker-client.version>8.16.0</docker-client.version>
-		<hibernate-validator.version>6.2.5.Final</hibernate-validator.version>
+		<hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
 		<!-- TODO: fix javadoc generation. Will be implemented in DM-1177 -->
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
@@ -65,14 +65,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.glassfish</groupId>
-			<artifactId>javax.el</artifactId>
-			<version>3.0.0</version>
+			<groupId>jakarta.el</groupId>
+			<artifactId>jakarta.el-api</artifactId>
+			<version>5.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>

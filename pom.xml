@@ -43,10 +43,10 @@
         <nexus.basePath>/nexus/content/repositories</nexus.basePath>
 
         <!-- https://docs.spring.io/spring-boot/docs/2.7.x/reference/html/dependency-versions.html -->
-        <activation-api.version>1.2.2</activation-api.version>
-        <annotation-api.version>1.3.2</annotation-api.version>
-        <aspectj.version>1.9.7</aspectj.version>
-        <assertj.version>3.22.0</assertj.version>
+        <activation-api.version>2.1.2</activation-api.version>
+        <annotation-api.version>2.1.1</annotation-api.version>
+        <aspectj.version>1.9.20.1</aspectj.version>
+        <assertj.version>3.23.1</assertj.version>
         <awaitility.version>4.2.0</awaitility.version>
         <cometd.version>3.0.10</cometd.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
@@ -58,22 +58,22 @@
         <guava.version>32.0.1-jre</guava.version>
         <hamcrest.version>2.2</hamcrest.version>
         <httpclient.version>4.5.14</httpclient.version>
-        <jaxrs-api.version>2.1.6</jaxrs-api.version>
-        <jersey.version>2.35</jersey.version>
-        <jetty.version>9.4.53.v20231009</jetty.version>
-        <joda-time.version>2.10.10</joda-time.version>
+        <jaxrs-api.version>3.1.0</jaxrs-api.version>
+        <jersey.version>3.1.3</jersey.version>
+        <jetty.version>11.0.18</jetty.version>
+        <joda-time.version>2.10.14</joda-time.version>
         <jsonassert.version>1.5.1</jsonassert.version>
         <jsr305-api.version>3.0.2</jsr305-api.version>
-        <junit.version>5.8.2</junit.version>
+        <junit.version>5.9.3</junit.version>
         <lombok.version>1.18.30</lombok.version>
         <microemu.version>2.0.4</microemu.version>
-        <mock-server.version>5.11.2</mock-server.version>
-        <mockito.version>4.5.1</mockito.version>
-        <slf4j.version>1.7.36</slf4j.version>
-        <spring-framework.version>5.3.31</spring-framework.version>
+        <mock-server.version>5.15.0</mock-server.version>
+        <mockito.version>4.8.1</mockito.version>
+        <slf4j.version>2.0.9</slf4j.version>
+        <spring-framework.version>6.0.23</spring-framework.version>
         <svenson.version>1.5.8</svenson.version>
-        <validation-api.version>2.0.2</validation-api.version>
-        <xml-api.version>2.3.3</xml-api.version>
+        <validation-api.version>3.0.2</validation-api.version>
+        <xml-api.version>4.0.1</xml-api.version>
 
         <exclude.test.groups>com.cumulocity.test.category.IntegrationTest</exclude.test.groups>
     </properties>
@@ -125,6 +125,41 @@
                         <bannedDependencies>
                             <excludes><exclude>commons-logging:commons-logging</exclude></excludes>
                             <message>Dependency to commons-logging:commons-logging was replaced by org.slf4j:jcl-over-slf4j</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.activation</exclude></excludes>
+                            <message>Dependency to javax.activation was replaced by jakarta.activation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.annotation</exclude></excludes>
+                            <message>Dependency to javax.annotation was replaced by jakarta.annotation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.el</exclude></excludes>
+                            <message>Dependency to javax.el was replaced by jakarta.el</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.mail</exclude></excludes>
+                            <message>Dependency to javax.mail was replaced by jakarta.mail</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.servlet</exclude></excludes>
+                            <includes>
+                                <include>javax.servlet:javax.servlet-api:4.0.1:jar:test</include> <!-- required by org.mock-server in test scope -->
+                            </includes>
+                            <message>Dependency to javax.servlet was replaced by jakarta.servlet</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.validation</exclude></excludes>
+                            <message>Dependency to javax.validation was replaced by jakarta.validation</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.ws.rs</exclude></excludes>
+                            <message>Dependency to javax.ws.rs was replaced by jakarta.ws.rs</message>
+                        </bannedDependencies>
+                        <bannedDependencies>
+                            <excludes><exclude>javax.xml.bind</exclude></excludes>
+                            <message>Dependency to javax.xml.bind was replaced by jakarta.xml.bind</message>
                         </bannedDependencies>
                         <bannedDependencies>
                             <excludes><exclude>org.bouncycastle:*-jdk15on</exclude></excludes>
@@ -635,9 +670,14 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.sun.activation</groupId>
-                <artifactId>jakarta.activation</artifactId>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
                 <version>${activation-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.annotation</groupId>
+                <artifactId>jakarta.annotation-api</artifactId>
+                <version>${annotation-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>jakarta.validation</groupId>
@@ -654,11 +694,6 @@
                 <artifactId>jakarta.xml.bind-api</artifactId>
                 <version>${xml-api.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>javax.annotation</groupId>
-                <artifactId>javax.annotation-api</artifactId>
-                <version>${annotation-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
@@ -764,6 +799,12 @@
                 <artifactId>mockserver-netty</artifactId>
                 <version>${mock-server.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.skyscreamer</groupId>
