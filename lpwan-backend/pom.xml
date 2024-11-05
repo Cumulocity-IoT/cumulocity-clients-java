@@ -193,7 +193,7 @@
                     <doctitle>Cumulocity lpwan backend shared component</doctitle>
                     <windowtitle>Cumulocity lpwan backend shared component</windowtitle>
                     <overview>${project.basedir}/javadoc/overview.html</overview>
-                    <source>8</source>
+                    <source>${java.version}</source>
                 </configuration>
             </plugin>
         </plugins>

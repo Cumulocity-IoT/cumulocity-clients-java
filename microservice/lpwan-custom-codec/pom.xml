@@ -13,8 +13,6 @@
     <name>Cumulocity :: Clients Java :: Microservice :: LPWAN Custom Codec Base</name>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
         <springfox.version>2.6.1</springfox.version>
         <assertj-swagger.version>0.6.0</assertj-swagger.version>
         <assertj-core.version>3.8.0</assertj-core.version>

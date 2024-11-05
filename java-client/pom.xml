@@ -399,7 +399,7 @@
 						<configuration>
 							<doctitle>Cumulocity SDK - Java Client API</doctitle>
 							<windowtitle>Cumulocity SDK - Java Client API</windowtitle>
-							<source>8</source>
+							<source>${java.version}</source>
 							<sourcepath>${project.build.directory}/dependenciesSources/delombok;./src/main/java</sourcepath>
 						</configuration>
 					</plugin>

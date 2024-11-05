@@ -83,7 +83,7 @@
                 <configuration>
                     <doctitle>Cumulocity SDK - MQTT Service</doctitle>
                     <windowtitle>Cumulocity SDK - MQTT Service Java</windowtitle>
-                    <source>8</source>
+                    <source>${java.version}</source>
                     <includeDependencySources>true</includeDependencySources>
                     <dependencySourceIncludes>
                         <dependencySourceInclude>com.cumulocity.sdk.mqtt:mqtt-service-model</dependencySourceInclude>
