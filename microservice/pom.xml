@@ -49,16 +49,16 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- must be defined before spring-boot-dependencies -->
-            <dependency>
+            <!-- PLEASE add new dependencies ALPHABETICALLY -->
+
+            <!-- BOM DEPENDENCIES START -->
+            <dependency> <!-- before spring-boot-dependencies to override it -->
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-bom</artifactId>
                 <version>${spring-security.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-
-            <!-- spring boot -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -66,6 +66,96 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- BOM DEPENDENCIES END -->
+
+            <!-- PLEASE add new dependencies ALPHABETICALLY -->
+
+            <!-- COMPILE DEPENDENCIES START -->
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>java-client</artifactId>
+                <version>${cumulocity.clients.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>java-client-model</artifactId>
+                <version>${cumulocity.clients.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-monitoring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-platform-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-properties</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-security</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-settings</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>microservice-subscription</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbusds.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${joda-time.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <!-- COMPILE DEPENDENCIES END -->
+
+            <!-- PLEASE add new dependencies ALPHABETICALLY -->
+
+            <!-- TEST DEPENDENCIES START -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>
@@ -77,98 +167,9 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${commons-lang.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.nimbusds</groupId>
-                <artifactId>nimbus-jose-jwt</artifactId>
-                <version>${nimbusds.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpkix-jdk18on</artifactId>
-                <version>${bouncycastle.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>${joda-time.version}</version>
-            </dependency>
+            <!-- TEST DEPENDENCIES END -->
 
-            <!-- microservice libraries -->
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-security</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-subscription</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-logging</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-context</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-properties</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-platform-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-autoconfigure</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-monitoring</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>microservice-settings</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <!-- fixing client java -->
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>java-client-model</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>java-client</artifactId>
-                <version>${cumulocity.clients.version}</version>
-            </dependency>
+            <!-- PLEASE add new dependencies ALPHABETICALLY -->
         </dependencies>
     </dependencyManagement>
 
