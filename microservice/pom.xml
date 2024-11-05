@@ -20,11 +20,14 @@
         <nexus.basePath>/nexus/content/repositories</nexus.basePath>
 
         <aspectj.version>1.8.13</aspectj.version>
+        <bouncycastle.version>1.78.1</bouncycastle.version>
+        <commons-lang.version>2.6</commons-lang.version>
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
         <guava.version>32.0.1-jre</guava.version>
         <jetty.version>9.4.53.v20231009</jetty.version>
         <logback.version>1.2.13</logback.version>
+        <nimbusds.version>9.41.2</nimbusds.version>
         <rest-assured.version>4.5.1</rest-assured.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <spring-security.version>5.8.15</spring-security.version>
@@ -94,7 +97,21 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbusds.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
