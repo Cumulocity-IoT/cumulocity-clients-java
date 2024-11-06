@@ -1,0 +1,47 @@
+name: Publish Build Descriptor
+# Should be as an composite action in c8y-component-base
+on:
+  workflow_call:
+    inputs:
+      release-version:
+        description: Release version (without appender). Eg 1020.552.0
+        required: true
+        type: string
+      release-line:
+        description: Name of the CI pipeline branch. Eg 10.19.0.x or CD
+        required: true
+        type: string
+
+jobs:
+  update-build-descriptor:
+    name: Publish Build Descriptor
+    runs-on: [ cumulocity-clients-java ]
+
+    env:
+      COMPONENT_NAME: java-sdk
+
+    steps:
+      - name: Get GH App token
+        # uses https://github.com/github-apps/manticore-component-release
+        id: app-token
+        uses: Cumulocity-IoT/github-app-token@v1
+        with:
+          app_id: ${{ secrets.MANTICORE_RELEASE_APP_ID }}
+          installation_id: ${{ secrets.MANTICORE_RELEASE_INSTALL_ID }}
+          private_key: ${{ secrets.MANTICORE_RELEASE_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update build descriptor
+        uses: Cumulocity-IoT/c8y-manticore-actions/update-component-descriptor@v1
+        with:
+          token: ${{steps.app-token.outputs.token}}
+          release_train: ${{inputs.release-line }}
+          release_version: ${{inputs.release-version }}
+          component_name: ${{env.COMPONENT_NAME}}
+          descriptor_file_path: build-descriptor/${{env.COMPONENT_NAME}}.json.j2
+          git_user_name: GitHub Actions
+          git_user_email: actions@github.com
