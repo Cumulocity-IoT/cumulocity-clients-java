@@ -8,8 +8,8 @@
     <version>${revision}${changelist}</version>
 
     <properties>
-        <revision>1020.145.0</revision>
-        <changelist></changelist>
+        <revision>1020.146.0</revision>
+        <changelist>-SNAPSHOT</changelist>
 
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
