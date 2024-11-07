@@ -7,12 +7,6 @@ on:
         description: Release version (without appender). Eg 1020.552.0
         required: false
         type: string
-      # Will be removed when MTM-60550 is done
-      dry-run:
-        description: If set to true build descriptor will not be pushed.
-        required: false
-        default: true
-        type: boolean
 
 permissions:
   contents: write
@@ -28,5 +22,4 @@ jobs:
     with:
       release-version: ${{ inputs.release-version }}
       release-line: 10.19.0.x
-      dry-run: ${{ inputs.dry-run }}
     secrets: inherit
