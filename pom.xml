@@ -288,7 +288,7 @@
                 <plugin>
                     <groupId>org.projectlombok</groupId>
                     <artifactId>lombok-maven-plugin</artifactId>
-                    <version>${lombok.version}.0</version>
+                    <version>1.18.20.0</version>
                     <dependencies>
                         <!-- Use newer Lombok to fix https://github.com/awhitford/lombok.maven/issues/98 -->
                         <dependency>
