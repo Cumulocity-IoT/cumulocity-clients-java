@@ -1,12 +1,17 @@
 name: Compliance
 on:
-  workflow_dispatch:
-  pull_request:
-    types:
-      # defaults
-      - opened
-      - synchronize
-      - reopened
+  workflow_call:
+    inputs:
+      is-release:
+        required: true
+        type: boolean
+        description: Is compliance done in release
+    outputs:
+      version:
+        value: ${{ jobs.dependency-scan.outputs.build-id }}
+      build-url:
+        value: ${{ jobs.dependency-scan.outputs.build-url }}
+
 
 permissions:
   contents: read
@@ -42,12 +47,21 @@ jobs:
 
       - name: Calculate compliance upload identifier
         id: calculate_upload_id
+        if: ${{ ! inputs.is-release }}
         run: |
           VERSION=`.jenkins/scripts/mvn.sh --quiet --non-recursive --file pom.xml --define exec.executable='echo' --define exec.args='${revision}' exec:exec `
           HASH=$(git rev-parse --short "$GITHUB_SHA")
           echo "Setting VERSION to '$VERSION-build$(date +'%Y%m%d')-$HASH' (github.ref=${{ github.ref }})"
           echo "BUILD_ID=$VERSION-build$(date +'%Y%m%d')-$HASH" >> $GITHUB_ENV
-          
+
+      - name: Calculate release compliance upload identifier
+        id: calculate_release_upload_id
+        if: ${{ inputs.is-release }}
+        run: |
+          VERSION=`.jenkins/scripts/mvn.sh --quiet --non-recursive --file pom.xml --define exec.executable='echo' --define exec.args='${revision}' exec:exec `
+          echo "Setting VERSION to '$VERSION'"
+          echo "BUILD_ID=$VERSION" >> $GITHUB_ENV
+
       - uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/third-party-compliance-setup@compliance-v3
         with:
           component-name: ${{ env.COMPONENT_NAME }}
@@ -66,6 +80,13 @@ jobs:
         uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/third-party-licensing-check@compliance-v3
         with:
           dry-run: ${{ contains(github.event.pull_request.labels.*.name, 'tp-request-skip') }} # during workflow dev/testing set this label on the PR; prevents submitting third party approval requests to TCA
+
+      - name: Upload a final third party list and download third party license file
+        uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/third-party-release-sbom@compliance-v3
+        id: third_party_release_sbom
+        if: ${{ inputs.is-release }}
+        with:
+          publish-cloud-release: true
       
       - uses: Cumulocity-IoT/c8y-component-base/.github/actions/compliance/export@compliance-v3
         name: Review Compliance Export  
@@ -75,5 +96,8 @@ jobs:
           product-idata-code: ${{env.IDATA_CODE}}
           component-dependencies-idata-version: ""
           export-compliance-yaml: ./export-compliance.yaml
-          dry-run: true
-          verbose: false
+          dry-run: ${{ ! inputs.is-release }}
+          verbose: ${{ ! inputs.is-release }}
+    outputs:
+      build-id: ${{ env.BUILD_ID }}
+      build-url: ${{env.TPP_FETCHER_URL}}/api/projects/${{env.COMPONENT_NAME}}/builds/${{ env.BUILD_ID }}/cycloneDX

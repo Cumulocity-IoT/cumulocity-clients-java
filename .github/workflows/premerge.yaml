@@ -1,0 +1,24 @@
+name: pre-merge
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    types:
+      # defaults
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  Compliance:
+    permissions: write-all
+    uses: ./.github/workflows/compliance.yaml
+    secrets: inherit
+    with:
+      is-release: false

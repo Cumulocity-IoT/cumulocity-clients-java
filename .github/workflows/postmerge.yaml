@@ -2,11 +2,13 @@ name: Postmerge
 
 on:
   workflow_dispatch:
-    inputs:
-      release-version:
-        description: Release version (without appender). Eg 1020.552.0
-        required: false
-        type: string
+  push:
+    tags:
+      # Execute only on 10.19.0.x
+      - clients-java-1020.**
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
 
 permissions:
   contents: write
@@ -14,12 +16,20 @@ permissions:
   checks: write
   pull-requests: write
 
-
 jobs:
+  Compliance:
+    name: Dependency scan
+    permissions: write-all
+    uses: ./.github/workflows/compliance.yaml
+    secrets: inherit
+    with:
+      is-release: true
+
   Build-descriptor-update:
+    needs: [Compliance]
     name: Publish Version
     uses: ./.github/workflows/update-build-descriptor.yaml
     with:
-      release-version: ${{ inputs.release-version }}
+      release-version: ${{ needs.Compliance.outputs.version }}
       release-line: 10.19.0.x
     secrets: inherit
