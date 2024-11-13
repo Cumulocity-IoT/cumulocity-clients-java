@@ -405,7 +405,7 @@ public class LansitecEncoder implements EncoderService {
         "version":"1.0-SNAPSHOT",
         "contextPath": "lora-codec-lansitec",
         "provider": {
-            "name":"Software AG"
+            "name":"Cumulocity GmbH"
         },
         "isolation":"MULTI_TENANT",
         "requiredRoles": [
@@ -417,7 +417,7 @@ public class LansitecEncoder implements EncoderService {
 
 ## Deploying the example codec microservice
 
-1. Clone the https://github.com/SoftwareAG/cumulocity-examples.git repository.
+1. Clone the https://github.com/Cumulocity-IoT/cumulocity-examples.git repository.
 2. Build the microservice using `mvn clean install`. This creates a ZIP file of the lanitec codec microservice.
 3. Deploy the microservice by uploading the ZIP file using the Cumulocity IoT Administration UI.
 4. Open the Device Management application. Under **Device protocols**, you can now see the device types with type "lpwan" created by the lansitec codec microservice.

@@ -26,7 +26,7 @@ After reviewing the "Hello world" examples, continue with the section [Developin
 Finally, here are some references for getting started with the basic technologies underlying the SDK:
 
 -   The client libraries use the Cumulocity REST interfaces as underlying communication protocol as described in the section on [REST](/guides/device-sdk/rest).
--   All examples and libraries are open source -- check https://github.com/SoftwareAG.
+-   All examples and libraries are open source -- check https://github.com/Cumulocity-IoT
 
 JavaDoc for the <a href="http://resources.cumulocity.com/documentation/javasdk/current/" target="_blank">Java client API</a> can be found on our resources site.
 

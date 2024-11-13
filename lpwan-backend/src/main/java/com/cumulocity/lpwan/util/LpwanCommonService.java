@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 @Slf4j
 public class LpwanCommonService {
 
-    public static final String MAINTAINER = "Software AG";
+    public static final String MAINTAINER = "Cumulocity GmbH";
 
     @Autowired
     InventoryApi inventoryApi;

@@ -31,8 +31,7 @@
             <name>MIT License</name>
             <url>http://en.wikipedia.org/wiki/MIT_License</url>
             <comments>
-                Copyright (c) 2023 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA,
-                and/or its subsidiaries and/or its affiliates and/or their licensors.
+                Copyright (c) 2024 Cumulocity GmbH, Düsseldorf, Germany and/or its affiliates and/or their licensors.
 
                 SPDX-License-Identifier: Apache-2.0
 
@@ -52,7 +51,7 @@
     </licenses>
 
     <organization>
-        <name>Copyright (c) 2023 Software AG</name>
+        <name>Cumulocity GmbH</name>
     </organization>
 
     <build>

@@ -24,9 +24,7 @@ public class BinariesApiIT extends JavaSdkITBase {
     public void shouldUploadFile() {
         // given
         ManagedObjectRepresentation container = new ManagedObjectRepresentation();
-        container.setName("java-sdk_sample_binary");
-        container.setType("sag_Binary");
-        container.set("iot.cumulocity.com", "domain");
+        configureMockedContainer(container, "java-sdk_sample_binary");
 
         InputStream file = getFileInputStream("sampleTestFile.txt");
         // when
@@ -40,9 +38,7 @@ public class BinariesApiIT extends JavaSdkITBase {
     public void shouldUploadFileWithCustomMimeType() {
         // given
         ManagedObjectRepresentation container = new ManagedObjectRepresentation();
-        container.setName("java-sdk_sample_binary");
-        container.setType("sag_Binary");
-        container.set("iot.cumulocity.com", "domain");
+        configureMockedContainer(container, "java-sdk_sample_binary");
 
         InputStream file = getFileInputStream("sampleTestFile.txt");
         // when
@@ -57,9 +53,7 @@ public class BinariesApiIT extends JavaSdkITBase {
         // given
         byte[] binaryData = {0, 1, 2, 4, 5, 6};
         ManagedObjectRepresentation container = new ManagedObjectRepresentation();
-        container.setName("java-sdk_binary_upload");
-        container.setType("sag_Binary");
-        container.set("iot.cumulocity.com", "domain");
+        configureMockedContainer(container, "java-sdk_binary_upload");
         // when
         ManagedObjectRepresentation uploaded = binariesApi.uploadFile(container, binaryData);
         // then
@@ -142,10 +136,15 @@ public class BinariesApiIT extends JavaSdkITBase {
 
     private GId uploadBinaryFile(InputStream inputStream) {
         ManagedObjectRepresentation container = new ManagedObjectRepresentation();
-        container.setName("java-sdk_sample_binary");
-        container.setType("sag_Binary");
-        container.set("iot.cumulocity.com", "domain");
+        configureMockedContainer(container, "java-sdk_sample_binary");
         return binariesApi.uploadFile(container, inputStream).getId();
+    }
+
+
+    private static void configureMockedContainer(ManagedObjectRepresentation container, String name) {
+        container.setName(name);
+        container.setType("cumulocity_Binary");
+        container.set("iot.cumulocity.com", "domain");
     }
 
     private InputStream getFileInputStream(String fileName){
