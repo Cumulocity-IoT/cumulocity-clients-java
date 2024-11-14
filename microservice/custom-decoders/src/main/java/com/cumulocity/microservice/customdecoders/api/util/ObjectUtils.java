@@ -6,7 +6,7 @@ package com.cumulocity.microservice.customdecoders.api.util;
 
 import java.util.Optional;
 import com.google.common.base.Supplier;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;

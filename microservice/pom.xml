@@ -21,13 +21,10 @@
 
         <!-- https://docs.spring.io/spring-boot/docs/2.7.x/reference/html/dependency-versions.html -->
         <bouncycastle.version>1.78.1</bouncycastle.version>
-        <commons-lang.version>2.6</commons-lang.version>
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
-        <guava.version>32.0.1-jre</guava.version>
-        <joda-time.version>2.10.14</joda-time.version>
         <nimbusds.version>9.41.2</nimbusds.version>
-        <spring-boot.version>3.0.13</spring-boot.version>
+        <spring-boot.version>3.1.12</spring-boot.version>
     </properties>
 
     <modules>
@@ -52,6 +49,13 @@
 
             <!-- BOM DEPENDENCIES START -->
             <dependency>
+                <groupId>com.nsn.cumulocity.clients-java</groupId>
+                <artifactId>clients-java</artifactId>
+                <version>${cumulocity.clients.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
@@ -63,26 +67,6 @@
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
 
             <!-- COMPILE DEPENDENCIES START -->
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${commons-lang.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>java-client</artifactId>
-                <version>${cumulocity.clients.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.nsn.cumulocity.clients-java</groupId>
-                <artifactId>java-client-model</artifactId>
-                <version>${cumulocity.clients.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.nsn.cumulocity.clients-java</groupId>
                 <artifactId>microservice-autoconfigure</artifactId>
@@ -134,13 +118,13 @@
                 <version>${nimbusds.version}</version>
             </dependency>
             <dependency>
-                <groupId>joda-time</groupId>
-                <artifactId>joda-time</artifactId>
-                <version>${joda-time.version}</version>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpkix-jdk18on</artifactId>
+                <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
             <!-- COMPILE DEPENDENCIES END -->
@@ -198,6 +182,7 @@
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
+                        <parameters>true</parameters>
                     </configuration>
                 </plugin>
                 <plugin>

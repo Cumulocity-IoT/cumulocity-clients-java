@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -63,7 +63,7 @@ public abstract class LnsConnection {
 
     public void setName(String name) {
         if (StringUtils.isNotBlank(name)) {
-            name = StringEscapeUtils.escapeHtml(name);
+            name = StringEscapeUtils.escapeHtml4(name);
             this.name = name.trim().toLowerCase();
         } else {
             this.name = null;

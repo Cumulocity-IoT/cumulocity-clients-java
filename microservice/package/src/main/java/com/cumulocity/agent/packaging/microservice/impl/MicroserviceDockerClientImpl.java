@@ -8,7 +8,7 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.okhttp.OkDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -142,7 +142,7 @@ public class MicroserviceDockerClientImpl extends AbstractLogEnabled implements 
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
         log.debug("Docker Configuration used: {}", config);
 
-        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder().dockerHost(config.getDockerHost()).build();
+        DockerHttpClient httpClient = new OkDockerHttpClient.Builder().dockerHost(config.getDockerHost()).build();
 
         return DockerClientImpl.getInstance(config, httpClient);
     }

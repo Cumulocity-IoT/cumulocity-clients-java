@@ -71,12 +71,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-            <scope>test</scope>
-        </dependency>
+        
         <dependency>
             <groupId>com.nsn.cumulocity.clients-java</groupId>
             <artifactId>custom-encoders</artifactId>
