@@ -24,7 +24,7 @@
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
         <nimbusds.version>9.41.2</nimbusds.version>
-        <spring-boot.version>3.1.12</spring-boot.version>
+        <spring-boot.version>3.2.11</spring-boot.version>
     </properties>
 
     <modules>
