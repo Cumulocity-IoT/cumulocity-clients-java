@@ -70,7 +70,7 @@
         <mock-server.version>5.15.0</mock-server.version>
         <mockito.version>4.8.1</mockito.version>
         <slf4j.version>2.0.9</slf4j.version>
-        <spring-framework.version>6.0.23</spring-framework.version>
+        <spring-framework.version>6.1.14</spring-framework.version>
         <svenson.version>1.5.8</svenson.version>
         <validation-api.version>3.0.2</validation-api.version>
         <xml-api.version>4.0.1</xml-api.version>
