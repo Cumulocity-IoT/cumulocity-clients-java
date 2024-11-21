@@ -5,9 +5,11 @@ import com.cumulocity.microservice.security.filter.PreAuthenticateServletFilter;
 import com.cumulocity.microservice.security.filter.PrePostFiltersConfiguration;
 import com.cumulocity.microservice.security.token.CumulocityOAuthConfiguration;
 import com.cumulocity.microservice.security.token.CumulocityOAuthMicroserviceFilter;
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -25,6 +27,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -56,7 +60,7 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
+            HttpSecurity http, HandlerMappingIntrospector introspector, ServerProperties serverProperties,
             CumulocityOAuthMicroserviceFilter cumulocityOAuthMicroserviceFilter,
             PreAuthenticateServletFilter preAuthenticateServletFilter,
             PostAuthenticateServletFilter postAuthenticateServletFilter,
@@ -67,10 +71,21 @@ public class WebSecurityConfiguration {
             securityRolesLoggersActuator = new String[] {"TENANT_MANAGEMENT_ADMIN"};
         }
 
+        // https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#match-by-mvc
+        MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector)
+                .servletPath(serverProperties.getServlet().getContextPath());
+
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/metadata", "/health", "/prometheus", "/metrics", "/version", "/error").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/loggers/*", "/loggers").hasAnyRole(securityRolesLoggersActuator)
+                        // https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#match-by-dispatcher-type
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+                        .requestMatchers(mvc.pattern("/metadata")).permitAll()
+                        .requestMatchers(mvc.pattern("/health")).permitAll()
+                        .requestMatchers(mvc.pattern("/prometheus")).permitAll()
+                        .requestMatchers(mvc.pattern("/metrics")).permitAll()
+                        .requestMatchers(mvc.pattern("/version")).permitAll()
+                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/loggers/*")).hasAnyRole(securityRolesLoggersActuator)
+                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/loggers")).hasAnyRole(securityRolesLoggersActuator)
                         .anyRequest().fullyAuthenticated()
                 )
                 .httpBasic(withDefaults())
