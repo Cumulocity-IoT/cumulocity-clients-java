@@ -58,6 +58,7 @@
         <guava.version>32.0.1-jre</guava.version>
         <hamcrest.version>2.2</hamcrest.version>
         <httpclient.version>4.5.14</httpclient.version>
+        <jackson.version>2.17.2</jackson.version>
         <jaxrs-api.version>3.1.0</jaxrs-api.version>
         <jersey.version>3.1.9</jersey.version>
         <jetty.version>11.0.24</jetty.version>
@@ -563,6 +564,13 @@
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
 
             <!-- BOM DEPENDENCIES START -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
