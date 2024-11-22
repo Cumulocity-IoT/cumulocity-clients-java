@@ -42,7 +42,6 @@
         <nexus.url>http://localhost:8080</nexus.url>
         <nexus.basePath>/nexus/content/repositories</nexus.basePath>
 
-        <!-- https://docs.spring.io/spring-boot/docs/2.7.x/reference/html/dependency-versions.html -->
         <activation-api.version>2.1.3</activation-api.version>
         <annotation-api.version>2.1.1</annotation-api.version>
         <aspectj.version>1.9.22.1</aspectj.version>
@@ -51,6 +50,7 @@
         <cometd.version>3.0.10</cometd.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-codec.version>1.16.1</commons-codec.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
         <commons-io.version>2.17.0</commons-io.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
         <cumulocity-dependencies-tools.version>1020.40.0</cumulocity-dependencies-tools.version>
@@ -605,6 +605,11 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons-collections.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
