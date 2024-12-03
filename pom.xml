@@ -34,7 +34,7 @@
     </modules>
 
     <properties>
-        <revision>1018.540.250</revision>
+        <revision>1018.540.260</revision>
         <changelist></changelist>
         <!-- hardcoded version of `3rd-license-maven-plugin` and `cumulocity-sdk-resource-bundles` -->
         <cumulocity.core.version>1015.0.0</cumulocity.core.version>

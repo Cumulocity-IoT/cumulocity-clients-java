@@ -11,7 +11,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1018.540.250</revision>
+        <revision>1018.540.260</revision>
         <changelist></changelist>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
