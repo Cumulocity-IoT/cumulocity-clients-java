@@ -91,7 +91,7 @@ public class WebSecurityConfiguration {
                 .httpBasic(withDefaults())
                // .csrf(AbstractHttpConfigurer::disable)
                 .csrf((csrf) -> csrf
-                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler())
+                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()))
                 .securityContext(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagementConfigurer.getIfAvailable(() -> AbstractHttpConfigurer::disable))
                 .requestCache(AbstractHttpConfigurer::disable);
