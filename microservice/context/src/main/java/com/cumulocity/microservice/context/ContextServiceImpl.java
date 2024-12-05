@@ -77,7 +77,7 @@ public class ContextServiceImpl<C> implements ContextService<C> {
         try {
             return task.call();
         } catch (Exception e) {
-            log.warn("execution of task failed within tenant : {} - {} " , getContextTenant(context), e.getMessage());
+            log.warn("execution of task failed within tenant: {} - {} " , getContextTenant(context), e.getMessage());
             log.debug("execution of task failed within tenant : {} ", getContextTenant(context), e);
             throw Throwables.propagate(e);
         } finally {
