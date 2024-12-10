@@ -22,11 +22,13 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 
 @SpringBootTest(classes = {
         WebSecurityConfigurationTest.TestConfig.class,
@@ -85,11 +87,11 @@ public class WebSecurityConfigurationTest {
 
     @Test
     void allowsLoggersChangesAsTenantAdmin() throws Exception {
-        mvc.perform(post("/loggers/c8y").contentType("application/json").content("{\"configuredLevel\": \"TRACE\"}")
+        mvc.perform(post("/loggers/c8y").with(csrf()).contentType("application/json").content("{\"configuredLevel\": \"TRACE\"}")
                  .with(httpBasic("admin", "admin")))
                  .andExpect(status().is2xxSuccessful());
 
-        mvc.perform(get("/loggers/c8y").with(httpBasic("user", "user")))
+        mvc.perform(get("/loggers/c8y").with(csrf()).with(httpBasic("user", "user")))
                  .andExpect(status().isOk())
                  .andExpect(jsonPath("configuredLevel").value("TRACE"));
     }
