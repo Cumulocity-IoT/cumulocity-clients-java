@@ -28,6 +28,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -89,7 +90,8 @@ public class WebSecurityConfiguration {
                         .anyRequest().fullyAuthenticated()
                 )
                 .httpBasic(withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf((csrf) -> csrf
+                        .csrfTokenRequestHandler(new XorCsrfTokenRequestAttributeHandler()))
                 .securityContext(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessionManagementConfigurer.getIfAvailable(() -> AbstractHttpConfigurer::disable))
                 .requestCache(AbstractHttpConfigurer::disable);
