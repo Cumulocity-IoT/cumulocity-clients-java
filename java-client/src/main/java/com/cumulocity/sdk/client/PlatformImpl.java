@@ -34,6 +34,8 @@ import com.cumulocity.sdk.client.devicecontrol.DeviceCredentialsApi;
 import com.cumulocity.sdk.client.devicecontrol.DeviceCredentialsApiImpl;
 import com.cumulocity.sdk.client.event.EventApi;
 import com.cumulocity.sdk.client.event.EventApiImpl;
+import com.cumulocity.sdk.client.event.EventBinaryApi;
+import com.cumulocity.sdk.client.event.EventBinaryApiImpl;
 import com.cumulocity.sdk.client.identity.IdentityApi;
 import com.cumulocity.sdk.client.identity.IdentityApiImpl;
 import com.cumulocity.sdk.client.inventory.BinariesApi;
@@ -229,6 +231,12 @@ public class PlatformImpl extends PlatformParameters implements Platform {
     public EventApi getEventApi() throws SDKException {
         RestConnector restConnector = createRestConnector();
         return new EventApiImpl(restConnector, new UrlProcessor(), getPlatformApi(restConnector).getEvent(), getPageSize());
+    }
+
+    @Override
+    public EventBinaryApi getEventBinaryApi() throws SDKException {
+        RestConnector restConnector = createRestConnector();
+        return new EventBinaryApiImpl(restConnector, getPlatformApi(restConnector).getEvent());
     }
 
     @Override
