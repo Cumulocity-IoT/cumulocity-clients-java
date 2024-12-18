@@ -15,6 +15,7 @@ import com.cumulocity.sdk.client.base.Supplier;
 import com.cumulocity.sdk.client.devicecontrol.DeviceControlApi;
 import com.cumulocity.sdk.client.devicecontrol.DeviceCredentialsApi;
 import com.cumulocity.sdk.client.event.EventApi;
+import com.cumulocity.sdk.client.event.EventBinaryApi;
 import com.cumulocity.sdk.client.identity.IdentityApi;
 import com.cumulocity.sdk.client.inventory.BinariesApi;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
@@ -139,6 +140,14 @@ public class CumulocityClientFeature {
         @Bean(name = {"eventApi", "tenantEventApi"})
         public EventApi getEventApi() throws SDKException {
             return delegate.getEventApi();
+        }
+
+        @Override
+        @Primary
+        @TenantScope
+        @Bean(name = {"eventBinaryApi", "tenantEventBinaryApi"})
+        public EventBinaryApi getEventBinaryApi() throws SDKException {
+            return delegate.getEventBinaryApi();
         }
 
         @Override
@@ -289,6 +298,13 @@ public class CumulocityClientFeature {
         @Bean(name = "userEventApi")
         public EventApi getEventApi() throws SDKException {
             return delegate.getEventApi();
+        }
+
+        @Override
+        @UserScope
+        @Bean(name = "userEventApi")
+        public EventBinaryApi getEventBinaryApi() throws SDKException {
+            return delegate.getEventBinaryApi();
         }
 
         @Override
