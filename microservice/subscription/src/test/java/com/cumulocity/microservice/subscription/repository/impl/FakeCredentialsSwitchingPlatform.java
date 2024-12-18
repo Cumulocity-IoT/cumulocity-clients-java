@@ -202,6 +202,16 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
             }
 
             @Override
+            public void postFile(String path, byte[] bytes, MediaType mediaType) {
+                throw new UnsupportedOperationException("unsuported");
+            }
+
+            @Override
+            public void putFile(String path, byte[] bytes, MediaType mediaType) {
+                throw new UnsupportedOperationException("unsuported");
+            }
+
+            @Override
             public <T extends ResourceRepresentation> T postFile(String path, T representation, byte[] bytes, MediaType mediaType, Class<T> responseClass) {
                 throw new UnsupportedOperationException("unsuported");
             }

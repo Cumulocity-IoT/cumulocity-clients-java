@@ -228,6 +228,26 @@ public class RestConnector implements RestOperations {
     }
 
     @Override
+    public void postFile(String path, byte[] bytes, MediaType mediaType) {
+        Builder builder = getResourceBuilder(path);
+        FormDataMultiPart form = new FormDataMultiPart();
+        form.bodyPart(new FormDataBodyPart("filesize", String.valueOf(bytes.length)));
+        form.bodyPart(new FormDataBodyPart("file", bytes, mediaType));
+        Entity<MultiPart> file = Entity.entity(form, addBoundary(form.getMediaType()));
+        responseParser.checkStatus(builder.post(file), CREATED.getStatusCode());
+    }
+
+    @Override
+    public void putFile(String path, byte[] bytes, MediaType mediaType) {
+        Builder builder = getResourceBuilder(path);
+        FormDataMultiPart form = new FormDataMultiPart();
+        form.bodyPart(new FormDataBodyPart("filesize", String.valueOf(bytes.length)));
+        form.bodyPart(new FormDataBodyPart("file", bytes, mediaType));
+        Entity<MultiPart> file = Entity.entity(form, addBoundary(form.getMediaType()));
+        responseParser.checkStatus(builder.put(file), CREATED.getStatusCode());
+    }
+
+    @Override
     public <T extends ResourceRepresentation> T postFileAsStream(String path, T representation, InputStream inputStream, Class<T> responseClass) {
         return postFileAsStream(path, representation, inputStream, MediaType.APPLICATION_OCTET_STREAM_TYPE, responseClass);
     }
