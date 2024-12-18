@@ -23,6 +23,10 @@ import com.cumulocity.sdk.client.PlatformParameters;
 import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.notification.*;
 
+/**
+ * @deprecated Use {@link com.cumulocity.sdk.client.notification.NotificationSubscriberProducer} instead.
+ */
+@Deprecated
 public class InventoryRealtimeDeleteAwareNotificationsSubscriber implements Subscriber<String, ManagedObjectDeleteAwareNotification> {
 
     private static final String REALTIME_NOTIFICATIONS_URL = "notification/realtime";

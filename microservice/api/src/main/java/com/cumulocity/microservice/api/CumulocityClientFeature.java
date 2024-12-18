@@ -21,6 +21,7 @@ import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.cumulocity.sdk.client.measurement.MeasurementApi;
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionApi;
 import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
+import com.cumulocity.sdk.client.notification.NotificationSubscriberProducer;
 import com.cumulocity.sdk.client.option.SystemOptionApi;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
 import com.cumulocity.sdk.client.user.UserApi;
@@ -205,6 +206,13 @@ public class CumulocityClientFeature {
             return delegate.getNotificationSubscriptionApi();
         }
 
+        @Primary
+        @TenantScope
+        @Bean(name = {"notificationSubscriberProducer", "tenantNotificationSubscriberProducer"})
+        public NotificationSubscriberProducer getNotificationSubscriberProducer() {
+            return new NotificationSubscriberProducer(delegate);
+        }
+
         @Override
         @PreDestroy
         public void close() {
@@ -345,6 +353,12 @@ public class CumulocityClientFeature {
         @Bean(name = "userNotificationSubscriptionApi")
         public NotificationSubscriptionApi getNotificationSubscriptionApi() throws SDKException {
             return delegate.getNotificationSubscriptionApi();
+        }
+
+        @UserScope
+        @Bean(name = "userNotificationSubscriberProducer")
+        public NotificationSubscriberProducer getNotificationSubscriberProducer() {
+            return new NotificationSubscriberProducer(delegate);
         }
 
         @Override

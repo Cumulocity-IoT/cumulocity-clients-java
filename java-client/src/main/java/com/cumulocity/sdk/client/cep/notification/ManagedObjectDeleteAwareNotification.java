@@ -5,7 +5,11 @@ package com.cumulocity.sdk.client.cep.notification;
  * however DELETE notification has just String value. 
  * That is why data has to be of type Object to support both.
  *
+ * @deprecated This class is superseded by {@link
+ * com.cumulocity.rest.representation.notification.NotificationRepresentation.ManagedObjectNotificationRepresentation}.
+ * Use it based on {@link com.cumulocity.sdk.client.notification.NotificationSubscriberProducer}.
  */
+@Deprecated
 public class ManagedObjectDeleteAwareNotification {
     
     public ManagedObjectDeleteAwareNotification() {}
