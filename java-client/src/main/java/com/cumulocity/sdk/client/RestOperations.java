@@ -41,6 +41,8 @@ public interface RestOperations extends AutoCloseable {
     <T extends ResourceRepresentation> T postFile(String path, T representation, byte[] bytes, MediaType mediaType,
                                                   Class<T> responseClass);
 
+    void postFile(String path, byte[] bytes, MediaType mediaType);
+
     @Deprecated
     <T extends ResourceRepresentation> T postFileAsStream(String path, T representation, InputStream inputStream,
                                                           Class<T> responseClass);
@@ -51,6 +53,8 @@ public interface RestOperations extends AutoCloseable {
     <T extends ResourceRepresentation> T postMultiPart(String path, FormDataMultiPart form, Class<T> responseClass);
 
     <T extends ResourceRepresentationWithId> T put(String path, MediaType mediaType, T representation) throws SDKException;
+
+    void putFile(String path, byte[] bytes, MediaType mediaType);
 
     <T extends ResourceRepresentation> Future postAsync(String path, CumulocityMediaType mediaType, T representation)
                                             throws SDKException;
