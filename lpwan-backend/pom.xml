@@ -8,8 +8,8 @@
     <version>${revision}${changelist}</version>
 
     <properties>
-        <revision>2025.1.0</revision>
-        <changelist></changelist>
+        <revision>2025.2.0</revision>
+        <changelist>-SNAPSHOT</changelist>
 
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
