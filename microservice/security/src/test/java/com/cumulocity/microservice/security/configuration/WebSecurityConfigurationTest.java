@@ -22,6 +22,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -85,7 +86,7 @@ public class WebSecurityConfigurationTest {
 
     @Test
     void allowsLoggersChangesAsTenantAdmin() throws Exception {
-        mvc.perform(post("/loggers/c8y").contentType("application/json").content("{\"configuredLevel\": \"TRACE\"}")
+        mvc.perform(post("/loggers/c8y").with(csrf()).contentType("application/json").content("{\"configuredLevel\": \"TRACE\"}")
                  .with(httpBasic("admin", "admin")))
                  .andExpect(status().is2xxSuccessful());
 
