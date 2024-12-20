@@ -401,7 +401,7 @@ public class LansitecEncoder implements EncoderService {
 
 ```json
     {
-        "apiVersion":"1",
+        "apiVersion":"2",
         "version":"1.0-SNAPSHOT",
         "contextPath": "lora-codec-lansitec",
         "provider": {
