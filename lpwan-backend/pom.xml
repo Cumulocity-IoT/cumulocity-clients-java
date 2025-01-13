@@ -139,6 +139,57 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>3.5.0</version>
+                    <configuration>
+                        <rules>
+                            <requireMavenVersion>
+                                <version>3.9</version>
+                            </requireMavenVersion>
+                            <requireJavaVersion>
+                                <version>${java.version}</version>
+                            </requireJavaVersion>
+                            <dependencyConvergence />
+                            <bannedDependencies>
+                                <excludes><exclude>commons-logging:commons-logging</exclude></excludes>
+                                <message>Dependency to commons-logging:commons-logging was replaced by org.slf4j:jcl-over-slf4j</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.activation</exclude></excludes>
+                                <message>Dependency to javax.activation was replaced by jakarta.activation</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.annotation</exclude></excludes>
+                                <message>Dependency to javax.annotation was replaced by jakarta.annotation</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.el</exclude></excludes>
+                                <message>Dependency to javax.el was replaced by jakarta.el</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.mail</exclude></excludes>
+                                <message>Dependency to javax.mail was replaced by jakarta.mail</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.servlet</exclude></excludes>
+                                <message>Dependency to javax.servlet was replaced by jakarta.servlet</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.validation</exclude></excludes>
+                                <message>Dependency to javax.validation was replaced by jakarta.validation</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.ws.rs</exclude></excludes>
+                                <message>Dependency to javax.ws.rs was replaced by jakarta.ws.rs</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>javax.xml.bind</exclude></excludes>
+                                <message>Dependency to javax.xml.bind was replaced by jakarta.xml.bind</message>
+                            </bannedDependencies>
+                            <bannedDependencies>
+                                <excludes><exclude>org.bouncycastle:*-jdk15on</exclude></excludes>
+                                <message>Dependency to org.bouncycastle:*-jdk15on was replaced by org.bouncycastle:*-jdk18on</message>
+                            </bannedDependencies>
+                        </rules>
+                    </configuration>
                     <executions>
                         <execution>
                             <id>enforce-rules</id>
@@ -152,6 +203,36 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>flatten-maven-plugin</artifactId>
                     <version>1.6.0</version>
+                    <configuration>
+                        <updatePomFile>true</updatePomFile>
+                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>flatten</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>flatten</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>flatten.clean</id>
+                            <phase>clean</phase>
+                            <goals>
+                                <goal>clean</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <parameters>true</parameters>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -163,129 +244,46 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Dependencies>https://third-parties.c8y.io/sboms/java-sdk/third_parties_java-sdk_${project.version}.html</Dependencies>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <!-- Javadoc -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.11.1</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>aggregate-jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <doctitle>Cumulocity lpwan backend shared component</doctitle>
+                        <windowtitle>Cumulocity lpwan backend shared component</windowtitle>
+                        <overview>${project.basedir}/javadoc/overview.html</overview>
+                        <source>${java.version}</source>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <configuration>
-                    <rules>
-                        <requireMavenVersion>
-                            <version>3.9</version>
-                        </requireMavenVersion>
-                        <requireJavaVersion>
-                            <version>${java.version}</version>
-                        </requireJavaVersion>
-                        <dependencyConvergence />
-                        <bannedDependencies>
-                            <excludes><exclude>commons-logging:commons-logging</exclude></excludes>
-                            <message>Dependency to commons-logging:commons-logging was replaced by org.slf4j:jcl-over-slf4j</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.activation</exclude></excludes>
-                            <message>Dependency to javax.activation was replaced by jakarta.activation</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.annotation</exclude></excludes>
-                            <message>Dependency to javax.annotation was replaced by jakarta.annotation</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.el</exclude></excludes>
-                            <message>Dependency to javax.el was replaced by jakarta.el</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.mail</exclude></excludes>
-                            <message>Dependency to javax.mail was replaced by jakarta.mail</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.servlet</exclude></excludes>
-                            <message>Dependency to javax.servlet was replaced by jakarta.servlet</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.validation</exclude></excludes>
-                            <message>Dependency to javax.validation was replaced by jakarta.validation</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.ws.rs</exclude></excludes>
-                            <message>Dependency to javax.ws.rs was replaced by jakarta.ws.rs</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>javax.xml.bind</exclude></excludes>
-                            <message>Dependency to javax.xml.bind was replaced by jakarta.xml.bind</message>
-                        </bannedDependencies>
-                        <bannedDependencies>
-                            <excludes><exclude>org.bouncycastle:*-jdk15on</exclude></excludes>
-                            <message>Dependency to org.bouncycastle:*-jdk15on was replaced by org.bouncycastle:*-jdk18on</message>
-                        </bannedDependencies>
-                    </rules>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <configuration>
-                    <updatePomFile>true</updatePomFile>
-                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                </configuration>
-                <executions>
-                    <execution>
-                    <id>flatten</id>
-                    <phase>process-resources</phase>
-                    <goals>
-                        <goal>flatten</goal>
-                    </goals>
-                    </execution>
-                    <execution>
-                    <id>flatten.clean</id>
-                    <phase>clean</phase>
-                    <goals>
-                        <goal>clean</goal>
-                    </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <parameters>true</parameters>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.2</version>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Dependencies>https://third-parties.c8y.io/sboms/java-sdk/third_parties_java-sdk_${project.version}.html</Dependencies>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-            <!-- Javadoc -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>aggregate-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <doctitle>Cumulocity lpwan backend shared component</doctitle>
-                    <windowtitle>Cumulocity lpwan backend shared component</windowtitle>
-                    <overview>${project.basedir}/javadoc/overview.html</overview>
-                    <source>${java.version}</source>
-                </configuration>
             </plugin>
         </plugins>
     </build>
