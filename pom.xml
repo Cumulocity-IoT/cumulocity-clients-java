@@ -22,6 +22,7 @@
     </distributionManagement>
 
     <modules>
+        <module>resource-bundle</module>
         <module>svenson</module>
         <module>device-capability-model</module>
         <module>java-client-model</module>
@@ -53,7 +54,6 @@
         <commons-collections.version>3.2.2</commons-collections.version>
         <commons-io.version>2.17.0</commons-io.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
-        <cumulocity-dependencies-tools.version>1020.40.0</cumulocity-dependencies-tools.version>
         <gson.version>2.10.1</gson.version>
         <guava.version>32.0.1-jre</guava.version>
         <hamcrest.version>2.2</hamcrest.version>
@@ -120,6 +120,14 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-remote-resources-plugin</artifactId>
             </plugin>
         </plugins>
 
@@ -373,6 +381,21 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>3.6.0</version>
+                    <executions>
+                        <execution>
+                            <id>should-skip-remote-resources-process</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>bsh-property</goal>
+                            </goals>
+                            <configuration>
+                                <source>skipRemoteResourcesProcess = "jar" != "${project.packaging}"</source>
+                                <properties>
+                                    <property>skipRemoteResourcesProcess</property>
+                                </properties>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -387,16 +410,39 @@
                 <plugin>
                     <groupId>org.cyclonedx</groupId>
                     <artifactId>cyclonedx-maven-plugin</artifactId>
+                    <version>2.7.10</version>
                     <configuration>
                         <outputName>java-sdk-bom</outputName>
                         <verbose>false</verbose><!-- = ${cyclonedx.verbose} -->
                     </configuration>
-                    <version>2.7.10</version>
                 </plugin>
                 <plugin>
                     <groupId>org.jvnet.jaxb2.maven2</groupId>
                     <artifactId>maven-jaxb2-plugin</artifactId>
                     <version>0.8.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-remote-resources-plugin</artifactId>
+                    <version>3.3.0</version>
+                    <configuration>
+                        <properties>
+                            <thirdPartiesLink>https://third-parties.c8y.io/sboms/java-sdk/third_parties_java-sdk_${revision}${changelist}.html</thirdPartiesLink>
+                        </properties>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>process</goal>
+                            </goals>
+                            <configuration>
+                                <skip>${skipRemoteResourcesProcess}</skip>
+                                <resourceBundles>
+                                    <resourceBundle>com.nsn.cumulocity.clients-java:resource-bundle:${revision}${changelist}</resourceBundle>
+                                </resourceBundles>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -792,32 +838,6 @@
     </dependencyManagement>
 
     <profiles>
-        <profile>
-            <id>ci</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-remote-resources-plugin</artifactId>
-                        <version>1.1</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>process</goal>
-                                </goals>
-                                <configuration>
-                                    <resourceBundles>
-                                        <resourceBundle>
-                                            com.nsn.cumulocity.dependencies:cumulocity-sdk-resource-bundles:${cumulocity-dependencies-tools.version}
-                                        </resourceBundle>
-                                    </resourceBundles>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>compliance</id>
             <!-- We want to generate a single dependency bom for all the projects -->

@@ -83,7 +83,6 @@
 							<goal>attach-descriptor</goal>
 						</goals>
 					</execution>
-
 				</executions>
 			</plugin>
 			<plugin>
