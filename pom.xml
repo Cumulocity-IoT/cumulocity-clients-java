@@ -277,6 +277,13 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.4.2</version>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Dependencies>https://third-parties.c8y.io/sboms/java-sdk/third_parties_java-sdk_${revision}${changelist}.html</Dependencies>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
                     <executions>
                         <execution>
                             <id>test-jar</id>
