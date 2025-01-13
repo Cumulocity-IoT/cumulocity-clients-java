@@ -248,9 +248,52 @@
                     </executions>
                 </plugin>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.6.0</version>
+                    <executions>
+                        <execution>
+                            <id>should-skip-remote-resources-process</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>bsh-property</goal>
+                            </goals>
+                            <configuration>
+                                <source>skipRemoteResourcesProcess = "jar" != "${project.packaging}"</source>
+                                <properties>
+                                    <property>skipRemoteResourcesProcess</property>
+                                </properties>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>3.8.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-remote-resources-plugin</artifactId>
+                    <version>3.3.0</version>
+                    <configuration>
+                        <properties>
+                            <thirdPartiesLink>https://third-parties.c8y.io/sboms/java-sdk/third_parties_java-sdk_${revision}${changelist}.html</thirdPartiesLink>
+                        </properties>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>process</goal>
+                            </goals>
+                            <configuration>
+                                <skip>${skipRemoteResourcesProcess}</skip>
+                                <resourceBundles>
+                                    <resourceBundle>com.nsn.cumulocity.clients-java:resource-bundle:${revision}${changelist}</resourceBundle>
+                                </resourceBundles>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -365,6 +408,14 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-remote-resources-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
