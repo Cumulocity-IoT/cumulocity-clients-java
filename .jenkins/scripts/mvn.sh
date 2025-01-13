@@ -10,6 +10,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -f | --file ) FILE=true; shift ;;
     -q | --quiet ) VERBOSE=false; shift ;;
+    -T | --threads ) THREADS=false; shift ;;
     * ) shift ;;
   esac
 done
@@ -32,15 +33,27 @@ else
   fi
 fi
 
-MAVEN_PROFILES="${MAVEN_PROFILES:-ci}"
-MAVEN_CLI_ARGS="--activate-profiles $MAVEN_PROFILES ${MAVEN_CLI_ARGS}"
-
-if [ -n "$WORKSPACE" ]; then
-  MAVEN_CLI_ARGS="--define \"maven.repo.local=${WORKSPACE}/.m2/repository\" ${MAVEN_CLI_ARGS}"
+if [ -n "${MAVEN_PROFILES}" ]; then
+  MAVEN_CLI_ARGS="--activate-profiles ${MAVEN_PROFILES} ${MAVEN_CLI_ARGS}"
 fi
 
-MVN_SETTINGS="${MVN_SETTINGS:-$HOME/.m2/settings.xml}"
-MAVEN_CLI_ARGS="--settings $MVN_SETTINGS ${MAVEN_CLI_ARGS}"
+if [ -n "${WORKSPACE}" ]; then
+  MAVEN_CLI_ARGS="--define maven.repo.local=${WORKSPACE}/.m2/repository ${MAVEN_CLI_ARGS}"
+elif [ -n "${GITHUB_WORKSPACE}" ]; then
+  MAVEN_CLI_ARGS="--define maven.repo.local=${GITHUB_WORKSPACE}/.m2/repository ${MAVEN_CLI_ARGS}"
+fi
+
+if [ -n "${MVN_SETTINGS}" ]; then
+  MAVEN_CLI_ARGS="--settings ${MVN_SETTINGS} ${MAVEN_CLI_ARGS}"
+fi
+
+if [ "${THREADS}" == "true" ]; then
+  MAVEN_CLI_ARGS="--threads 4 ${MAVEN_CLI_ARGS}"
+fi
+
+if [ "${CI}" == "true" ]; then
+  MAVEN_CLI_ARGS="--activate-profiles ci --batch-mode ${MAVEN_CLI_ARGS}"
+fi
 
 if [ $VERBOSE = true ]; then
   MAVEN_CLI_ARGS="--show-version --errors ${MAVEN_CLI_ARGS}"
@@ -51,11 +64,11 @@ fi
 export MAVEN_OPTS="-Xms256m -Xmx512m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=128m ${MAVEN_OPTS}"
 
 if [ $FILE = true ]; then # run specified file only
-  ./mvnw --batch-mode ${MAVEN_CLI_ARGS}
+  ./mvnw ${MAVEN_CLI_ARGS}
 else # run all contained sub-projects
   for project in '.' 'microservice' 'lpwan-backend' 'cumulocity-sdk'; do
   if [ -d "$project" ]; then
-    ./mvnw --batch-mode --file ${project} ${MAVEN_CLI_ARGS}
+    ./mvnw --file ${project} ${MAVEN_CLI_ARGS}
   fi
 done
 fi
