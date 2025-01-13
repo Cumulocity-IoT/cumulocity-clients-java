@@ -205,6 +205,7 @@
                         <verbose>true</verbose>
                     </configuration>
                 </plugin>
+
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -217,7 +218,18 @@
                         </execution>
                     </executions>
                 </plugin>
-
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Dependencies>https://third-parties.c8y.io/sboms/java-sdk/third_parties_java-sdk_${project.version}.html</Dependencies>
+                            </manifestEntries>
+                        </archive>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>com.nsn.cumulocity.clients-java</groupId>
                     <artifactId>microservice-package-maven-plugin</artifactId>
