@@ -205,22 +205,6 @@
                     </executions>
             </plugin>
 			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<configuration>
-					<instructions>
-						<Export-Package>
-							com.cumulocity.sdk.client.*,
-							!*
-						</Export-Package>
-						<Import-Package>
-							!com.cumulocity.sdk.client.*,
-							*
-						</Import-Package>
-					</instructions>
-				</configuration>
-			</plugin>
-			<plugin>
 				<artifactId>maven-site-plugin</artifactId>
 				<executions>
 					<execution>
