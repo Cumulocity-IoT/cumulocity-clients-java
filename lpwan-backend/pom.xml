@@ -19,6 +19,12 @@
         <commons-text.version>1.12.0</commons-text.version>
     </properties>
 
+    <organization>
+        <name>(C) Cumulocity GmbH</name>
+    </organization>
+
+    <inceptionYear>2021</inceptionYear>
+
     <dependencyManagement>
         <dependencies>
             <dependency>

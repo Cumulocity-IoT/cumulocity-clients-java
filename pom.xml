@@ -109,6 +109,8 @@
         <name>(C) Cumulocity GmbH</name>
     </organization>
 
+    <inceptionYear>2013</inceptionYear>
+
     <build>
         <plugins>
             <plugin>

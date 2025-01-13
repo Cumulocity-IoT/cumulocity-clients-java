@@ -43,6 +43,12 @@
         <module>settings</module>
     </modules>
 
+    <organization>
+        <name>(C) Cumulocity GmbH</name>
+    </organization>
+
+    <inceptionYear>2017</inceptionYear>
+
     <dependencyManagement>
         <dependencies>
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
