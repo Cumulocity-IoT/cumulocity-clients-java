@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      # Execute only on 10.19.0.x
-      - clients-java-1020.**
+      - clients-java-20.**
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
