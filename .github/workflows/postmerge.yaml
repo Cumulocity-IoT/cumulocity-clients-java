@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-      # Execute only on 10.19.0.x
-      - clients-java-1020.**
+      - clients-java-20**
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
@@ -31,5 +30,5 @@ jobs:
     uses: ./.github/workflows/update-build-descriptor.yaml
     with:
       release-version: ${{ needs.Compliance.outputs.version }}
-      release-line: 10.19.0.x
+      release-line: 2025
     secrets: inherit
