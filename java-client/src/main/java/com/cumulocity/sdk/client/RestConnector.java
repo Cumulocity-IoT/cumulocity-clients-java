@@ -55,7 +55,7 @@ import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import static com.cumulocity.sdk.client.util.StringUtils.isNotBlank;
-import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
+import static jakarta.ws.rs.core.MediaType.*;
 import static jakarta.ws.rs.core.Response.Status.*;
 import static org.glassfish.jersey.media.multipart.Boundary.addBoundary;
 
@@ -239,12 +239,13 @@ public class RestConnector implements RestOperations {
 
     @Override
     public void putFile(String path, byte[] bytes, MediaType mediaType) {
-        Builder builder = getResourceBuilder(path);
-        FormDataMultiPart form = new FormDataMultiPart();
-        form.bodyPart(new FormDataBodyPart("filesize", String.valueOf(bytes.length)));
-        form.bodyPart(new FormDataBodyPart("file", bytes, mediaType));
-        Entity<MultiPart> file = Entity.entity(form, addBoundary(form.getMediaType()));
-        responseParser.checkStatus(builder.put(file), CREATED.getStatusCode());
+        Builder builder = client.target(path).request();
+        builder = addApplicationKeyHeader(builder);
+        builder = addTfaHeader(builder);
+        builder = addRequestOriginHeader(builder);
+        builder = applyInterceptors(builder);
+        Entity<?> stream = Entity.entity(bytes, mediaType);
+        responseParser.checkStatus(builder.put(stream), CREATED.getStatusCode());
     }
 
     @Override
