@@ -96,7 +96,7 @@ pipeline {
           catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
             sh """\
                 .jenkins/scripts/mvn.sh verify \\
-                    --file . --projects resource-bundle,java-client --also-make \\
+                    --file . --projects java-client --also-make \\
                     --define 'cumulocity.host=http://${params.TEST_DOMAIN}:8111'
                """.stripIndent()
           }

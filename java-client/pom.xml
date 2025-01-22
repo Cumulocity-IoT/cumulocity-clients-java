@@ -102,11 +102,16 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.nsn.cumulocity.clients-java</groupId>
+			<artifactId>resource-bundle</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
