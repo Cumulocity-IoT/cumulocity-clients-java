@@ -22,8 +22,8 @@ ssh ${RESOURCES_SSH_ARGS} 'bash -xe 2>&1' << DISCONNECT_FROM_RESOURCES_SSH | awk
     # But without sudo we can't always do it, for example there are old dependencies 
     # that did not change, perhaps set by different user.  
     # Overall, it doesn't matter to us, so these options are skipping this preservation.
-    tar  --touch --no-overwrite-dir -xvf ${STAGING_RESOURCES_DIR}/maven-repository-${VERSION}.tar.gz --directory /resources/maven/repository/ com
-    tar  --touch --no-overwrite-dir -xvf ${STAGING_RESOURCES_DIR}/maven-repository-${VERSION}.tar.gz --directory /resources/maven/repository/ c8y
+    tar --touch --skip-old-files -xvf ${STAGING_RESOURCES_DIR}/maven-repository-${VERSION}.tar.gz --directory /resources/maven/repository/ com
+    tar --touch --skip-old-files -xvf ${STAGING_RESOURCES_DIR}/maven-repository-${VERSION}.tar.gz --directory /resources/maven/repository/ c8y
 
     # java-client-javadoc
     echo "Publishing staging java-client-${VERSION}-javadoc.jar to resources "
