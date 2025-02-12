@@ -368,7 +368,10 @@ def update_instance(instance) {
 
       dir('cumulocity-chef/smoke') {
         try {
-          withCredentials([usernamePassword(credentialsId: 'stage-chartmuseum', passwordVariable: 'HELM_PASSWORD', usernameVariable: 'HELM_USERNAME')]) {
+          withCredentials([
+              usernamePassword(credentialsId: 'stage-chartmuseum', passwordVariable: 'HELM_PASSWORD', usernameVariable: 'HELM_USERNAME'),
+              usernamePassword(credentialsId: 'resources-pre-merge', passwordVariable: 'PRE_MERGE_PASSWORD', usernameVariable: 'PRE_MERGE_USERNAME')
+            ]) {
             sh """#!/bin/bash
               set -eux
 
@@ -389,6 +392,8 @@ def update_instance(instance) {
                 -e 'ssl_management_version=${VERSIONS.currentSem}' \
                 -e 'registry_user=${HELM_USERNAME}' \
                 -e 'registry_password=${HELM_PASSWORD}' \
+                -e 'pre_merge_user='${PRE_MERGE_USERNAME}' \
+                -e 'pre_merge_password='${PRE_MERGE_PASSWORD}' \
                 pre-merge-deploy.yaml
             """
           }
