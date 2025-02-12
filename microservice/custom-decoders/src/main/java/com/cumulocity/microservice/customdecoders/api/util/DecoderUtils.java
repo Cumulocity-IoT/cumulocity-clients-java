@@ -106,7 +106,7 @@ public final class DecoderUtils {
     public static byte reverse(byte value) {
         byte y = 0;
         for (int position = 7; position >= 0; position--) {
-            y += ((value & 1) << position);
+            y += (byte) ((value & 1) << position);
             value >>= 1;
         }
         return y;
