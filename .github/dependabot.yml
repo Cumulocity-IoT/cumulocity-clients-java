@@ -1,0 +1,48 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+version: 2
+
+registries:
+  c8y-public: # Define access for a private registry
+    type: "maven-repository"
+    url: "https://nexus.dev.c8y.io/repository/public"
+    username: "${{secrets.C8Y_MVN_PUBLIC_USERNAME}}"
+    password: "${{secrets.C8Y_MVN_PUBLIC_PASSWORD}}"
+
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "00:00"
+      timezone: "Europe/Berlin"
+    registries:
+      - "c8y-public"
+    reviewers:
+      - "Cumulocity-IoT/c8y-data-in-motion"
+      - "Cumulocity-IoT/c8y-microservice-hosting"
+      - "Cumulocity-IoT/c8y-platform-management"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "00:00"
+      timezone: "Europe/Berlin"
+    reviewers:
+      - "Cumulocity-IoT/c8y-data-in-motion"
+      - "Cumulocity-IoT/c8y-microservice-hosting"
+      - "Cumulocity-IoT/c8y-platform-management"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "00:00"
+      timezone: "Europe/Berlin"
+    reviewers:
+      - "Cumulocity-IoT/c8y-data-in-motion"
+      - "Cumulocity-IoT/c8y-microservice-hosting"
+      - "Cumulocity-IoT/c8y-platform-management"
