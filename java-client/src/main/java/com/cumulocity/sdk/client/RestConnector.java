@@ -265,6 +265,13 @@ public class RestConnector implements RestOperations {
     }
 
     @Override
+    public <T extends ResourceRepresentation> T postMultiPart(String path, FormDataMultiPart form, Class<T> responseClass) {
+        Builder builder = getResourceBuilder(path);
+        Entity<MultiPart> request = Entity.entity(form, addBoundary(form.getMediaType()));
+        return parseResponseWithoutId(responseClass, builder.post(request), OK.getStatusCode(), CREATED.getStatusCode());
+    }
+
+    @Override
     public <T extends ResourceRepresentationWithId> T put(String path, MediaType mediaType, T representation) throws SDKException {
         Response response = httpPut(path, mediaType, representation);
         return parseResponseWithId(representation, response, OK.getStatusCode());

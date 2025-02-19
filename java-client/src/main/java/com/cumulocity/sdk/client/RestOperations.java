@@ -7,6 +7,8 @@ import com.cumulocity.sdk.client.buffering.Future;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+
 import java.io.InputStream;
 
 public interface RestOperations extends AutoCloseable {
@@ -47,6 +49,8 @@ public interface RestOperations extends AutoCloseable {
 
     <T extends ResourceRepresentation> T postFileAsStream(String path, T representation, InputStream inputStream, MediaType mediaType,
                                                           Class<T> responseClass);
+
+    <T extends ResourceRepresentation> T postMultiPart(String path, FormDataMultiPart form, Class<T> responseClass);
 
     <T extends ResourceRepresentationWithId> T put(String path, MediaType mediaType, T representation) throws SDKException;
 
