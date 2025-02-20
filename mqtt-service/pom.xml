@@ -18,7 +18,7 @@
 
     <properties>
         <avro.version>1.11.4</avro.version>
-        <tootallnate.websocket.version>1.5.3</tootallnate.websocket.version>
+        <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
     </properties>
 
     <modules>
