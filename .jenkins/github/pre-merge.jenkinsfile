@@ -191,7 +191,10 @@ def build_and_verify() {
 
 def agents_verify() {
   container('default') {
-    withCredentials([file(credentialsId: 'maven-settings', variable: 'MVN_SETTINGS')]) {
+    withCredentials([
+        file(credentialsId: 'maven-settings', variable: 'MVN_SETTINGS'),
+        usernamePassword(credentialsId: 'registry_stage_robot', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
+    ]) {
       withEnv([
           "VERSION=${VERSIONS.revision}",
           "CHANGE_VERSION=.${VERSIONS.changeList}",
@@ -234,14 +237,10 @@ def agents_verify() {
             }
 
             stage('agents docker image') {
-              withCredentials([
-                  usernamePassword(credentialsId: 'registry_stage_robot', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
-              ]) {
-                try {
-                  sh ".jenkins/scripts/mvn.sh -f ssl-management-agent/server deploy --define 'docker.image.version=${VERSIONS.currentSem}'"
-                } catch (e) {
-                  stopPipeline('Publish agent images', e)
-                }
+              try {
+                sh ".jenkins/scripts/mvn.sh -f ssl-management-agent/server deploy --define 'docker.image.version=${VERSIONS.currentSem}'"
+              } catch (e) {
+                stopPipeline('Publish agent images', e)
               }
             }
 
