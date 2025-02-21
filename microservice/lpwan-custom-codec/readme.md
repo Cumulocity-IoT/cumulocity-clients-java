@@ -276,6 +276,7 @@ public class LansitecCodec implements Codec {
         DeviceCommand registerRequestCommand = new DeviceCommand(LansitecEncoder.REGISTER_REQUEST, "Device Config", LansitecEncoder.REGISTER_REQUEST);
 
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
         ObjectNode deviceOperationElements = mapper.createObjectNode();
         deviceOperationElements.put("breakpoint", Boolean.TRUE);
         deviceOperationElements.put("selfadapt", Boolean.TRUE);
@@ -361,6 +362,7 @@ public class LansitecEncoder implements EncoderService {
         LpwanEncoderResult encoderResult = null;
         if (lpwanEncoderInputData.getSourceDeviceInfo().getManufacturer().equalsIgnoreCase("Lansitec") && lpwanEncoderInputData.getSourceDeviceInfo().getModel().equals("Asset Tracker")) {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JodaModule());
             String payload = null;
             try {
                 if (lpwanEncoderInputData.getCommandName().equals(POSITION_REQUEST)) {

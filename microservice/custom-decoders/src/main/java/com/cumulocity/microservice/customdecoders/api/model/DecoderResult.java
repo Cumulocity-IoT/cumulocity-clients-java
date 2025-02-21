@@ -48,11 +48,6 @@ public class DecoderResult extends BaseResourceRepresentation implements Seriali
     @Getter
     private boolean success = true;
 
-    static {
-        // Registering the Joda module to serialize/deserialize the org.joda.time.DateTime
-        new ObjectMapper().registerModule(new JodaModule());
-    }
-
     public static DecoderResult empty() {
         return new DecoderResult();
     }
