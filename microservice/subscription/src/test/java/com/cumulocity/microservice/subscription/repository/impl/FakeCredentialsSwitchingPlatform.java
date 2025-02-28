@@ -23,6 +23,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.springframework.http.HttpMethod;
 
 import jakarta.ws.rs.core.MediaType;
@@ -213,6 +214,11 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
 
             @Override
             public <T extends ResourceRepresentation> T postFileAsStream(String path, T representation, InputStream inputStream, MediaType mediaType, Class<T> responseClass) {
+                throw new UnsupportedOperationException("unsuported");
+            }
+
+            @Override
+            public <T extends ResourceRepresentation> T postMultiPart(String path, FormDataMultiPart form, Class<T> responseClass) {
                 throw new UnsupportedOperationException("unsuported");
             }
 
