@@ -14,7 +14,7 @@
 
     <properties>
         <springfox.version>2.6.1</springfox.version>
-        <assertj-swagger.version>0.6.0</assertj-swagger.version>
+        <assertj-swagger.version>0.8.1</assertj-swagger.version>
         <assertj-core.version>3.8.0</assertj-core.version>
     </properties>
 
