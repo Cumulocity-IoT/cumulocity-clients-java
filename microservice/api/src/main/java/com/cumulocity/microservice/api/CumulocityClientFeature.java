@@ -302,7 +302,7 @@ public class CumulocityClientFeature {
 
         @Override
         @UserScope
-        @Bean(name = "userEventApi")
+        @Bean(name = "userEventBinaryApi")
         public EventBinaryApi getEventBinaryApi() throws SDKException {
             return delegate.getEventBinaryApi();
         }

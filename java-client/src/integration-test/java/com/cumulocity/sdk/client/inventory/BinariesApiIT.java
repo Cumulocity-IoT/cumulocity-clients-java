@@ -4,8 +4,12 @@ import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.common.JavaSdkITBase;
+import lombok.SneakyThrows;
 import org.apache.commons.codec.Resources;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.Resource;
 
 import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -14,10 +18,14 @@ import java.io.InputStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-
 public class BinariesApiIT extends JavaSdkITBase {
 
     final BinariesApi binariesApi = platform.getBinariesApi();
+    final ResourceLoader resourceLoader = new DefaultResourceLoader();
+
+    static BinariesApiIT createBinariesApiIT() {
+        return new BinariesApiIT();
+    }
 
     //smoke test
     @Test
@@ -147,7 +155,9 @@ public class BinariesApiIT extends JavaSdkITBase {
         container.set("iot.cumulocity.com", "domain");
     }
 
+    @SneakyThrows
     private InputStream getFileInputStream(String fileName){
-        return Resources.getInputStream("binaries/" + fileName);
+        Resource resource = resourceLoader.getResource("binaries/" + fileName);
+        return resource.getInputStream();
     }
 }
