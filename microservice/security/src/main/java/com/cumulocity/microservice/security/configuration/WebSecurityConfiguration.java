@@ -64,7 +64,7 @@ public class WebSecurityConfiguration {
             CumulocityOAuthMicroserviceFilter cumulocityOAuthMicroserviceFilter,
             PreAuthenticateServletFilter preAuthenticateServletFilter,
             PostAuthenticateServletFilter postAuthenticateServletFilter,
-            ObjectProvider<Customizer<SessionManagementConfigurer<HttpSecurity>>> sessionManagementConfigurer
+            ObjectProvider<MicroserviceWebSecurityCustomizer> microserviceWebSecurityCustomizer
     ) throws Exception {
 
         if (securityRolesLoggersActuator.length == 0) {
@@ -91,13 +91,15 @@ public class WebSecurityConfiguration {
                 .httpBasic(withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .securityContext(AbstractHttpConfigurer::disable)
-                .sessionManagement(sessionManagementConfigurer.getIfAvailable(() -> AbstractHttpConfigurer::disable))
+                .sessionManagement(AbstractHttpConfigurer::disable)
                 .requestCache(AbstractHttpConfigurer::disable);
 
         http.addFilterBefore(cumulocityOAuthMicroserviceFilter, BasicAuthenticationFilter.class);
 
         http.addFilterBefore(preAuthenticateServletFilter, BasicAuthenticationFilter.class);
         http.addFilterAfter(postAuthenticateServletFilter, AnonymousAuthenticationFilter.class);
+
+        microserviceWebSecurityCustomizer.ifAvailable(customizer -> customizer.customize(http));
 
         return http.build();
     }
