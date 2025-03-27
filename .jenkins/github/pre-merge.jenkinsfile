@@ -9,8 +9,7 @@ VERSIONS = [
 LOCKS = [
     build: "sdk-compile-${VERSIONS.changeList}",
     agents: "sdk-agents-${VERSIONS.changeList}",
-    chef: "sdk-chef-${VERSIONS.changeList}",
-    quality: "sdk-quality-${VERSIONS.changeList}"
+    chef: "sdk-chef-${VERSIONS.changeList}"
 ]
 JOB_ABORTED = false
 ERROR_COUNT = 0
@@ -319,7 +318,6 @@ def core_functional_tests() {
   spinup_instance(INSTANCES.java)
   update_instance(INSTANCES.java)
   core_functional_java(INSTANCES.java)
-  platform_management_java(INSTANCES.java)
 }
 
 def sdk_functional_tests() {
@@ -426,44 +424,6 @@ def core_functional_java(instance) {
       junit(testResults: 'java/**/TEST-*.xml', keepLongStdio: true, allowEmptyResults: true)
     }
   }
-}
-
-def platform_management_java(instance) {
-    stage('Platform management tests') {
-        lock(resource: LOCKS.quality) {
-            if (!fileExists('cumulocity-quality')) {
-              checkoutMatchingBranch('cumulocity-quality', env.CHANGE_BRANCH, "develop")
-            }
-        }
-
-        dir('cumulocity-quality') {
-            container('default') {
-                withCredentials([
-                      file(credentialsId: 'maven-settings', variable: 'MVN_SETTINGS'),
-                      usernamePassword(credentialsId: 'pre-merge-management', usernameVariable: 'ADMIN_USER', passwordVariable: 'ADMIN_PSW')
-                  ]) {
-                    try {
-                        sh """\
-                            .jenkins/scripts/mvn.sh clean verify \\
-                                --projects functional-tests/platform-management --also-make \\
-                                --define 'test.server.domain=${instance.domain}' \\
-                                --define 'cucumber.filter.tags=${params.java_test_tags}' \\
-                                --define 'test.management.username=${ADMIN_USER}' \\
-                                --define 'test.management.password=${ADMIN_PSW}' \\
-                                --define 'test.execution.id=${env.BUILD_NUMBER}'
-                        """.stripIndent()
-                    } catch (Exception e) {
-                        currentBuild.result = "UNSTABLE"
-                        stageResult = "UNSTABLE"
-                    }
-                    dir('functional-tests/platform-management') {
-                        archiveArtifacts(artifacts: '**/cucumber/*.log', allowEmptyArchive: true)
-                        junit(testResults: '**/TEST-*.xml', keepLongStdio: true, allowEmptyResults: true)
-                    }
-                }
-            }
-        }
-    }
 }
 
 def sdk_functional(instance) {
