@@ -23,6 +23,7 @@ import static com.cumulocity.rest.representation.builder.RestRepresentationObjec
 import static com.cumulocity.rest.representation.builder.RestRepresentationObjectMother.anMoRepresentationLike;
 import static com.cumulocity.rest.representation.builder.SampleManagedObjectReferenceRepresentation.MO_REF_REPRESENTATION;
 import static com.cumulocity.rest.representation.builder.SampleManagedObjectRepresentation.MO_REPRESENTATION;
+import static com.cumulocity.sdk.client.inventory.InventoryParam.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.LinkedList;
@@ -44,12 +45,15 @@ public class MOChildrenOrderingIT extends JavaSdkITBase {
 
     private ManagedObject parentMo;
 
+    private ManagedObjectRepresentation parentRep;
+
     @BeforeEach
     public void setUp() throws Exception {
         inventory = platform.getInventoryApi();
 
-        ManagedObjectRepresentation parentRep = inventory.create(aSampleMo().withName("parentRep").build());
-        parentMo = inventory.getManagedObject(parentRep.getId());
+        parentRep = inventory.create(aSampleMo().withName("parentRep").build());
+
+        parentMo = inventory.getManagedObjectApi(parentRep.getId());
     }
 
     @Test
@@ -186,21 +190,21 @@ public class MOChildrenOrderingIT extends JavaSdkITBase {
     private class ChildDevicesQuery implements ChildrenQuery {
         @Override
         public ManagedObjectReferenceCollectionRepresentation getChildren() throws SDKException {
-            return parentMo.get().getChildDevices();
+            return inventory.get(parentRep.getId(), withChildren()).getChildDevices();
         }
     }
 
     private class ChildAssetsQuery implements ChildrenQuery {
         @Override
         public ManagedObjectReferenceCollectionRepresentation getChildren() throws SDKException {
-            return parentMo.get().getChildAssets();
+            return inventory.get(parentRep.getId(), withChildren()).getChildAssets();
         }
     }
 
     private class ChildAdditionsQuery implements ChildrenQuery {
         @Override
         public ManagedObjectReferenceCollectionRepresentation getChildren() throws SDKException {
-            return parentMo.get().getChildAdditions();
+            return inventory.get(parentRep.getId(), withChildren()).getChildAdditions();
         }
     }
 }
