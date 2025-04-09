@@ -14,59 +14,7 @@ LOCKS = [
 JOB_ABORTED = false
 ERROR_COUNT = 0
 
-podTemplate(containers: [
-    containerTemplate(
-        name: 'default',
-        image: 'registry.stage.c8y.io/ci/jdk:17',
-        ttyEnabled: true,
-        command: '/bin/sh -c',
-        args: "cat",
-        envVars: [
-            envVar(key: 'JENKINS_URL', value: 'http://jenkins.ci.svc.cluster.local:8080/'),
-            envVar(key: 'MAVEN_USER_HOME', value: '/home/jenkins/agent'),
-            envVar(key: 'DOCKER_HOST', value: 'tcp://localhost:2375')
-        ],
-        resourceRequestCpu: '3',
-        resourceRequestMemory: '8Gi',
-        resourceLimitCpu: '4',
-        resourceLimitMemory: '8Gi',
-        workingDir: '/home/jenkins/agent'
-    ),
-    containerTemplate(
-        name: 'docker',
-        image: 'registry.stage.c8y.io/ci/docker:19.03-dind',
-        command: 'dockerd-entrypoint.sh',
-        args: '',
-        envVars:[
-            envVar(key: 'DOCKER_TLS_CERTDIR', value: '')
-        ],
-        privileged: true,
-        runAsGroup: '0',
-        runAsUser: '0',
-        resourceRequestCpu: '1',
-        resourceRequestMemory: '1024Mi',
-        resourceLimitCpu: '2',
-        resourceLimitMemory: '1024Mi'
-    ),
-    containerTemplate(
-        name: 'c8y-tools',
-        image: 'registry.stage.c8y.io/ci/c8y-smoke-provisioning:latest',
-        command: '/bin/sh -c',
-        args: 'cat',
-        ttyEnabled: true,
-        resourceRequestCpu: '1',
-        resourceRequestMemory: '1024Mi',
-        resourceLimitCpu: '2',
-        resourceLimitMemory: '1024Mi',
-    ),
-    containerTemplate(
-        name: 'helm',
-        image: 'registry.stage.c8y.io/ci/c8y-helm-charts:latest',
-        ttyEnabled: true,
-        command: 'cat'
-    )
-], imagePullSecrets: ['ci-registry-pull']) {
-
+podTemplate(yaml: readTrusted('.jenkins/github/pre-merge-pod.yaml')) {
   node(POD_LABEL) {
     try {
       job_options()
@@ -114,7 +62,7 @@ def job_options() {
 }
 
 def calculate_versions() {
-  container('default') {
+  container('java') {
     stage('sdk checkout') {
       dir('cumulocity-clients-java') {
         try {
@@ -153,7 +101,7 @@ def calculate_versions() {
 }
 
 def build_and_verify() {
-  container('default') {
+  container('java') {
     withCredentials([file(credentialsId: 'maven-settings', variable: 'MVN_SETTINGS')]) {
       withEnv([
           "VERSION=${VERSIONS.revision}",
@@ -190,7 +138,7 @@ def build_and_verify() {
 }
 
 def agents_verify() {
-  container('default') {
+  container('java') {
     withCredentials([
         file(credentialsId: 'maven-settings', variable: 'MVN_SETTINGS'),
         usernamePassword(credentialsId: 'registry_stage_robot', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')
@@ -278,7 +226,7 @@ def agents_verify() {
 }
 
 def examples_verify() {
-  container('default') {
+  container('java') {
     withCredentials([file(credentialsId: 'maven-settings', variable: 'MVN_SETTINGS')]) {
       withEnv([
           "VERSION=${VERSIONS.revision}",
@@ -406,7 +354,7 @@ def update_instance(instance) {
 
 def core_functional_java(instance) {
   stage('core functional java tests') {
-    container('default') {
+    container('java') {
       namespace = instance.domain.replace('.', '-')
       job = build job: 'Functional/cucumber-java', parameters: [
           string(name: 'TEST_BRANCH', value: "${env.CHANGE_BRANCH},${env.CHANGE_TARGET}"),
@@ -428,7 +376,7 @@ def core_functional_java(instance) {
 
 def sdk_functional(instance) {
   stage('sdk functional tests') {
-    container('default') {
+    container('java') {
       job = build job: 'Functional/java-sdk', parameters: [
           string(name: 'TEST_BRANCH', value: "${env.CHANGE_BRANCH},${env.CHANGE_TARGET}"),
           string(name: 'TEST_DOMAIN', value: instance.domain),
@@ -446,7 +394,7 @@ def sdk_functional(instance) {
 
 def core_functional_token(instance) {
   stage('core functional token tests') {
-    container('default') {
+    container('java') {
       job = build job: 'Functional/cucumber-java', parameters: [
           string(name: 'TEST_BRANCH', value: "${env.CHANGE_BRANCH},${env.CHANGE_TARGET}"),
           string(name: 'TEST_TAGS', value: '@passwordInternal'),
@@ -514,8 +462,10 @@ def withResourcesServer(Closure body) {
       'RESOURCES_SERVER=hudson@staging-resources.cumulocity.com',
       "RESOURCES_PATH=/var/www/staging-resources/pre-merge/${VERSIONS.current}"
   ]) {
-    sshagent(credentials: ['jenkins-master']) {
-      body()
+    container('c8y-tools') {
+      sshagent(credentials: ['jenkins-master']) {
+        body()
+      }
     }
   }
 }

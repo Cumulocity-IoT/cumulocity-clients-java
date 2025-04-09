@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+spec:
+  imagePullSecrets:
+    - name: "ci-registry-pull"
+  containers:
+    - name: "default"
+      image: "registry.stage.c8y.io/public/zulu-openjdk-centos:17.0.14-jdk"
+      command: ["/bin/sh"]
+      args: ["-c", "cat"]
+      tty: true
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      env:
+        - name: HOME
+          value: /home/jenkins/agent
+        - name: JENKINS_URL
+          value: http://jenkins.ci.svc.cluster.local:8080/
+        - name: MAVEN_USER_HOME
+          value: /home/jenkins/agent
+        - name: DOCKER_HOST
+          value: tcp://localhost:2375
+      workingDir: "/home/jenkins/agent"
+      resources:
+        requests:
+          cpu: "2"
+          memory: "3Gi"
+        limits:
+          cpu: "3"
+          memory: "4Gi"

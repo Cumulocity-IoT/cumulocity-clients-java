@@ -1,8 +1,8 @@
 pipeline {
     agent {
         kubernetes {
-            inheritFrom 'jdk17'
-            defaultContainer 'default'
+            defaultContainer 'java'
+            yamlFile '.jenkins/github/build-pod.yaml'
         }
     }
     options {

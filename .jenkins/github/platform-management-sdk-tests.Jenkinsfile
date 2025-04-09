@@ -8,34 +8,8 @@ def testBranch
 pipeline {
     agent {
         kubernetes {
-            yaml '''
-        apiVersion: v1
-        kind: Pod
-        spec:
-          imagePullSecrets:
-          - name: "ci-registry-pull"
-          containers:
-          - name: "java"
-            image: "registry.stage.c8y.io/ci/jdk:17"
-            command: ["/bin/sh"]
-            args: ["-c", "cat"]
-            tty: true
-            env:
-            - name: JENKINS_URL
-              value: http://jenkins.ci.svc.cluster.local:8080/
-            - name: MAVEN_USER_HOME
-              value: /home/jenkins/agent
-            - name: DOCKER_HOST
-              value: tcp://localhost:2375
-            workingDir: "/home/jenkins/agent"
-            resources:
-              requests:
-                cpu: 2
-                memory: 3Gi
-              limits:
-                cpu: 3
-                memory: 3Gi
-        '''
+            defaultContainer 'java'
+            yamlFile '.jenkins/github/build-pod.yaml'
         }
     }
     options {
@@ -116,15 +90,13 @@ pipeline {
                 ADMIN_CREDENTIALS = credentials("${adminCredentialsId}")
             }
             steps {
-                container('java') {
-                    script {
-                        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                            sh """\
-                                .jenkins/scripts/mvn.sh verify \\
-                                    --file . --projects java-client --also-make \\
-                                    --define 'cumulocity.host=http://${testInstanceDomain}:8111'
-                               """
-                        }
+                script {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        sh """\
+                            .jenkins/scripts/mvn.sh verify \\
+                                --file . --projects java-client --also-make \\
+                                --define 'cumulocity.host=http://${testInstanceDomain}:8111'
+                           """
                     }
                 }
             }
