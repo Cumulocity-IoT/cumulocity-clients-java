@@ -1,0 +1,12 @@
+runners:
+  default:
+    cpu: [2]
+    ram: [8]
+    disk: default
+    family: ["c7", "m7", "r7"]
+    spot: lowest-price
+    ssh: false
+    tags:
+      - 'TeamName:Data at Rest'
+      - 'Environment:GitHub-Runners'
+      - 'Customer:Cumulocity-IoT/cumulocity-clients-java-internal'
