@@ -9,7 +9,9 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: [ cumulocity-clients-java ]
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=default
     permissions:
       security-events: write
       actions: read

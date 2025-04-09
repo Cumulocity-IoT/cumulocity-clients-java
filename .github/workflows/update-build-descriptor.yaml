@@ -15,7 +15,9 @@ on:
 jobs:
   update-build-descriptor:
     name: Publish Build Descriptor
-    runs-on: [ cumulocity-clients-java ]
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=default
 
     env:
       COMPONENT_NAME: java-sdk
