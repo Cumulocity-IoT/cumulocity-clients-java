@@ -4,7 +4,7 @@ spec:
   imagePullSecrets:
     - name: "ci-registry-pull"
   containers:
-    - name: "default"
+    - name: "java"
       image: "registry.stage.c8y.io/public/zulu-openjdk-centos:17.0.14-jdk"
       command: ["/bin/sh"]
       args: ["-c", "cat"]
