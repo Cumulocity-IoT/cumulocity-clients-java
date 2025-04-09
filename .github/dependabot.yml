@@ -20,6 +20,7 @@ updates:
       timezone: "Europe/Berlin"
     registries:
       - "c8y-public"
+    open-pull-requests-limit: 20
     reviewers:
       - "Cumulocity-IoT/c8y-data-in-motion"
       - "Cumulocity-IoT/c8y-microservice-hosting"
