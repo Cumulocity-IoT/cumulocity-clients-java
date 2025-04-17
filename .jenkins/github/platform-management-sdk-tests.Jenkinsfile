@@ -33,7 +33,7 @@ pipeline {
                         adminCredentialsId = 'e2eAdmin'
                     } else {
                         testInstanceDomain = postMergeTestingDomain(env.ghprbSourceBranch)
-                        adminCredentialsId = 'post-merge-admin'
+                        adminCredentialsId = env.ghprbSourceBranch.startsWith('CD') ? 'e2eAdmin' : 'post-merge-admin'
                     }
                 }
             }
