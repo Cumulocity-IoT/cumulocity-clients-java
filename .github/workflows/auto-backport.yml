@@ -6,7 +6,9 @@ on:
 jobs:
   backport:
     name: Backport PR
-    runs-on: [self-hosted, Linux, X64, aks-spot]
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=default
     if: |
       github.event.pull_request.merged == true
       && contains(github.event.pull_request.labels.*.name, 'auto-backport')
