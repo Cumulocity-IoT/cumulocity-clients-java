@@ -45,7 +45,7 @@
 
         <aspectj.version>1.9.24</aspectj.version> <!-- bound with spring-boot.version -->
         <cometd.version>3.0.10</cometd.version>
-        <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <commons-beanutils.version>1.10.1</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <commons-io.version>2.19.0</commons-io.version>
         <guava.version>33.4.8-jre</guava.version>
