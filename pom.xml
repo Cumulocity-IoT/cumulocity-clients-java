@@ -47,7 +47,7 @@
         <cometd.version>3.0.10</cometd.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
-        <commons-io.version>2.18.0</commons-io.version>
+        <commons-io.version>2.19.0</commons-io.version>
         <guava.version>32.0.1-jre</guava.version>
         <httpclient.version>4.5.14</httpclient.version>
         <jaxrs-api.version>3.1.0</jaxrs-api.version>
