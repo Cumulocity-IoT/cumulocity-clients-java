@@ -57,7 +57,7 @@
         <lombok.version>1.18.34</lombok.version> <!-- bound with spring-boot.version -->
         <microemu.version>2.0.4</microemu.version>
         <mock-server.version>5.15.0</mock-server.version>
-        <spring-boot.version>3.4.2</spring-boot.version>
+        <spring-boot.version>3.4.5</spring-boot.version>
         <svenson.version>1.5.8</svenson.version>
 
         <exclude.test.groups>com.cumulocity.test.category.IntegrationTest</exclude.test.groups>
