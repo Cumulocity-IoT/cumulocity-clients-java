@@ -23,7 +23,7 @@
         <bouncycastle.version>1.78.1</bouncycastle.version>
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
-        <nimbusds.version>9.41.2</nimbusds.version>
+        <nimbusds.version>10.3</nimbusds.version>
         <spring-boot.version>3.4.5</spring-boot.version>
     </properties>
 
