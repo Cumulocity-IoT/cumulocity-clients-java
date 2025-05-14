@@ -43,7 +43,7 @@
         <nexus.url>http://localhost:8080</nexus.url>
         <nexus.basePath>/nexus/content/repositories</nexus.basePath>
 
-        <aspectj.version>1.9.22.1</aspectj.version> <!-- bound with spring-boot.version -->
+        <aspectj.version>1.9.24</aspectj.version> <!-- bound with spring-boot.version -->
         <cometd.version>3.0.10</cometd.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
