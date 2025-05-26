@@ -4,6 +4,30 @@
   "skipRC": true,
   "artifacts": [
     {
+        "name": "maven-repository",
+        "location": "sag/java-sdk/{{ version }}/maven-repository-{{ version }}.tar.gz",
+        "version": "{{ version }}",
+        "type": "non-deployable"
+    },
+    {
+        "name": "java-sdk-javadoc",
+        "location": "sag/java-sdk/{{ version }}/java-client-{{ version }}-javadoc.jar",
+        "version": "{{ version }}",
+        "type": "non-deployable"
+    },
+    {
+        "name": "microservice-sdk-javadoc",
+        "location": "sag/java-sdk/{{ version }}/microservice-dependencies-{{ version }}-javadoc.jar",
+        "version": "{{ version }}",
+        "type": "non-deployable"
+    },
+    {
+        "name": "lpwan-backend-javadoc",
+        "location": "sag/java-sdk/{{ version }}/lpwan-backend-{{ version }}-javadoc.jar",
+        "version": "{{ version }}",
+        "type": "non-deployable"
+    },
+    {
       "name": "snmp-mib-parser",
       "location": "kubernetes-images/snmp-mib-parser-{{ version }}.zip",
       "version": "{{ version }}",
