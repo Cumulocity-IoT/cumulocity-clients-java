@@ -32,13 +32,3 @@ jobs:
       release-version: ${{ needs.Compliance.outputs.version }}
       release-line: CD
     secrets: inherit
-
-  # FIXME remove when CD train confirmed working
-  Build-descriptor-update-fallback:
-    needs: [Compliance]
-    name: Publish Version
-    uses: ./.github/workflows/update-build-descriptor.yaml
-    with:
-      release-version: ${{ needs.Compliance.outputs.version }}
-      release-line: 10.19.0.x
-    secrets: inherit
