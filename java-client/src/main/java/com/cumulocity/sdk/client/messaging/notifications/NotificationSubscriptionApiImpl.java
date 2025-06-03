@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.cumulocity.sdk.client.messaging.notifications.SubscriptionContext.TENANT;
 import static java.util.Objects.requireNonNull;
@@ -19,19 +20,17 @@ import static java.util.Objects.requireNonNull;
 public class NotificationSubscriptionApiImpl implements NotificationSubscriptionApi {
 
     public static final CumulocityMediaType MEDIA_TYPE = new CumulocityMediaType("application", "json");
-
     public static final String SUBSCRIPTION_REQUEST_URI = "notification2/subscriptions";
 
     private final RestConnector restConnector;
-
     private final int pageSize;
-
     private final UrlProcessor urlProcessor;
 
     public NotificationSubscriptionApiImpl(
             RestConnector restConnector,
             UrlProcessor urlProcessor,
-            int pageSize) {
+            int pageSize
+    ) {
         this.restConnector = requireNonNull(restConnector, "restConnector");
         this.urlProcessor = requireNonNull(urlProcessor, "urlProcessor");
         this.pageSize = pageSize;
@@ -40,27 +39,18 @@ public class NotificationSubscriptionApiImpl implements NotificationSubscription
     @Override
     public NotificationSubscriptionRepresentation subscribe(NotificationSubscriptionRepresentation representation) throws SDKException {
         requireNonNull(representation, "representation");
-        NotificationSubscriptionRepresentation result = restConnector.post(
-                getSelfUri(),
-                MEDIA_TYPE,
-                representation
-        );
-        return result;
+        return restConnector.post(getSelfUri(), MEDIA_TYPE, representation);
     }
 
     @Override
     public NotificationSubscriptionCollection getSubscriptions() throws SDKException {
-        String url = getSelfUri();
-        return new NotificationSubscriptionCollectionImpl(restConnector, url, pageSize);
+        return new NotificationSubscriptionCollectionImpl(restConnector, getSelfUri(), pageSize);
     }
 
     @Override
     public NotificationSubscriptionCollection getSubscriptionsByFilter(NotificationSubscriptionFilter filter) throws SDKException {
-        if (filter == null) {
-            return getSubscriptions();
-        }
-        Map<String, String> params = filter.getQueryParams();
-        return new NotificationSubscriptionCollectionImpl(restConnector, urlProcessor.replaceOrAddQueryParam(getSelfUri(), params), pageSize);
+        if (filter == null) return getSubscriptions();
+        return new NotificationSubscriptionCollectionImpl(restConnector, urlProcessor.replaceOrAddQueryParam(getSelfUri(), filter.getQueryParams()), pageSize);
     }
 
     @Override
@@ -79,7 +69,12 @@ public class NotificationSubscriptionApiImpl implements NotificationSubscription
     @Override
     public void deleteByFilter(NotificationSubscriptionFilter filter) {
         requireNonNull(filter, "filter");
-        Map<String, String> params = filter.getQueryParams();
+        final Map<String, String> params = filter.getQueryParams();
+        if (params.isEmpty()) {
+            throw new SDKException("Cannot delete by filter as filter is empty.");
+        } else if (Stream.of(filter.getSubscription(), filter.getTypeFilter()).anyMatch(params::containsValue)) {
+            throw new SDKException("Cannot delete by filter as filter contains unsupported parameters. 'subscription' and 'typeFilter' filters are not supported.");
+        }
         restConnector.delete(urlProcessor.replaceOrAddQueryParam(getSelfUri(), params));
     }
 

@@ -50,13 +50,20 @@ public interface NotificationSubscriptionApi {
      * @throws SDKException 
      */
     void deleteById(String subscriptionId) throws SDKException;
-    
+
     /**
-     * Deletes all subscriptions matching a filter.
-     * 
-     * @param filter 
-     */    
-    void deleteByFilter(NotificationSubscriptionFilter filter);
+     * Deletes all subscriptions matching a given filter.
+     *
+     * @deprecated This method is deprecated and will throw an exception if the filter includes
+     * {@code subscription}, {@code typeFilter} or both.
+     * Use {@link #delete(NotificationSubscriptionRepresentation)},
+     * {@link #deleteById(String)}, or {@link #deleteBySource(String)} instead.
+     *
+     * @param filter the filter criteria for deleting matching subscriptions
+     * @throws SDKException if the request fails or if disallowed filters are present
+     */
+    @Deprecated
+    void deleteByFilter(NotificationSubscriptionFilter filter) throws SDKException;
     
     /**
      * Deletes all subscriptions to a source in managed object context.
@@ -69,5 +76,4 @@ public interface NotificationSubscriptionApi {
      * Deletes all subscriptions of the current tenant.
      */
     void deleteTenantSubscriptions();
-
 }
