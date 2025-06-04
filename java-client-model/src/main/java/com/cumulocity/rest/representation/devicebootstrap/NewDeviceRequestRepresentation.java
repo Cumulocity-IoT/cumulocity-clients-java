@@ -33,4 +33,7 @@ public class NewDeviceRequestRepresentation extends CustomPropertiesMapRepresent
     @Getter(onMethod_ = @JSONProperty(ignoreIfNull = true))
     private String securityToken;
 
+    @Getter(onMethod_ = @JSONProperty(ignoreIfNull = true))
+    private String enrollmentToken;
+
 }
