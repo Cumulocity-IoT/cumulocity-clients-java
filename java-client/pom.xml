@@ -100,6 +100,10 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.nsn.cumulocity.clients-java</groupId>
@@ -183,6 +187,12 @@
 		<dependency>
 			<groupId>org.skyscreamer</groupId>
 			<artifactId>jsonassert</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fatboyindustrial.gson-jodatime-serialisers</groupId>
+			<artifactId>gson-jodatime-serialisers</artifactId>
+			<version>1.6.0</version>
 			<scope>test</scope>
 		</dependency>
 

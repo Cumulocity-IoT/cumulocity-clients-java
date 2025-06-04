@@ -48,6 +48,8 @@ import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptio
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionApiImpl;
 import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
 import com.cumulocity.sdk.client.messaging.notifications.TokenApiImpl;
+import com.cumulocity.sdk.client.notification2.Notifications2Api;
+import com.cumulocity.sdk.client.notification2.internal.Notifications2ApiImpl;
 import com.cumulocity.sdk.client.option.SystemOptionApi;
 import com.cumulocity.sdk.client.option.SystemOptionApiImpl;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
@@ -292,6 +294,16 @@ public class PlatformImpl extends PlatformParameters implements Platform {
         RestConnector restConnector = createRestConnector();
         UrlProcessor urlProcessor = new UrlProcessor();
         return new NotificationSubscriptionApiImpl(restConnector, urlProcessor, getPageSize());
+    }
+
+    @Override
+    public Notifications2Api getNotifications2Api() throws SDKException {
+        return new Notifications2ApiImpl(
+                this.getBaseWebSocketUrl(),
+                this.getTenantId(),
+                this.getNotificationSubscriptionApi(),
+                this.getTokenApi()
+        );
     }
 
     private synchronized PlatformApiRepresentation getPlatformApi(RestConnector restConnector) throws SDKException {

@@ -22,21 +22,18 @@ import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.cumulocity.sdk.client.measurement.MeasurementApi;
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionApi;
 import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
+import com.cumulocity.sdk.client.notification2.Notifications2Api;
 import com.cumulocity.sdk.client.option.SystemOptionApi;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
 import com.cumulocity.sdk.client.user.UserApi;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.ListableBeanFactory;
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.ResolvableType;
 
-import jakarta.annotation.PreDestroy;
 import java.util.Optional;
 
 @Configuration
@@ -215,6 +212,13 @@ public class CumulocityClientFeature {
         }
 
         @Override
+        @TenantScope
+        @Bean(name = {"notifications2Api", "tenantNotifications2Api"})
+        public Notifications2Api getNotifications2Api() throws SDKException {
+            return delegate.getNotifications2Api();
+        }
+
+        @Override
         @PreDestroy
         public void close() {
             delegate.close();
@@ -364,6 +368,13 @@ public class CumulocityClientFeature {
         }
 
         @Override
+        @UserScope
+        @Bean(name = "userNotifications2Api")
+        public Notifications2Api getNotifications2Api() throws SDKException {
+            return delegate.getNotifications2Api();
+        }
+
+        @Override
         @PreDestroy
         public void close() {
             delegate.close();
@@ -388,6 +399,7 @@ public class CumulocityClientFeature {
                 .withTfaToken(login.getTfaToken())
                 .withResponseMapper(responseMapper)
                 .withForceInitialHost(true)
+                .withBaseWebSocketUrl(clientProperties.getBaseWebSocketURL())
                 .build();
         setHttpClientConfig(platform);
         return platform;

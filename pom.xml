@@ -59,6 +59,7 @@
         <mock-server.version>5.15.0</mock-server.version>
         <spring-boot.version>3.4.6</spring-boot.version>
         <svenson.version>1.5.8</svenson.version>
+        <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
 
         <exclude.test.groups>com.cumulocity.test.category.IntegrationTest</exclude.test.groups>
     </properties>
@@ -608,6 +609,11 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
                 <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.java-websocket</groupId>
+                <artifactId>Java-WebSocket</artifactId>
+                <version>${tootallnate.websocket.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>

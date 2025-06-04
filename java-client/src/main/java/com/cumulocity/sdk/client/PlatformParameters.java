@@ -73,6 +73,8 @@ public class PlatformParameters implements AutoCloseable {
 
     private ResponseMapper responseMapper;
 
+    private String baseWebSocketUrl;
+
     private HttpClientConfig httpClientConfig = HttpClientConfig.httpConfig().build();
 
     Set<HttpClientInterceptor> interceptorSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -304,6 +306,14 @@ public class PlatformParameters implements AutoCloseable {
 
     public int getChunkedEncodingSize() {
         return this.chunkedEncodingSize;
+    }
+
+    public String getBaseWebSocketUrl() {
+        return baseWebSocketUrl;
+    }
+
+    public void setBaseWebSocketUrl(String baseWebSocketUrl) {
+        this.baseWebSocketUrl = baseWebSocketUrl;
     }
 
     private class DisabledBufferRequestService implements BufferRequestService {

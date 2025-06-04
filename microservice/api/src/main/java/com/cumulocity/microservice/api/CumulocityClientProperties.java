@@ -28,6 +28,11 @@ public class CumulocityClientProperties {
      */
     private Integer httpReadTimeout;
 
+    /**
+     * (Optional) WebSocket URL for Notifications 2.0
+     */
+    private String baseWebSocketURL;
+
     @NestedConfigurationProperty
     private HttpClientConfig httpclient = HttpClientConfig.httpConfig().build();
 
@@ -71,5 +76,13 @@ public class CumulocityClientProperties {
 
     public void setHttpclient(HttpClientConfig httpclient) {
         this.httpclient = httpclient;
+    }
+
+    public String getBaseWebSocketURL() {
+        return baseWebSocketURL;
+    }
+
+    public void setBaseWebSocketURL(String baseWebSocketURL) {
+        this.baseWebSocketURL = baseWebSocketURL;
     }
 }

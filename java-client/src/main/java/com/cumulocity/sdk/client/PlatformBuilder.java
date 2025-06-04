@@ -16,6 +16,7 @@ public class PlatformBuilder {
     private String tfaToken;
     private ResponseMapper responseMapper;
     private boolean forceInitialHost;
+    private String baseWebSocketUrl;
 
     public Platform build() {
         return configure(new PlatformImpl(baseUrl, buildCredentials()));
@@ -33,6 +34,7 @@ public class PlatformBuilder {
         }
         platform.setTfaToken(tfaToken);
         platform.setForceInitialHost(forceInitialHost);
+        platform.setBaseWebSocketUrl(baseWebSocketUrl);
         return platform;
     }
 
