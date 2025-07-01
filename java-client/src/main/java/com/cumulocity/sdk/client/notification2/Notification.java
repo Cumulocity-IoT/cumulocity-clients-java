@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.EnumUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,13 @@ public class Notification {
         return JSONBase.getJSONParser().parse(clazz, payload);
     }
 
+    public Action getAction() {
+        if (headers == null || headers.size() < 2) {
+            return Action.NONE;
+        }
+        return EnumUtils.getEnumIgnoreCase(Action.class, headers.get(1), Action.NONE);
+    }
+
     public static Notification parse(String message) {
         List<String> lines = message.lines().toList();
 
@@ -45,7 +53,9 @@ public class Notification {
             return new Notification(lines.get(0), Collections.emptyList(), lines.get(1));
         }
 
+        List<String> headers = Collections.unmodifiableList(lines.subList(1, lines.size() - 1));
+
         // ACK + other headers + message
-        return new Notification(lines.get(0), Collections.unmodifiableList(lines.subList(1, lines.size() - 1)), lines.get(lines.size() - 1));
+        return new Notification(lines.get(0), headers, lines.get(lines.size() - 1));
     }
 }

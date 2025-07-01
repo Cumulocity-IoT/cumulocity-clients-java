@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractNotificationListener<T> implements NotificationListener {
     private final Class<T> clazz;
 
+
     protected AbstractNotificationListener(Class<T> clazz) {
         this.clazz = clazz;
     }
@@ -19,13 +20,13 @@ public abstract class AbstractNotificationListener<T> implements NotificationLis
     @Override
     public void onMessage(Notification message, String subscriptionName, String tenantId, String deviceId) {
         try {
-            onMessage(message.parseJson(clazz), tenantId, deviceId);
+            onMessage(message.parseJson(clazz), message.getAction(), tenantId, deviceId);
         } catch (Exception e) {
             onParsingError(message, subscriptionName, e);
         }
     }
 
-    public abstract void onMessage(T message, String tenantId, String deviceId);
+    public abstract void onMessage(T message, Action action, String tenantId, String deviceId);
 
     /**
      * Called when there's an exception while parsing payload to target object type

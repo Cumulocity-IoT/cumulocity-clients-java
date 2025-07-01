@@ -37,7 +37,7 @@ public class AbstractNotificationListenerTest {
         AbstractNotificationListener<OperationRepresentation> listener = new AbstractNotificationListener<>(OperationRepresentation.class) {
 
             @Override
-            public void onMessage(OperationRepresentation message, String tenantId, String deviceId) {
+            public void onMessage(OperationRepresentation message, Action action, String tenantId, String deviceId) {
                 target.set(message);
             }
         };
@@ -59,7 +59,7 @@ public class AbstractNotificationListenerTest {
         final AtomicBoolean parsingError = new AtomicBoolean(false);
         AbstractNotificationListener<OperationRepresentation> listener = new AbstractNotificationListener<>(OperationRepresentation.class) {
             @Override
-            public void onMessage(OperationRepresentation message, String tenantId, String deviceId) {
+            public void onMessage(OperationRepresentation message, Action action, String tenantId, String deviceId) {
                 target.set(message);
             }
 
