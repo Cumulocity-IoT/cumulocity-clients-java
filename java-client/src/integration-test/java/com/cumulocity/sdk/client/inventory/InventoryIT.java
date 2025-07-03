@@ -380,8 +380,8 @@ public class InventoryIT extends JavaSdkITBase {
         assertThat(refCollection.get().getPageStatistics().getPageSize()).isEqualTo(platform.getPageSize());
         assertThat(refCollection.get().getPageStatistics().getCurrentPage()).isEqualTo(1);
 
-        assertThat(refCollection.get().getSelf()).contains("pageSize=" + platform.getPageSize() + "&currentPage=1");
-        assertThat(refCollection.get().getNext()).contains("pageSize=" + platform.getPageSize() + "&currentPage=2");
+        assertThat(refCollection.get().getSelf()).contains("pageSize=" + platform.getPageSize()).contains("currentPage=1");
+        assertThat(refCollection.get().getNext()).contains("pageSize=" + platform.getPageSize()).contains("currentPage=2");
         assertThat(refCollection.get().getPrev()).isNull();
 
         ManagedObjectReferenceCollectionRepresentation secondPage = refCollection.getPage(refCollection.get(), 2);
