@@ -95,7 +95,7 @@ pipeline {
                         sh """\
                             .jenkins/scripts/mvn.sh verify \\
                                 --file . --projects java-client --also-make \\
-                                --define 'cumulocity.host=http://${testInstanceDomain}:8111'
+                                --define 'cumulocity.host=http://${testInstanceDomain}'
                            """
                     }
                 }
