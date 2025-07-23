@@ -40,9 +40,10 @@
 	</organization>
 
 	<properties>
-		<maven-plugin-version>3.2.5</maven-plugin-version>
 		<docker-client.version>8.16.0</docker-client.version>
+		<docker-java.version>3.2.13</docker-java.version>
 		<hibernate-validator.version>8.0.2.Final</hibernate-validator.version>
+		<maven-plugin-version>3.2.5</maven-plugin-version>
 		<!-- TODO: fix javadoc generation. Will be implemented in DM-1177 -->
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
@@ -120,7 +121,7 @@
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-core</artifactId>
-			<version>3.2.13</version>
+			<version>${docker-java.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.bouncycastle</groupId>
@@ -137,14 +138,14 @@
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java</artifactId>
-			<version>3.2.13</version>
+			<version>${docker-java.version}</version>
 		</dependency>
 
 		<!-- Using okhttp instead of httpclient5 to avoid conflict with httpclient4 -->
 		<dependency>
 			<groupId>com.github.docker-java</groupId>
 			<artifactId>docker-java-transport-okhttp</artifactId>
-			<version>3.5.1</version>
+			<version>${docker-java.version}</version>
 		</dependency>
 
 		<dependency>
