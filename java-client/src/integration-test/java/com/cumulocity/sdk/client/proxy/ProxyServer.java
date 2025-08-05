@@ -1,20 +1,23 @@
 package com.cumulocity.sdk.client.proxy;
 
 import lombok.SneakyThrows;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.proxy.ConnectHandler;
-import org.eclipse.jetty.proxy.ProxyServlet;
+import org.eclipse.jetty.client.Request;
+import org.eclipse.jetty.server.handler.ConnectHandler;
+import org.eclipse.jetty.ee10.proxy.AsyncProxyServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.server.Handler.Sequence;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Base64;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.eclipse.jetty.http.HttpHeader.PROXY_AUTHENTICATE;
+import static org.eclipse.jetty.http.HttpHeader.PROXY_AUTHORIZATION;
+
 
 public class ProxyServer {
     private String basicAuthUsername;
@@ -28,12 +31,13 @@ public class ProxyServer {
         connector.setPort(0);
         server.addConnector(connector);
 
-        HandlerCollection handlers = new HandlerCollection();
+        Sequence handlers = new Sequence();
         server.setHandler(handlers);
 
-        ServletContextHandler context = new ServletContextHandler(handlers, "/", ServletContextHandler.SESSIONS);
+        ServletContextHandler context = new ServletContextHandler("/", ServletContextHandler.SESSIONS);
         ServletHolder proxyServlet = new ServletHolder(new AuthenticatedProxyServlet());
         context.addServlet(proxyServlet, "/*");
+        handlers.addHandler(context);
 
         handlers.addHandler(new AuthenticatedConnectHandler());
     }
@@ -80,35 +84,37 @@ public class ProxyServer {
         return isNotBlank(basicAuthUsername) && isNotBlank(basicAuthPassword);
     }
 
-    private boolean handleAuthentication(HttpServletRequest request) {
+    private boolean handleProxyAuthorization(String proxyAuthorizationHeader) {
         if (isProxyBasicAuthorization()) {
             String basicHeaderValue = "Basic " + Base64.getEncoder().encodeToString((basicAuthUsername + ":" + basicAuthPassword).getBytes());
-            return basicHeaderValue.equals(request.getHeader("Proxy-Authorization"));
+            return basicHeaderValue.equals(proxyAuthorizationHeader);
         }
         return true;
     }
 
-    private class AuthenticatedProxyServlet extends ProxyServlet {
+    private class AuthenticatedProxyServlet extends AsyncProxyServlet {
         @SneakyThrows
         @Override
         protected void sendProxyRequest(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Request proxyRequest) {
-            if (!handleAuthentication(clientRequest)) {
-                proxyResponse.setHeader("Proxy-Authenticate", "Basic realm=\"proxy\"");
+            if (!handleProxyAuthorization(clientRequest.getHeader(PROXY_AUTHORIZATION.asString()))) {
+                proxyResponse.setHeader(PROXY_AUTHENTICATE.asString(), "Basic realm=\"proxy\"");
                 proxyResponse.sendError(407);
                 return;
             }
             super.sendProxyRequest(clientRequest, proxyResponse, proxyRequest);
         }
+
     }
 
     private class AuthenticatedConnectHandler extends ConnectHandler {
         @Override
-        protected boolean handleAuthentication(HttpServletRequest request, HttpServletResponse response, String address) {
-            if (!ProxyServer.this.handleAuthentication(request)) {
-                response.setHeader("Proxy-Authenticate", "Basic realm=\"proxy\"");
+        protected boolean handleAuthentication(org.eclipse.jetty.server.Request request, org.eclipse.jetty.server.Response response, String address) {
+            if (!ProxyServer.this.handleProxyAuthorization(request.getHeaders().get(PROXY_AUTHORIZATION))) {
+                response.getHeaders().add(PROXY_AUTHENTICATE, "Basic realm=\"proxy\"");
                 return false;
             }
             return true;
         }
     }
+
 }
