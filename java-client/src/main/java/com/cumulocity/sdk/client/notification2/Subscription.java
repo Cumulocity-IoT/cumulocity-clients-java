@@ -183,7 +183,7 @@ public class Subscription {
             if (StringUtils.isBlank(tenantId)) {
                 throw new Notifications2FieldRequiredException("tenantId");
             }
-            String validTenantId = tenantId.replaceAll("[^a-zA-Z\\d]", "");
+            String validTenantId = tenantId.replaceAll("[^a-zA-Z\\d-]", "");
             if (!validTenantId.equals(tenantId)) {
                 throw new Notifications2FieldInvalidException("tenantId", tenantId);
             }

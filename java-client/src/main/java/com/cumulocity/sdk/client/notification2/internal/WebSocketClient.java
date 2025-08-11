@@ -124,20 +124,26 @@ public class WebSocketClient implements WebSocketConnectorListener {
     }
 
     private void connect() {
-        if (tokenRefreshTaskHandle != null) {
-            tokenRefreshTaskHandle.cancel(true);
-        }
-        if (token == null) {
-            createToken();
-        } else {
-            refreshToken();
-        }
-        scheduleTokenRefresh();
-        String url = String.format(URL_PATTERN, webSocketBaseUrl, token.getTokenString(), subscriber);
-        log.trace("Connecting to: {}", url);
+        try {
+            if (tokenRefreshTaskHandle != null) {
+                tokenRefreshTaskHandle.cancel(true);
+            }
+            if (token == null) {
+                createToken();
+            } else {
+                refreshToken();
+            }
+            scheduleTokenRefresh();
+            String url = String.format(URL_PATTERN, webSocketBaseUrl, token.getTokenString(), subscriber);
+            log.trace("Connecting to: {}", url);
 
-        connector.setUri(url);
-        connector.connect(this);
+            connector.setUri(url);
+            connector.connect(this);
+        }
+        catch (Exception e) {
+            log.warn("Unable to connect - scheduling reconnection", e);
+            reconnect();
+        }
     }
 
 
