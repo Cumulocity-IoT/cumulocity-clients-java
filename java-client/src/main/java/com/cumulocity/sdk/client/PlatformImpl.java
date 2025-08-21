@@ -299,7 +299,7 @@ public class PlatformImpl extends PlatformParameters implements Platform {
     @Override
     public Notifications2Api getNotifications2Api() throws SDKException {
         return new Notifications2ApiImpl(
-                this.getBaseWebSocketUrl(),
+                this.getNotifications2(),
                 this.getTenantId(),
                 this.getNotificationSubscriptionApi(),
                 this.getTokenApi()

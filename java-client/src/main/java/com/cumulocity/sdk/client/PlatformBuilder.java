@@ -1,22 +1,32 @@
 package com.cumulocity.sdk.client;
 
 import com.cumulocity.model.authentication.CumulocityCredentials;
+import com.cumulocity.sdk.client.notification2.config.Notifications2Properties;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.experimental.Wither;
+import lombok.With;
 
-@Wither
+import static java.util.Optional.ofNullable;
+
 @NoArgsConstructor(staticName = "platform")
 @AllArgsConstructor
 public class PlatformBuilder {
+    @With
     private String baseUrl;
+    @With
     private CumulocityCredentials credentials;
+    @With
     private String proxyHost;
+    @With
     private Integer proxyPort;
+    @With
     private String tfaToken;
+    @With
     private ResponseMapper responseMapper;
+    @With
     private boolean forceInitialHost;
-    private String baseWebSocketUrl;
+    @With
+    private Notifications2Properties notifications2;
 
     public Platform build() {
         return configure(new PlatformImpl(baseUrl, buildCredentials()));
@@ -34,7 +44,7 @@ public class PlatformBuilder {
         }
         platform.setTfaToken(tfaToken);
         platform.setForceInitialHost(forceInitialHost);
-        platform.setBaseWebSocketUrl(baseWebSocketUrl);
+        platform.setNotifications2(ofNullable(notifications2).orElseGet(Notifications2Properties::new));
         return platform;
     }
 

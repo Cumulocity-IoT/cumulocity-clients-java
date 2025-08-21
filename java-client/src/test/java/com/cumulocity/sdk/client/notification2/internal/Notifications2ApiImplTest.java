@@ -7,6 +7,7 @@ import com.cumulocity.sdk.client.notification2.DeviceContextTargetApi;
 import com.cumulocity.sdk.client.notification2.NotificationListener;
 import com.cumulocity.sdk.client.notification2.Subscription;
 import com.cumulocity.sdk.client.notification2.TenantContextTargetApi;
+import com.cumulocity.sdk.client.notification2.config.Notifications2Properties;
 import com.cumulocity.sdk.client.notification2.exception.Notifications2NotEnabledException;
 import com.cumulocity.sdk.client.notification2.exception.Notifications2SubscriptionAlreadyEstablishedException;
 import org.assertj.core.util.Lists;
@@ -41,7 +42,7 @@ public class Notifications2ApiImplTest {
 
     @BeforeEach
     public void setupMocks() {
-        when(platform.getBaseWebSocketUrl()).thenReturn(WS_URL);
+        when(platform.getNotifications2()).thenReturn(new Notifications2Properties().withWebsocketUrl(WS_URL));
         when(platform.getTenantId()).thenReturn("Tenant1");
         when(notificationSubscriptionApi.getSubscriptionsByFilter(any())).thenReturn(notificationSubscriptionCollection);
         when(notificationSubscriptionCollection.get()).thenReturn(pagedRep);
@@ -50,14 +51,14 @@ public class Notifications2ApiImplTest {
     }
 
     private void initApiWithMocks() {
-        api = new Notifications2ApiImpl(platform.getBaseWebSocketUrl(), "tenant1", notificationSubscriptionApi, mock(TokenApi.class));
+        api = new Notifications2ApiImpl(platform.getNotifications2(), "tenant1", notificationSubscriptionApi, mock(TokenApi.class));
         api.setClientFactoryFunction((sub, lis) -> client);
     }
 
     @Test
     public void testParametersNotSet() {
         // given
-        when(platform.getBaseWebSocketUrl()).thenReturn(null);
+        when(platform.getNotifications2()).thenReturn(new Notifications2Properties());
         initApiWithMocks();
 
         // when/then

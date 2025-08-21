@@ -8,7 +8,10 @@ import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptio
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionCollection;
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionFilter;
 import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
-import com.cumulocity.sdk.client.notification2.*;
+import com.cumulocity.sdk.client.notification2.NotificationListener;
+import com.cumulocity.sdk.client.notification2.Notifications2Api;
+import com.cumulocity.sdk.client.notification2.Subscription;
+import com.cumulocity.sdk.client.notification2.config.Notifications2Properties;
 import com.cumulocity.sdk.client.notification2.exception.Notifications2NotEnabledException;
 import com.cumulocity.sdk.client.notification2.exception.Notifications2SubscriptionAlreadyEstablishedException;
 import com.cumulocity.sdk.client.util.StringUtils;
@@ -40,34 +43,30 @@ public class Notifications2ApiImpl implements Notifications2Api {
     private final Map<Subscription.ID, WebSocketClient> clientMap = new ConcurrentHashMap<>();
 
     // constructor args
-    /**
-     * from property <b>C8Y.notifications2.websocketUrl</b>
-     */
-    private final String baseUrl;
+    private final Notifications2Properties notifications2Properties;
     private final String tenantId;
     private final NotificationSubscriptionApi notificationSubscriptionApi;
     private final TokenApi tokenApi;
 
-
     @Setter(AccessLevel.PACKAGE) // for unit tests
     private BiFunction<Subscription, NotificationListener, WebSocketClient> clientFactoryFunction;
 
-    public Notifications2ApiImpl(String baseUrl, String tenantId, NotificationSubscriptionApi notificationSubscriptionApi,
+    public Notifications2ApiImpl(Notifications2Properties notifications2Properties, String tenantId, NotificationSubscriptionApi notificationSubscriptionApi,
                                  TokenApi tokenApi) {
-        this.baseUrl = baseUrl;
+        this.notifications2Properties = notifications2Properties;
         this.tenantId = tenantId;
         this.notificationSubscriptionApi = notificationSubscriptionApi;
         this.tokenApi = tokenApi;
         clientFactoryFunction = this::createClient;
-        if (StringUtils.isBlank(this.baseUrl)) {
+        if (this.notifications2Properties.isDisabled()) {
             log.info("C8Y.notifications2.websocketUrl is empty - Notifications 2.0 will be disabled");
         }
     }
 
     private WebSocketClient createClient(Subscription subscription, NotificationListener listener) {
-        return new WebSocketClient(baseUrl, subscription.getId().getSubscriber(), subscription.getId().getName(), subscription.getAckMode(),
+        return new WebSocketClient(notifications2Properties.getWebsocketUrl(), subscription.getId().getSubscriber(), subscription.getId().getName(), subscription.getAckMode(),
                 tenantId, subscription.getDeviceId(), listener,
-                Duration.ofSeconds(5L), Duration.ofMinutes(10L), subscription.isShared(), subscription.isPersistent(),
+                Duration.ofSeconds(5L), notifications2Properties.getTokenRefreshInterval(), subscription.isShared(), subscription.isPersistent(),
                 tokenApi, new TooTallNateWebSocketConnector());
     }
 
@@ -152,8 +151,8 @@ public class Notifications2ApiImpl implements Notifications2Api {
     }
 
     private void ensureNotifications2Enabled() {
-        if (StringUtils.isBlank(this.baseUrl)) {
-            throw new Notifications2NotEnabledException("Notifications 2.0 disabled - to enable please set C8Y.baseWebsocketUrl property");
+        if (this.notifications2Properties.isDisabled()) {
+            throw new Notifications2NotEnabledException("Notifications 2.0 disabled - to enable please set C8Y.notifications2.websocketUrl property");
         }
     }
 

@@ -1,6 +1,7 @@
 package com.cumulocity.microservice.api;
 
 import com.cumulocity.sdk.client.HttpClientConfig;
+import com.cumulocity.sdk.client.notification2.config.Notifications2Properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -28,13 +29,11 @@ public class CumulocityClientProperties {
      */
     private Integer httpReadTimeout;
 
-    /**
-     * (Optional) WebSocket URL for Notifications 2.0
-     */
-    private String baseWebSocketURL;
-
     @NestedConfigurationProperty
     private HttpClientConfig httpclient = HttpClientConfig.httpConfig().build();
+
+    @NestedConfigurationProperty
+    private Notifications2Properties notifications2 = new Notifications2Properties();
 
     public String getBaseURL() {
         return baseURL;
@@ -78,11 +77,11 @@ public class CumulocityClientProperties {
         this.httpclient = httpclient;
     }
 
-    public String getBaseWebSocketURL() {
-        return baseWebSocketURL;
+    public Notifications2Properties getNotifications2() {
+        return notifications2;
     }
 
-    public void setBaseWebSocketURL(String baseWebSocketURL) {
-        this.baseWebSocketURL = baseWebSocketURL;
+    public void setNotifications2(Notifications2Properties notifications2) {
+        this.notifications2 = notifications2;
     }
 }

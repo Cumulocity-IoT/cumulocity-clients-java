@@ -399,7 +399,7 @@ public class CumulocityClientFeature {
                 .withTfaToken(login.getTfaToken())
                 .withResponseMapper(responseMapper)
                 .withForceInitialHost(true)
-                .withBaseWebSocketUrl(clientProperties.getBaseWebSocketURL())
+                .withNotifications2(clientProperties.getNotifications2())
                 .build();
         setHttpClientConfig(platform);
         return platform;

@@ -25,12 +25,15 @@ import com.cumulocity.sdk.client.base.Supplier;
 import com.cumulocity.sdk.client.base.Suppliers;
 import com.cumulocity.sdk.client.buffering.*;
 import com.cumulocity.sdk.client.interceptor.HttpClientInterceptor;
+import com.cumulocity.sdk.client.notification2.config.Notifications2Properties;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Keeps credentials and client configuration.
@@ -73,9 +76,9 @@ public class PlatformParameters implements AutoCloseable {
 
     private ResponseMapper responseMapper;
 
-    private String baseWebSocketUrl;
-
     private HttpClientConfig httpClientConfig = HttpClientConfig.httpConfig().build();
+
+    private Notifications2Properties notifications2 = new Notifications2Properties();
 
     Set<HttpClientInterceptor> interceptorSet = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -308,12 +311,12 @@ public class PlatformParameters implements AutoCloseable {
         return this.chunkedEncodingSize;
     }
 
-    public String getBaseWebSocketUrl() {
-        return baseWebSocketUrl;
+    public Notifications2Properties getNotifications2() {
+        return notifications2;
     }
 
-    public void setBaseWebSocketUrl(String baseWebSocketUrl) {
-        this.baseWebSocketUrl = baseWebSocketUrl;
+    public void setNotifications2(Notifications2Properties notifications2) {
+        this.notifications2 = requireNonNull(notifications2);
     }
 
     private class DisabledBufferRequestService implements BufferRequestService {
