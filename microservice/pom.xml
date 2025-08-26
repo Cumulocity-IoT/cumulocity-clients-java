@@ -395,6 +395,7 @@
                             <windowtitle>Cumulocity Microservice SDK</windowtitle>
                             <overview>${project.basedir}/javadoc/overview.html</overview>
                             <source>17</source>
+                            <detectOfflineLinks>false</detectOfflineLinks> <!-- https://github.com/apache/maven-javadoc-plugin/issues/1258 -->
                     </configuration>
                 </plugin>
             </plugins>

@@ -286,6 +286,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.11.3</version>
+                    <configuration>
+                        <detectOfflineLinks>false</detectOfflineLinks> <!-- https://github.com/apache/maven-javadoc-plugin/issues/1258 -->
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
