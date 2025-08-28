@@ -1,1 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=com.cumulocity.microservice.properties.MicroserviceDefaultPropertiesRegistrar
 org.springframework.boot.SpringApplicationRunListener=com.cumulocity.microservice.properties.PropertiesRunListener
