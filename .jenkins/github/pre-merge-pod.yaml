@@ -5,7 +5,7 @@ spec:
     - name: "ci-registry-pull"
   containers:
     - name: "java"
-      image: "registry.stage.c8y.io/public/zulu-openjdk-centos:17.0.14-jdk"
+      image: "registry.stage.c8y.io/public/zulu-openjdk-centos:17.0.16-jdk"
       command: ["/bin/sh"]
       args: ["-c", "cat"]
       tty: true
