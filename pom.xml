@@ -54,7 +54,7 @@
         <jetty.version>11.0.24</jetty.version> <!-- bound with spring-boot.version -->
         <joda-time.version>2.10.14</joda-time.version>
         <jsr305-api.version>3.0.2</jsr305-api.version>
-        <lombok.version>1.18.38</lombok.version> <!-- bound with spring-boot.version -->
+        <lombok.version>1.18.40</lombok.version> <!-- bound with spring-boot.version -->
         <microemu.version>2.0.4</microemu.version>
         <mock-server.version>5.15.0</mock-server.version>
         <spring-boot.version>3.5.5</spring-boot.version>
