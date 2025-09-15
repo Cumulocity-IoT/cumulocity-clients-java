@@ -1,10 +1,13 @@
 package com.cumulocity.microservice.subscription.service;
 
 import com.cumulocity.microservice.context.credentials.MicroserviceCredentials;
-import java.util.Optional;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
  *
@@ -58,12 +61,34 @@ public interface MicroserviceSubscriptionsService {
     Collection<MicroserviceCredentials> getAll();
 
     /**
-     * Gets microservice credentials of the given tenant
+     * Gets microservice credentials of the given tenant.<br>
+     * <b>NOTE</b>: this method may return stale data if the refreshing subscription process is in progress.
+     * Please use {@link #getCredentialsAsync(String)} to get the most up-to-date credentials.
+     *
      * @param tenant tenant id
      * @return  <code>Optional.of</code> microservice credentials if tenant is found in current subscriptions;
      *          <code>Optional.&lt;MicroserviceCredentials&gt;empty()</code> otherwise
      */
     Optional<MicroserviceCredentials> getCredentials(String tenant);
+
+    /**
+     * Asynchronously gets microservice credentials of the given tenant.
+     * Returns a CompletableFuture that will be completed when the subscription process finishes.
+     * This method guarantees the most up-to-date credentials, waiting for any ongoing subscription refresh
+     * process to complete.
+     *
+     * @param tenant tenant id
+     * @return <code>CompletableFuture</code> that completes with Optional microservice credentials for the requested tenant
+     */
+    default CompletableFuture<Optional<MicroserviceCredentials>> getCredentialsAsync(String tenant) {
+        try {
+            return completedFuture(getCredentials(tenant));
+        } catch (Exception e) {
+            CompletableFuture<Optional<MicroserviceCredentials>> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
 
     boolean isRegisteredSuccessfully();
 }

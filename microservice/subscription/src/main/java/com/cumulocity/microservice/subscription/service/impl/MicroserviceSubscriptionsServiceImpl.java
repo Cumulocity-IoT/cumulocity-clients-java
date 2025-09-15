@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @SuppressWarnings("rawtypes")
 @Service
@@ -48,7 +50,7 @@ public class MicroserviceSubscriptionsServiceImpl implements MicroserviceSubscri
     private final MicroserviceMetadataRepresentation microserviceMetadataRepresentation;
     private final ContextService<MicroserviceCredentials> contextService;
 
-    private volatile boolean subscribing = false;
+    private volatile CompletableFuture<Void> subscribing = completedFuture(null);
     private final List<MicroserviceCredentials> subscribingCredentials = new CopyOnWriteArrayList<>();
 
     private volatile boolean registeredSuccessfully = false;
@@ -108,7 +110,7 @@ public class MicroserviceSubscriptionsServiceImpl implements MicroserviceSubscri
     @Synchronized
     public void subscribe() {
         try {
-            subscribing = true;
+            subscribing = new CompletableFuture<>();
             subscribingCredentials.clear();
 
             final ApplicationRepresentation application = registerApplication();
@@ -147,7 +149,7 @@ public class MicroserviceSubscriptionsServiceImpl implements MicroserviceSubscri
             }).collect(Collectors.toList()));
         } finally {
             subscribingCredentials.clear();
-            subscribing = false;
+            subscribing.complete(null);
         }
     }
 
@@ -199,28 +201,36 @@ public class MicroserviceSubscriptionsServiceImpl implements MicroserviceSubscri
     //    During subscription synchronization the method will just return old state.
     @Override
     public Optional<MicroserviceCredentials> getCredentials(String tenant) {
+        return getCredentialsAsync(tenant).getNow(empty());
+    }
+
+    @Override
+    public CompletableFuture<Optional<MicroserviceCredentials>> getCredentialsAsync(String tenant) {
+        Optional<MicroserviceCredentials> subscription = findCurrentSubscriptionForTenant(tenant);
+        if (subscription.isPresent()) {
+            return completedFuture(subscription);
+        }
+
+        for (final MicroserviceCredentials credentials : subscribingCredentials) {
+            if (credentials.getTenant().equals(tenant)) {
+                return completedFuture(of(credentials));
+            }
+        }
+
+        if (subscribing.isDone()) {
+            subscribe();
+            return completedFuture(findCurrentSubscriptionForTenant(tenant));
+        } else {
+            return subscribing.thenApply(unused -> findCurrentSubscriptionForTenant(tenant));
+        }
+    }
+
+    private Optional<MicroserviceCredentials> findCurrentSubscriptionForTenant(String tenant) {
         for (final MicroserviceCredentials subscription : repository.getCurrentSubscriptions()) {
             if (subscription.getTenant().equals(tenant)) {
                 return of(subscription);
             }
         }
-
-        for (final MicroserviceCredentials credentials : subscribingCredentials) {
-            if (credentials.getTenant().equals(tenant)) {
-                return of(credentials);
-            }
-        }
-
-        if (!subscribing) {
-            subscribe();
-
-            for (final MicroserviceCredentials subscription : repository.getCurrentSubscriptions()) {
-                if (subscription.getTenant().equals(tenant)) {
-                    return of(subscription);
-                }
-            }
-        }
-
         return empty();
     }
 
