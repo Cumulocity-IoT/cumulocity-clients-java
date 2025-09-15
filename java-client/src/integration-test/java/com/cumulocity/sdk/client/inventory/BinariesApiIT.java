@@ -6,6 +6,7 @@ import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.common.JavaSdkITBase;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.Resources;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
@@ -14,7 +15,10 @@ import org.springframework.core.io.Resource;
 import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -122,14 +126,15 @@ public class BinariesApiIT extends JavaSdkITBase {
     }
 
     @Test
-    public void shouldDownloadFile() {
+    public void shouldDownloadFile() throws IOException {
         // given
         InputStream inputStream = getFileInputStream("sampleTestFile.txt");
         GId gId = uploadBinaryFile(inputStream);
         // when
         InputStream downloaded = binariesApi.downloadFile(gId);
         // then
-        assertThat(downloaded).hasSameContentAs(getFileInputStream("sampleTestFile.txt"));
+        assertThat(IOUtils.toString(downloaded, UTF_8))
+                .isEqualTo(IOUtils.toString(getFileInputStream("sampleTestFile.txt"), UTF_8));
     }
 
     @Test
@@ -157,7 +162,7 @@ public class BinariesApiIT extends JavaSdkITBase {
 
     @SneakyThrows
     private InputStream getFileInputStream(String fileName){
-        Resource resource = resourceLoader.getResource("binaries/" + fileName);
+        Resource resource = resourceLoader.getResource("classpath:binaries/" + fileName);
         return resource.getInputStream();
     }
 }

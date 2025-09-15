@@ -57,7 +57,7 @@
         <lombok.version>1.18.38</lombok.version> <!-- bound with spring-boot.version -->
         <microemu.version>2.0.4</microemu.version>
         <mock-server.version>5.15.0</mock-server.version>
-        <spring-boot.version>3.4.6</spring-boot.version>
+        <spring-boot.version>3.5.5</spring-boot.version>
         <svenson.version>1.5.8</svenson.version>
         <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
 
@@ -522,6 +522,11 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
