@@ -10,7 +10,11 @@ import java.util.Optional;
 
 /**
  * {@link MqttServiceApi} is used to configure and create instances of {@link Publisher} and {@link Subscriber}.
+ *
+ * @deprecated This API is deprecated and will be removed in a future release.
+ * Use a direct connection to the Messaging Service using the Apache Pulsar protocol instead.
  */
+@Deprecated(forRemoval = true)
 public interface MqttServiceApi extends AutoCloseable {
 
     static WebSocketMqttServiceBuilder webSocket() {

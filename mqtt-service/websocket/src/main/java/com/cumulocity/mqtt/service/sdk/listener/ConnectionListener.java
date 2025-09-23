@@ -6,6 +6,7 @@ import com.cumulocity.mqtt.service.sdk.subscriber.Subscriber;
 /**
  * Interface for listening to connection for both {@link Publisher} and {@link Subscriber}.
  */
+@Deprecated(forRemoval = true)
 public interface ConnectionListener {
 
     /**

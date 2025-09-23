@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
+@Deprecated(forRemoval = true)
 abstract class AbstractWebSocketClient extends WebSocketClient {
 
     private final String sourceId;

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Deprecated(forRemoval = true)
 public class MqttServiceMessage {
 
     private byte[] payload;

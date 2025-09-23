@@ -13,6 +13,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Deprecated(forRemoval = true)
 public class MqttServiceMetadata {
 
     @Nullable

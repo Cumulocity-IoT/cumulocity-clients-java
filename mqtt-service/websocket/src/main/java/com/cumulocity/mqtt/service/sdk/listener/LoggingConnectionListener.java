@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
  * Default implementation of {@link ConnectionListener} that logs errors and disconnections.
  */
 @Slf4j
+@Deprecated(forRemoval = true)
 public class LoggingConnectionListener implements ConnectionListener {
     @Override
     public void onError(Throwable error, String sourceId) {

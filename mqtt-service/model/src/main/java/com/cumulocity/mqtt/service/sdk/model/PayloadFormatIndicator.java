@@ -3,6 +3,7 @@ package com.cumulocity.mqtt.service.sdk.model;
 /**
  * Indicator for the payload.
  */
+@Deprecated(forRemoval = true)
 public enum PayloadFormatIndicator {
 
     /**

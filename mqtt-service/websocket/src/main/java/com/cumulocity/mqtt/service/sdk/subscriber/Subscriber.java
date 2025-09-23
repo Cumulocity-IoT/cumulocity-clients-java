@@ -9,6 +9,7 @@ import com.cumulocity.mqtt.service.sdk.listener.MessageListener;
  * <p>
  * {@link Subscriber} instances are created using {@link MqttServiceApi#buildSubscriber(SubscriberConfig)}
  */
+@Deprecated(forRemoval = true)
 public interface Subscriber extends AutoCloseable {
 
     /**

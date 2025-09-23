@@ -18,6 +18,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @ToString(exclude = {"connectionListener"})
 @FieldDefaults(makeFinal = true, level = PRIVATE)
 @EqualsAndHashCode(exclude = "connectionListener")
+@Deprecated(forRemoval = true)
 public class PublisherConfig {
 
     String id;

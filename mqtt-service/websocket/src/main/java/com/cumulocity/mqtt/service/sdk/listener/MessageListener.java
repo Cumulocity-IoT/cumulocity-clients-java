@@ -8,6 +8,7 @@ import com.cumulocity.mqtt.service.sdk.subscriber.Subscriber;
  * in order to handle MQTT messages received from the server.
  */
 @FunctionalInterface
+@Deprecated(forRemoval = true)
 public interface MessageListener {
 
     /**

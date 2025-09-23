@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
+@Deprecated(forRemoval = true)
 class AvroMessageConverterTest {
 
     private final MessageConverter converter = new AvroMessageConverter();

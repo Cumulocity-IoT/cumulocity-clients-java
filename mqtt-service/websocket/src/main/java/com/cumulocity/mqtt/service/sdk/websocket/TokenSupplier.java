@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
+@Deprecated(forRemoval = true)
 class TokenSupplier {
 
     private static final long TOKEN_EXPIRATION_IN_MINUTES = 1440;

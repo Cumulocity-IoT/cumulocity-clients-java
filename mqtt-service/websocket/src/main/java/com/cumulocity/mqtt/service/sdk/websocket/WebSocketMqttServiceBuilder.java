@@ -17,6 +17,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @NoArgsConstructor(access = PRIVATE)
+@Deprecated(forRemoval = true)
 public class WebSocketMqttServiceBuilder {
 
     private final WebSocketConfig config = new WebSocketConfig();

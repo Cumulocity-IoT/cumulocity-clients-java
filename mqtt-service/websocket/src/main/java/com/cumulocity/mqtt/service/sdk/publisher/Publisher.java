@@ -9,6 +9,7 @@ import com.cumulocity.mqtt.service.sdk.model.MqttServiceMessage;
  * <p>
  * {@link Publisher} instances are created using {@link MqttServiceApi#buildPublisher(PublisherConfig)}.
  */
+@Deprecated(forRemoval = true)
 public interface Publisher extends AutoCloseable {
 
     /**

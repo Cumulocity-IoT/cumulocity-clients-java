@@ -1,5 +1,6 @@
 package com.cumulocity.mqtt.service.sdk;
 
+@Deprecated(forRemoval = true)
 public class MqttServiceException extends RuntimeException {
 
     public MqttServiceException(String message) {

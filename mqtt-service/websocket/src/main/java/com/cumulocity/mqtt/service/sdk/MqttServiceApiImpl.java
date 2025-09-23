@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.Optional.ofNullable;
 
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 public class MqttServiceApiImpl implements MqttServiceApi {
 
     private final Map<String, Publisher> publishers = new ConcurrentHashMap<>();

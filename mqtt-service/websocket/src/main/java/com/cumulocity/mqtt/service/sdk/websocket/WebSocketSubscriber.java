@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@Deprecated(forRemoval = true)
 class WebSocketSubscriber implements Subscriber {
 
     private final static String WEBSOCKET_URL_PATTERN = "%s/notification2/consumer/?token=%s";

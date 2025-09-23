@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
+@Deprecated(forRemoval = true)
 class WebSocketPublisher implements Publisher {
 
     private final static String SUBSCRIBER = "mqttServicePublisher";

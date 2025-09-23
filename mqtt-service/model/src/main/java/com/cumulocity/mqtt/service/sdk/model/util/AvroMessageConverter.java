@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import static org.apache.commons.compress.utils.IOUtils.closeQuietly;
 
+@Deprecated(forRemoval = true)
 public class AvroMessageConverter implements MessageConverter {
 
     private static final Schema SCHEMA = ReflectData.get().getSchema(MqttServiceMessage.class);

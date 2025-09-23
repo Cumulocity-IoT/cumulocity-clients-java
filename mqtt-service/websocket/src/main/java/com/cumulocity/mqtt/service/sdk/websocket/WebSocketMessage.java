@@ -8,6 +8,7 @@ import java.util.Optional;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
+@Deprecated(forRemoval = true)
 class WebSocketMessage {
 
     private final String ackHeader;
