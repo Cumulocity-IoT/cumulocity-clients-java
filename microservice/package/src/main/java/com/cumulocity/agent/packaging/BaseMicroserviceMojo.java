@@ -38,6 +38,12 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
 
     public static final String TARGET_FILENAME_PATTERN_NON_DEFAULT_ARCH = "%s-%s-%s.zip";
     public static final String TARGET_FILENAME_PATTERN_DEFAULT_ARCH = "%s-%s.zip";
+    /*
+    * The shortcut "OTEL" used in several places in this project is an abbreviation
+    * for "OpenTelemetry", a framework for generating and exporting monitoring data.
+    */
+    public static final String OTEL_JAVA_AGENT_DOWNLOAD_URL =
+           "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.19.0/opentelemetry-javaagent.jar";
 
     @Parameter(property = "agent-package.container.registry")
     protected String registry;
@@ -99,6 +105,12 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
     @Parameter(property = "agent-package.jvmArgs")
     private List<String> jvmArgs;
 
+    @Parameter(property = "agent-package.otel-java-agent-download-url", defaultValue = OTEL_JAVA_AGENT_DOWNLOAD_URL)
+    protected String otelJavaAgentDownloadUrl;
+
+    @Parameter(property = "agent-package.otel-java-agent-include", defaultValue = "false")
+    protected String otelJavaAgentInclude;
+
     @Parameter(property = "agent-package.arguments")
     private List<String> arguments;
 
@@ -152,6 +164,8 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
         props.put("package.jvm-gc", Joiner.on(' ').join(getJvmGc()));
         props.put("package.arguments", Joiner.on(' ').join(arguments));
         props.put("package.java-version", getJavaVersion());
+        props.put("package.otel-java-agent-download-url", otelJavaAgentDownloadUrl);
+        props.put("package.otel-java-agent-include", otelJavaAgentInclude);
         props.put("package.required-java", javaRuntime);
         props.put("package.docker.baseImage", baseImage);
         execution.setAdditionalProperties(props);

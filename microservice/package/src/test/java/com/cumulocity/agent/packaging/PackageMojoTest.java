@@ -47,6 +47,7 @@ import java.util.zip.ZipFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
+import static com.cumulocity.agent.packaging.BaseMicroserviceMojo.OTEL_JAVA_AGENT_DOWNLOAD_URL;
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
@@ -372,6 +373,8 @@ public class PackageMojoTest {
         packageMojo.javaRuntime = System.getProperty("java.version");
         packageMojo.baseImage = "alpine:3";
         packageMojo.manifestFile = manifestFile;
+        packageMojo.otelJavaAgentDownloadUrl = OTEL_JAVA_AGENT_DOWNLOAD_URL;
+        packageMojo.otelJavaAgentInclude = "false";
 
         //the following fields are private, let's use reflection :)
         FieldUtils.writeField(packageMojo, "heap", new Memory("512M", "4G"), true);

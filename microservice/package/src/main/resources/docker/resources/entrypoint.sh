@@ -42,7 +42,14 @@ if [ -n "$PROXY_HTTPS_PORT" ]; then proxy_params="${proxy_params} -Dhttps.proxyP
 if [ -n "$PROXY_SOCKS_HOST" ]; then proxy_params="${proxy_params} -DsocksProxyHost=${PROXY_SOCKS_HOST}"; fi
 if [ -n "$PROXY_SOCKS_PORT" ]; then proxy_params="${proxy_params} -DsocksProxyPort=${PROXY_SOCKS_PORT}"; fi
 
+otel_agent_attach=""
+lower_case_javaagent_enabled=$(echo "${OTEL_JAVAAGENT_ENABLED}" | tr '[:upper:]' '[:lower:]')
+if [ $lower_case_javaagent_enabled = "true" ];
+then
+  otel_agent_attach="-javaagent:/otel/opentelemetry-javaagent.jar";
+fi
+echo "otel_agent_attach = ${otel_agent_attach}"
 
 mkdir -p /var/log/@package.name@; echo "heap dumps  /var/log/@package.name@/heap-dump-<pid>.hprof"
 
-java ${jvm_opts} ${jvm_gc} ${jvm_mem} ${proxy_params} -jar /data/@package.name@.jar ${arguments}
+java ${jvm_opts} ${jvm_gc} ${jvm_mem} ${proxy_params}  ${otel_agent_attach} -jar /data/@package.name@.jar ${arguments}

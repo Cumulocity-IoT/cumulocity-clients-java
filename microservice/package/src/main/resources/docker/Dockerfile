@@ -9,5 +9,12 @@ RUN command -v coreutils >/dev/null 2>&1
 RUN command -v java >/dev/null 2>&1
 COPY etc/ /etc/@package.directory@/
 ADD resources/* /data/
+RUN  mkdir /otel;
+WORKDIR /otel
+RUN  include_otel_agent=$(echo "@package.otel-java-agent-include@" | tr '[:upper:]' '[:lower:]') \
+     && if [ $include_otel_agent = "true" ]; \
+        then \
+          wget @package.otel-java-agent-download-url@; \
+        fi
 RUN chmod +x /data/entrypoint.sh
 ENTRYPOINT /data/entrypoint.sh
