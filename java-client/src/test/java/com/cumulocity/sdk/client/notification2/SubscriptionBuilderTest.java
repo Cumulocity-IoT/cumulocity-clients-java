@@ -5,6 +5,9 @@ import com.cumulocity.sdk.client.notification2.exception.Notifications2FieldRequ
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SubscriptionBuilderTest {
@@ -218,5 +221,20 @@ public class SubscriptionBuilderTest {
                 .withTenantContextTargetApis(TenantContextTargetApi.EVENTS).withTenantId("tenant1")
                 .build();
         assertFalse(s.isPersistent());
+    }
+
+    @Test
+    public void testCustomTargets() {
+        Subscription s = Subscription.builder().withId("mySub", "mySubscriber")
+                .withTenantId("myTenant")
+                // first we mess it up...
+                .withTenantContextTargetApis(TenantContextTargetApi.ALL)
+                .withDeviceContextTargetApis("1", DeviceContextTargetApi.OPERATIONS)
+                // then make sure that other ones are overridden
+                .withCustomContextTargetApis(SubscriptionContext.TENANT, null, List.of("customApi1", "Api3"))
+                .build();
+
+        assertTrue(s.isTenantSubscription());
+        assertThat(s.getTargetApis()).containsExactlyInAnyOrder("customApi1", "Api3");
     }
 }

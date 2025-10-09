@@ -8,8 +8,8 @@ import lombok.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class represents a subscription definition. It can be created only using a {@link Builder} object.
@@ -65,15 +65,22 @@ public class Subscription {
     @Getter
     private final boolean persistent;
 
+    private final SubscriptionContext subscriptionContext;
+    private final Set<String> targets = new HashSet<>();
+
     private Subscription(ID id, Set<TenantContextTargetApi> tenantContextTargetApis, Set<DeviceContextTargetApi> deviceContextTargetApis, String deviceId, String typeFilter, AckMode ackMode, boolean shared, boolean persistent, String tenantId) {
         this.id = id;
         if (tenantContextTargetApis != null) {
             this.deviceContextTargetApis = null;
             this.tenantContextTargetApis = ImmutableSet.copyOf(tenantContextTargetApis);
+            this.subscriptionContext = SubscriptionContext.TENANT;
+            targets.addAll(tenantContextTargetApis.stream().map(TenantContextTargetApi::getTarget).toList());
         }
         else {
             this.tenantContextTargetApis = null;
             this.deviceContextTargetApis = ImmutableSet.copyOf(deviceContextTargetApis);
+            this.subscriptionContext = SubscriptionContext.DEVICE;
+            targets.addAll(deviceContextTargetApis.stream().map(DeviceContextTargetApi::getTarget).toList());
         }
         this.deviceId = deviceId;
         this.typeFilter = typeFilter;
@@ -83,15 +90,26 @@ public class Subscription {
         this.tenantId = tenantId;
     }
 
+    private Subscription(ID id, SubscriptionContext context, Set<String> targets, String deviceId, String typeFilter, AckMode ackMode, boolean shared, boolean persistent, String tenantId) {
+        this.id = id;
+        this.deviceContextTargetApis = null;
+        this.tenantContextTargetApis = null;
+        this.subscriptionContext = context;
+        this.targets.addAll(targets);
+        this.deviceId = deviceId;
+        this.typeFilter = typeFilter;
+        this.ackMode = ackMode;
+        this.shared = shared;
+        this.persistent = persistent;
+        this.tenantId = tenantId;
+    }
+
     public boolean isTenantSubscription() {
-        return tenantContextTargetApis != null;
+        return subscriptionContext == SubscriptionContext.TENANT;
     }
 
     public Set<String> getTargetApis() {
-        if (isTenantSubscription()) {
-            return tenantContextTargetApis.stream().map(TenantContextTargetApi::getTarget).collect(Collectors.toSet());
-        }
-        return deviceContextTargetApis.stream().map(DeviceContextTargetApi::getTarget).collect(Collectors.toSet());
+        return new HashSet<>(targets);
     }
 
     @NoArgsConstructor
@@ -120,6 +138,10 @@ public class Subscription {
         private String typeFilter;
         private String tenantId;
 
+        // for custom context targets
+        private SubscriptionContext customContext = null;
+        private Set<String> customContextTargetApis = null;
+
         private Builder() {
         }
 
@@ -146,6 +168,8 @@ public class Subscription {
             this.deviceContextTargetApis.addAll(Arrays.stream(targets).toList());
             this.deviceId = deviceId;
             this.tenantContextTargetApis = null;
+            this.customContext = null;
+            this.customContextTargetApis = null;
             return this;
         }
 
@@ -154,9 +178,33 @@ public class Subscription {
                 throw new Notifications2FieldRequiredException("target");
             }
             this.deviceContextTargetApis = null;
+            this.customContext = null;
+            this.customContextTargetApis = null;
             this.deviceId = null;
             this.tenantContextTargetApis = new HashSet<>();
             this.tenantContextTargetApis.addAll(Arrays.stream(targets).toList());
+            return this;
+        }
+
+        /**
+         * Please don't use this method if it's not necessary - this is for custom implementations only
+         * @param context - device or tenant context
+         * @param deviceId - required only for device context
+         * @param targetApis - list of target APIs as strings
+         * @return builder
+         */
+        public Builder withCustomContextTargetApis(SubscriptionContext context, String deviceId, List<String> targetApis) {
+            if (context == null){
+                throw new Notifications2FieldRequiredException("context");
+            }
+            if (targetApis == null || targetApis.isEmpty()) {
+                throw new Notifications2FieldRequiredException("targetApis");
+            }
+            this.deviceId = deviceId;
+            this.deviceContextTargetApis = null;
+            this.tenantContextTargetApis = null;
+            this.customContext = context;
+            this.customContextTargetApis = new HashSet<>(targetApis);
             return this;
         }
 
@@ -208,7 +256,7 @@ public class Subscription {
         }
 
         public Subscription build() {
-            if (deviceContextTargetApis == null && tenantContextTargetApis == null) {
+            if (deviceContextTargetApis == null && tenantContextTargetApis == null && customContextTargetApis == null) {
                 throw new Notifications2FieldRequiredException("target");
             }
             if (subscriptionName == null) {
@@ -216,6 +264,10 @@ public class Subscription {
             }
             if (tenantId == null) {
                 throw new Notifications2FieldRequiredException("tenantId");
+            }
+            if (customContextTargetApis != null) {
+                return new Subscription(new ID(this.subscriptionName, this.subscriber), this.customContext, this.customContextTargetApis, this.deviceId,
+                        this.typeFilter, this.ackMode, this.shared, this.persistent, this.tenantId);
             }
             return new Subscription(new ID(this.subscriptionName, this.subscriber), this.tenantContextTargetApis, this.deviceContextTargetApis,
                     this.deviceId, this.typeFilter, this.ackMode, this.shared, this.persistent, this.tenantId);

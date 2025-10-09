@@ -22,7 +22,11 @@ public enum TenantContextTargetApi {
     /**
      * Operations in tenant
      */
-    OPERATIONS("operations");
+    OPERATIONS("operations"),
+    /**
+     * All APIs supported in tenant context, can't be combined with other targets
+     */
+    ALL("*");
 
     @Getter
     private final String target;

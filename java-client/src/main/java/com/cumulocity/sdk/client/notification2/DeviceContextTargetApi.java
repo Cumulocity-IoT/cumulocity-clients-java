@@ -33,7 +33,11 @@ public enum DeviceContextTargetApi {
     /**
      * Operations created on the device
      */
-    OPERATIONS("operations");
+    OPERATIONS("operations"),
+    /**
+     * All APIs supported in device context, can't be combined with other targets
+     */
+    ALL("*");
 
     @Getter
     private final String target;
