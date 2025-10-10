@@ -1,6 +1,7 @@
 package com.cumulocity.microservice.api;
 
 import com.cumulocity.sdk.client.HttpClientConfig;
+import com.cumulocity.sdk.client.SvensonConfig;
 import com.cumulocity.sdk.client.notification2.config.Notifications2Properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
@@ -34,6 +35,9 @@ public class CumulocityClientProperties {
 
     @NestedConfigurationProperty
     private Notifications2Properties notifications2 = new Notifications2Properties();
+
+    @NestedConfigurationProperty
+    private SvensonConfig svenson = new SvensonConfig();
 
     public String getBaseURL() {
         return baseURL;
@@ -84,4 +88,13 @@ public class CumulocityClientProperties {
     public void setNotifications2(Notifications2Properties notifications2) {
         this.notifications2 = notifications2;
     }
+
+    public SvensonConfig getSvenson() {
+        return svenson;
+    }
+
+    public void setSvenson(SvensonConfig svenson) {
+        this.svenson = svenson;
+    }
 }
+

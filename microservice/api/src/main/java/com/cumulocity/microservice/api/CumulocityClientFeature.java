@@ -400,6 +400,7 @@ public class CumulocityClientFeature {
                 .withResponseMapper(responseMapper)
                 .withForceInitialHost(true)
                 .withNotifications2(clientProperties.getNotifications2())
+                .withSvensonConfig(clientProperties.getSvenson())
                 .build();
         setHttpClientConfig(platform);
         return platform;
