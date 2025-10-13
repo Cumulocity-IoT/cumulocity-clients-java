@@ -11,6 +11,8 @@ public class CumulocityOAuthCredentialsTest {
             "NDU5OTA5ODcsIm5iZiI6bnVsbCwiZXhwIjoxNTQ1OTk0NTg3LCJ0ZW4iOiJvYXV0aCIsInhzcmZUb2tlbiI6IlNKWlBJUlBORGJ3T1Rmen" +
             "dqZFJkIn0.ZUkBibmqJftF1lSMtSLKAs_KQYJw3QbiplNdnyTrwyoASsFfKHja_ywHQnypWYDKGx062Uc8x6OkcoGefSgsZQ";
 
+    private static final String TOKEN_WITHOUT_TENANT_CLAIM = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
+
     @Test
     public void shouldReadTenantIdCorrectly() {
         CumulocityOAuthCredentials credentials = CumulocityOAuthCredentials.builder()
@@ -36,5 +38,15 @@ public class CumulocityOAuthCredentialsTest {
                 .build();
 
         assertEquals(SAMPLE_TOKEN, credentials.getAuthenticationString());
+    }
+
+    @Test
+    public void shouldReturnTenantIdFromTokenWithoutTenantClaim() {
+        CumulocityOAuthCredentials credentials = CumulocityOAuthCredentials.builder()
+                .tenantId("external-tenant")
+                .oAuthAccessToken(TOKEN_WITHOUT_TENANT_CLAIM)
+                .build();
+
+        assertEquals("external-tenant", credentials.getTenantId());
     }
 }

@@ -35,8 +35,11 @@ public class CumulocityOAuthCredentials implements CumulocityCredentials {
     @Setter
     @Getter
     private AuthenticationMethod authenticationMethod;
+    @Setter
+    private String tenantId;
+    @Setter
+    private String username;
 
-    @lombok.Builder
     public CumulocityOAuthCredentials(String oAuthAccessToken, String xsrfToken, String applicationKey, String requestOrigin, AuthenticationMethod authenticationMethod) {
         this.oAuthAccessToken = oAuthAccessToken;
         this.xsrfToken = xsrfToken;
@@ -44,6 +47,22 @@ public class CumulocityOAuthCredentials implements CumulocityCredentials {
         this.requestOrigin = requestOrigin;
         this.authenticationMethod = authenticationMethod != null ? authenticationMethod : AuthenticationMethod.COOKIE;
         parseAccessToken();
+    }
+
+    @lombok.Builder
+    private static CumulocityOAuthCredentials create(
+            String oAuthAccessToken,
+            String xsrfToken,
+            String applicationKey,
+            String requestOrigin,
+            AuthenticationMethod authenticationMethod,
+            String tenantId,
+            String username
+    ) {
+        CumulocityOAuthCredentials oAuthCredentials = new CumulocityOAuthCredentials(oAuthAccessToken, xsrfToken, applicationKey, requestOrigin, authenticationMethod);
+        oAuthCredentials.tenantId = tenantId;
+        oAuthCredentials.username = username;
+        return oAuthCredentials;
     }
 
     private void parseAccessToken() {
@@ -72,7 +91,7 @@ public class CumulocityOAuthCredentials implements CumulocityCredentials {
     public String getUsername() {
         return ofNullable(accessTokenClaims.get(CUMULOCITY_USER_ID_CLAIM))
                 .map(String::valueOf)
-                .orElse(null);
+                .orElse(username);
     }
 
     @Override
@@ -82,7 +101,7 @@ public class CumulocityOAuthCredentials implements CumulocityCredentials {
                 .map(m -> m.get(TENANT_ID_CLAIM))
                 .map(String::valueOf)
                 .findFirst()
-                .orElse(null);
+                .orElse(tenantId);
     }
 
     @Override
@@ -93,6 +112,8 @@ public class CumulocityOAuthCredentials implements CumulocityCredentials {
                 .requestOrigin(getRequestOrigin())
                 .applicationKey(getApplicationKey())
                 .authenticationMethod(getAuthenticationMethod())
+                .tenantId(getTenantId())
+                .username(getUsername())
                 .build();
     }
 

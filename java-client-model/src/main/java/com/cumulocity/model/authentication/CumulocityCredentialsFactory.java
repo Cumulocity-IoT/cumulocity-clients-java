@@ -31,6 +31,8 @@ public class CumulocityCredentialsFactory {
             return CumulocityOAuthCredentials.builder()
                     .oAuthAccessToken(oAuthAccessToken)
                     .xsrfToken(xsrfToken)
+                    .tenantId(tenant)
+                    .username(username)
                     .applicationKey(applicationKey)
                     .requestOrigin(requestOrigin)
                     .authenticationMethod(authenticationMethod != null ? authenticationMethod :
