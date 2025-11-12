@@ -17,7 +17,7 @@
     <name>Cumulocity :: SDK Java :: MQTT Service</name>
 
     <properties>
-        <avro.version>1.12.0</avro.version>
+        <avro.version>1.12.1</avro.version>
         <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
     </properties>
 
