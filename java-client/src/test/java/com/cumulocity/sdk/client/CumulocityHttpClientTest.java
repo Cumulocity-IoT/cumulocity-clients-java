@@ -1,14 +1,14 @@
 package com.cumulocity.sdk.client;
 
+import jakarta.ws.rs.client.Client;
+import lombok.SneakyThrows;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import jakarta.ws.rs.client.Client;;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -71,9 +71,92 @@ public class CumulocityHttpClientTest {
             assertThat(((SDKException) thrown).getHttpStatus()).isEqualTo(400);
         }
 
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://localhost:8001, https://management.cumulocity.com/inventory/managedObjects, http://localhost:8001/inventory/managedObjects",
+            "http://localhost:8001/c8y, https://management.cumulocity.com/inventory/managedObjects, http://localhost:8001/c8y/inventory/managedObjects"
+    })
+    public void forceInitialHostShouldResolveToBaseUrl(String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, true);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://localhost:8001, http://localhost:8001/inventory/managedObjects, http://localhost:8001/inventory/managedObjects",
+            "http://localhost:8001, https://localhost:8001/inventory/managedObjects, http://localhost:8001/inventory/managedObjects",
+            "http://localhost:8001/c8y, http://localhost:8001/c8y/inventory/managedObjects, http://localhost:8001/c8y/inventory/managedObjects",
+            "http://localhost:8001/c8y, https://localhost:8001/c8y/inventory/managedObjects, http://localhost:8001/c8y/inventory/managedObjects",
+            "http://localhost:8001/c8y, http://localhost:8001/inventory/managedObjects, http://localhost:8001/c8y/inventory/managedObjects",
+    })
+    public void forceInitialHostShouldResolveToBaseUrlForSameDomain(String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, true);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://localhost:8001/, https://management.cumulocity.com/inventory/managedObjects, http://localhost:8001/inventory/managedObjects",
+            "http://localhost:8001/, http://localhost:8001/inventory/managedObjects, http://localhost:8001/inventory/managedObjects",
+            "http://localhost:8001/c8y/, https://management.cumulocity.com/inventory/managedObjects, http://localhost:8001/c8y/inventory/managedObjects",
+            "http://localhost:8001/c8y/, http://localhost:8001/c8y/inventory/managedObjects, http://localhost:8001/c8y/inventory/managedObjects"
+    })
+    public void forceInitialHostShouldNotDuplicateTrailingSlash(String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, true);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://localhost:8001, https://management.cumulocity.com/inventory/managedObjects?test=1&a=1, http://localhost:8001/inventory/managedObjects?test=1&a=1",
+            "http://localhost:8001, http://localhost:8001/inventory/managedObjects?test=1&a=1, http://localhost:8001/inventory/managedObjects?test=1&a=1",
+            "http://localhost:8001/c8y, https://management.cumulocity.com/inventory/managedObjects?test=1&a=1, http://localhost:8001/c8y/inventory/managedObjects?test=1&a=1",
+            "http://localhost:8001/c8y, http://localhost:8001/c8y/inventory/managedObjects?test=1&a=1, http://localhost:8001/c8y/inventory/managedObjects?test=1&a=1"
+    })
+    public void forceInitialHostShouldIncludeAllPathParameters(String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, true);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://localhost:8001/c8y/, http://localhost:8001/inventory/managedObjects?test=1&a=1, http://localhost:8001/inventory/managedObjects?test=1&a=1",
+            "http://localhost:8001/c8y/, https://management.cumulocity.com/inventory/managedObjects?test=1&a=1, https://management.cumulocity.com/inventory/managedObjects?test=1&a=1",
+    })
+    public void shouldUseRequestURL(String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, false);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "true, http://localhost:8001/c8y/, /health, http://localhost:8001/c8y/health",
+            "false, http://localhost:8001/c8y/, /health, http://localhost:8001/c8y/health",
+    })
+    public void shouldPrependBaseURLIfNoHostInRequestURL(boolean forceInitialHost, String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, forceInitialHost);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+    private void resetClientWithInitialHost(String initialHost, boolean forceInitialHost) {
+        PlatformParameters platformParameters = new PlatformParameters();
+        platformParameters.setForceInitialHost(forceInitialHost);
+        platformParameters.setHost(initialHost);
+
+        client = createClient(platformParameters);
+    }
+
+    @SneakyThrows
     protected void verifyResolvedPath(String expected, String initial) {
         String resolved = client.resolvePath(initial);
-        assertThat(expected).isEqualTo(resolved);
+        assertThat(resolved).isEqualTo(expected);
     }
 
     protected CumulocityHttpClient createClient(PlatformParameters platformParameters) {
