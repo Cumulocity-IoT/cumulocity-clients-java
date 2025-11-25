@@ -22,6 +22,7 @@ package com.cumulocity.sdk.client.common;
 import com.cumulocity.model.authentication.CumulocityBasicCredentials;
 import com.cumulocity.sdk.client.PlatformImpl;
 import com.cumulocity.sdk.client.inventory.InventoryIT;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -76,5 +77,10 @@ public class JavaSdkITBase {
 
     public static String nextTenantId() {
         return "plama-sdk" + RandomStringUtils.randomAlphanumeric(8).toLowerCase();
+    }
+
+    @SneakyThrows
+    public static void waitToEnsureCoreSubscriptionCacheIsInvalidated() {
+        Thread.sleep(2000);
     }
 }

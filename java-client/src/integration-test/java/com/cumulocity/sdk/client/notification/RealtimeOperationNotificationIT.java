@@ -16,7 +16,8 @@ import java.util.HashMap;
 import static com.cumulocity.sdk.client.common.Subscribers.getSubscriberForType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RealtimeOperationNotificationIT extends JavaSdkITBase {
     private static final String OPERATIONS = "/operations/";
@@ -43,6 +44,7 @@ public class RealtimeOperationNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(OPERATIONS + device.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         OperationRepresentation operation = operationsApi.create(aDeviceOperation(device.getId()));
 
         // then
@@ -63,6 +65,7 @@ public class RealtimeOperationNotificationIT extends JavaSdkITBase {
         assertThat(operation.getStatus()).isEqualTo("PENDING");
         subscriber.subscribe(OPERATIONS + device.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         OperationRepresentation updatedOperation = operationsApi.update(aDeviceOperationUpdate(operation.getId()));
 
         // then

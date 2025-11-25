@@ -9,6 +9,7 @@ import com.cumulocity.sdk.client.common.JavaSdkITBase;
 import com.cumulocity.sdk.client.common.TestSubscriptionListener;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.cumulocity.sdk.client.notification.wrappers.RealtimeAlarmMessage;
+import lombok.SneakyThrows;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
@@ -21,7 +22,8 @@ import static com.cumulocity.rest.representation.builder.SampleManagedObjectRepr
 import static com.cumulocity.sdk.client.common.Subscribers.getSubscriberForType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RealtimeAlarmNotificationIT extends JavaSdkITBase {
     private static final String ALARMS = "/alarms/";
@@ -49,6 +51,7 @@ public class RealtimeAlarmNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(ALARMS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         AlarmRepresentation alarm = alarmApi.create(createAlarmRep(mo));
 
         // then
@@ -71,6 +74,7 @@ public class RealtimeAlarmNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(ALARMS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         AlarmRepresentation updatedAlarm = alarmApi.update(updateAlarmRep(alarm.getId()));
 
         // then
@@ -90,6 +94,7 @@ public class RealtimeAlarmNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(ALARMS_WITH_CHILDREN + parentMO.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         AlarmRepresentation alarm = alarmApi.create(createAlarmRep(childMo));
 
         // then
@@ -113,6 +118,7 @@ public class RealtimeAlarmNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(ALARMS_WITH_CHILDREN + parentMO.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         AlarmRepresentation updatedAlarm = alarmApi.update(updateAlarmRep(alarm.getId()));
 
         // then

@@ -18,7 +18,8 @@ import static com.cumulocity.rest.representation.builder.SampleManagedObjectRepr
 import static com.cumulocity.sdk.client.common.Subscribers.getSubscriberForType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RealtimeManagedObjectNotificationIT extends JavaSdkITBase {
     private static final String MANAGEDOBJECTS = "/managedobjects/";
@@ -59,6 +60,7 @@ public class RealtimeManagedObjectNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(MANAGEDOBJECTS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         ManagedObjectRepresentation updatedMO = inventoryApi.update(managedObjectRepresentation);
 
         // then
@@ -80,6 +82,7 @@ public class RealtimeManagedObjectNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(MANAGEDOBJECTS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         inventoryApi.delete(mo.getId());
 
         // then

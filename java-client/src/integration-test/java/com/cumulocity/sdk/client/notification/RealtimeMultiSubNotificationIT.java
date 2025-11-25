@@ -78,7 +78,7 @@ public class RealtimeMultiSubNotificationIT extends JavaSdkITBase {
 
             AtomicInteger opCounter = new AtomicInteger(0);
             List<Subscription<String>> subscriptions = subscribe(device.getId(), opCounter);
-
+            waitToEnsureCoreSubscriptionCacheIsInvalidated();
             operationsApi.create(aDeviceOperation(device.getId()));
 
             try {

@@ -19,7 +19,8 @@ import static com.cumulocity.rest.representation.builder.SampleManagedObjectRepr
 import static com.cumulocity.sdk.client.common.Subscribers.getSubscriberForType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.TEN_SECONDS;
+import static org.awaitility.Durations.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RealtimeEventNotificationIT extends JavaSdkITBase {
     private static final String EVENTS = "/events/";
@@ -47,6 +48,7 @@ public class RealtimeEventNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(EVENTS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         EventRepresentation event = eventApi.create(createEventRep(mo));
 
         // then
@@ -66,6 +68,7 @@ public class RealtimeEventNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(EVENTS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         EventRepresentation updatedEvent = eventApi.update(updateEventRep(event.getId()));
 
         // then
@@ -85,6 +88,7 @@ public class RealtimeEventNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(EVENTS + mo.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         eventApi.delete(event);
 
         // then
@@ -107,6 +111,7 @@ public class RealtimeEventNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(EVENTS_WITH_CHILDREN + parentMO.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         EventRepresentation event = eventApi.create(createEventRep(childMo));
 
         // then
@@ -127,6 +132,7 @@ public class RealtimeEventNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(EVENTS_WITH_CHILDREN + parentMO.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         EventRepresentation updatedEvent = eventApi.update(updateEventRep(event.getId()));
 
         // then
@@ -147,6 +153,7 @@ public class RealtimeEventNotificationIT extends JavaSdkITBase {
         // when
         subscriber.subscribe(EVENTS_WITH_CHILDREN + parentMO.getId().getValue(), subscriptionListener, subscriptionListener, true);
         await().atMost(TEN_SECONDS).until(subscriptionListener::isSubscribed);
+        waitToEnsureCoreSubscriptionCacheIsInvalidated();
         eventApi.delete(event);
 
         // then
