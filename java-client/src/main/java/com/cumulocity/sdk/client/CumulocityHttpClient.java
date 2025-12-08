@@ -2,21 +2,16 @@ package com.cumulocity.sdk.client;
 
 import com.cumulocity.sdk.client.rest.WebTargetDecorator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.URIBuilder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyWebTarget;
 import org.glassfish.jersey.internal.util.collection.UnsafeValue;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 
 import javax.net.ssl.SSLContext;
-import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.stream.Stream;
+import java.net.*;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.http.client.utils.URLEncodedUtils.formatSegments;
 
 @Slf4j
 public class CumulocityHttpClient extends JerseyClient {
@@ -45,34 +40,35 @@ public class CumulocityHttpClient extends JerseyClient {
     }
 
     protected String resolvePath(String path) throws URISyntaxException {
-        URIBuilder baseUri = new URIBuilder(platformParameters.getHost());
-        URIBuilder resolvedUri = new URIBuilder(path);
-        if (platformParameters.isForceInitialHost() || isBlank(resolvedUri.getHost())) {
-            resolvedUri.setScheme(baseUri.getScheme());
-            resolvedUri.setHost(baseUri.getHost());
-            resolvedUri.setPort(baseUri.getPort());
+        URI baseUri = new URI(platformParameters.getHost());
+        URI receivedUri = new URI(path);
 
-            if (resolvedPathMissingBasePath(baseUri, resolvedUri)) {
-                prependBasePath(baseUri, resolvedUri);
+        JerseyUriBuilder resolvedUriBuilder = new JerseyUriBuilder().uri(receivedUri);
+
+        if (platformParameters.isForceInitialHost() || isBlank(receivedUri.getHost())) {
+            resolvedUriBuilder.scheme(baseUri.getScheme());
+            resolvedUriBuilder.host(baseUri.getHost());
+            resolvedUriBuilder.port(baseUri.getPort());
+
+            if (receivedPathMissingBasePath(baseUri, receivedUri)) {
+                prependBasePath(resolvedUriBuilder, baseUri, receivedUri);
             }
         }
-        return resolvedUri.toString();
+        return resolvedUriBuilder.toString();
     }
 
-    private static boolean resolvedPathMissingBasePath(URIBuilder baseUri, URIBuilder resolvedUri) {
-        if (baseUri.getPathSegments().isEmpty()) {
+    private static boolean receivedPathMissingBasePath(URI baseUri, URI receivedUri) {
+        String basePath = baseUri.getRawPath();
+        if (basePath.isEmpty()) {
             return false;
         }
-        String basePath = formatSegments(baseUri.getPathSegments(), UTF_8);
-        String resolvedPath = formatSegments(resolvedUri.getPathSegments(), UTF_8);
-        return !resolvedPath.startsWith(basePath);
+
+        String receivedPath = receivedUri.getRawPath();
+        return !receivedPath.startsWith(basePath);
     }
 
-    private static void prependBasePath(URIBuilder baseUri, URIBuilder resolvedUri) {
-        resolvedUri.setPathSegments(Stream.of(baseUri, resolvedUri)
-                .map(URIBuilder::getPathSegments)
-                .flatMap(Collection::stream)
-                .filter(StringUtils::isNotBlank)
-                .toList());
+    private static void prependBasePath(JerseyUriBuilder resolvedUriBuilder, URI baseUri, URI receivedUri) {
+        resolvedUriBuilder.replacePath(baseUri.getRawPath());
+        resolvedUriBuilder.path(receivedUri.getRawPath());
     }
 }

@@ -48,8 +48,13 @@ public class CumulocityHttpClientTest {
             verifyResolvedPath(HOST, HOST);
             verifyResolvedPath(HOST, "http://127.0.0.1");
             verifyResolvedPath(HOST, "http://127.0.0.1:8181");
-            verifyResolvedPath(HOST + queryParams, "http://127.0.0.1:8181" + queryParams);
-            verifyResolvedPath(HOST + queryParams, "http://127.0.0.1" + queryParams);
+
+            // (source: JerseyUriBuilder)
+            // if has authority and query or fragment and no path value, we need to append root '/' to the path
+            // see URI RFC 3986 section 3.3
+            verifyResolvedPath(HOST + "/" + queryParams, "http://127.0.0.1:8181" + queryParams);
+            verifyResolvedPath(HOST + "/" + queryParams, "http://127.0.0.1" + queryParams);
+
             verifyResolvedPath(HOST + pathParams, "http://127.0.0.1" + pathParams);
         }
 
@@ -141,6 +146,30 @@ public class CumulocityHttpClientTest {
     })
     public void shouldPrependBaseURLIfNoHostInRequestURL(boolean forceInitialHost, String baseUrl, String requestUrl, String expectedResolvedUrl) {
         resetClientWithInitialHost(baseUrl, forceInitialHost);
+
+        verifyResolvedPath(expectedResolvedUrl, requestUrl);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+            "http://localhost:8001," +
+                    " https://management.cumulocity.com/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground," +
+                    " http://localhost:8001/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground",
+            "http://localhost:8001," +
+                    "http://localhost:8001/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground, " +
+                    "http://localhost:8001/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground",
+            "http://localhost:8001/c8y," +
+                    "https://management.cumulocity.com/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground, " +
+                    "http://localhost:8001/c8y/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground",
+            "http://localhost:8001/c8y," +
+                    "http://localhost:8001/c8y/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground, " +
+                    "http://localhost:8001/c8y/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground",
+            "http://localhost:8001/c8y/," +
+                    "/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground, " +
+                    "http://localhost:8001/c8y/identity/externalIds/c8y_OpcuaDevice/tId%3A50175621%3BsId%3D40311784%3Bnsu%3Ds%3DDynamic%20Playground"
+    })
+    public void shouldUseSameURLEncodedPathParameters(String baseUrl, String requestUrl, String expectedResolvedUrl) {
+        resetClientWithInitialHost(baseUrl, true);
 
         verifyResolvedPath(expectedResolvedUrl, requestUrl);
     }
