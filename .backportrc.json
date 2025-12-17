@@ -4,7 +4,7 @@
   "prTitle": "[BACKPORT][{{targetBranch}}] {{commitMessages}}",
   "sourcePRLabels": ["was-backported"],
   "targetPRLabels": ["backport"],
-  "targetBranchChoices": ["release/r1018.0.0", "release/r1017.0.0", "release/r1016.0.0", "release/r1015.0.0", "release/y2024"],
+  "targetBranchChoices": ["release/y2026", "release/y2025", "release/y2024"],
   "gitHostname": "github.com",
   "githubApiBaseUrlV3": "https://api.github.com",
   "githubApiBaseUrlV4": "https://api.github.com/graphql",
