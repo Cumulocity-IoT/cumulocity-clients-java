@@ -1,6 +1,6 @@
 @Library('c8y-common-steps') _
 
-def adminCredentialsId
+def adminCredentialsId = pipelineTestingCredentialsId(env.ghprbSourceBranch, params.ADMIN_CREDENTIALS)
 def testInstanceDomain
 def systemVersion
 def testBranch
@@ -30,10 +30,8 @@ pipeline {
                         adminCredentialsId = params.ADMIN_CREDENTIALS
                     } else if (env.ghprbSourceBranch.contains('/Staging')) {
                         testInstanceDomain = stagingTestingDomain(env.ghprbSourceBranch)
-                        adminCredentialsId = 'e2eAdmin'
                     } else {
                         testInstanceDomain = postMergeTestingDomain(env.ghprbSourceBranch)
-                        adminCredentialsId = env.ghprbSourceBranch.startsWith('CD') ? 'e2eAdmin' : 'post-merge-admin'
                     }
                 }
             }
