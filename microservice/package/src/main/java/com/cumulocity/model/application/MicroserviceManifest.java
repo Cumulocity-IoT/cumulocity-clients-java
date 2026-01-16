@@ -79,7 +79,7 @@ public class MicroserviceManifest extends JSONBase {
     @Singular
     private List<ConfigurationOption> settings;
 
-    @Pattern(regexp = "[a-zA-Z]+")
+    @Pattern(regexp = "[a-zA-Z0-9.]+")
     private String settingsCategory;
 
     private List<String> requiredRoles;
