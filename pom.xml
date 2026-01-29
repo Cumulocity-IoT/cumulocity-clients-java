@@ -44,6 +44,7 @@
         <nexus.basePath>/nexus/content/repositories</nexus.basePath>
 
         <aspectj.version>1.9.24</aspectj.version> <!-- bound with spring-boot.version -->
+        <bouncycastle.version>1.83</bouncycastle.version>
         <cometd.version>3.0.10</cometd.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
@@ -617,6 +618,21 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpmime</artifactId>
                 <version>${httpclient.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.java-websocket</groupId>
