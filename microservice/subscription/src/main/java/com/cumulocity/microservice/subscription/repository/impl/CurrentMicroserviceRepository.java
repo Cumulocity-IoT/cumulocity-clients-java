@@ -85,7 +85,7 @@ public class CurrentMicroserviceRepository implements MicroserviceRepository {
         return platform.get();
     }
 
-    private Object handleException(String method, String url, Exception ex) {
+    protected static Object handleException(String method, String url, Exception ex) {
         if (ex instanceof SDKException) {
             final SDKException sdkException = (SDKException) ex;
             if (sdkException.getHttpStatus() == SC_FORBIDDEN || sdkException.getHttpStatus() == SC_UNAUTHORIZED) {

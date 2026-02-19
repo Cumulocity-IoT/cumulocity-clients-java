@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.stream.StreamSupport;
 
 import static com.cumulocity.microservice.subscription.model.MicroserviceMetadataRepresentation.microserviceMetadataRepresentation;
+import static com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder.GLOBAL_SERVICEBOOTSTRAP_USER;
 import static com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder.microserviceRepositoryBuilder;
 import static com.cumulocity.rest.representation.application.ApplicationRepresentation.MICROSERVICE;
 import static com.cumulocity.rest.representation.application.ApplicationRepresentation.applicationRepresentation;
@@ -412,7 +413,7 @@ public class LegacyMicroserviceRepositoryTest {
                 .baseUrl(Suppliers.ofInstance(BASE_URL))
                 .connector(platform)
                 .environment(new MockEnvironment())
-                .username("test")
+                .username(GLOBAL_SERVICEBOOTSTRAP_USER)
                 .password("test")
                 .applicationName(applicationName)
                 .applicationKey(applicationKey);
