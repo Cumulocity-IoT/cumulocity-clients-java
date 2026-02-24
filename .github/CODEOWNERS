@@ -1,8 +1,8 @@
 # Please add your entries following to the established alphabetical order
-* @Cumulocity-IoT/c8y-platform-management
+* @Cumulocity-IoT/c8y-core-platform-services
 /java-mqtt-client/ @Cumulocity-IoT/c8y-data-in-motion
 /lpwan-backend/ @Cumulocity-IoT/c8y-data-and-control-backend
-/microservice/ @Cumulocity-IoT/c8y-microservice-hosting
+/microservice/ @Cumulocity-IoT/c8y-core-platform-services
 /microservice/custom-decoders/ @Cumulocity-IoT/c8y-data-and-control-backend
 /microservice/custom-encoders/ @Cumulocity-IoT/c8y-data-and-control-backend
 /microservice/lpwan-custom-codec/ @Cumulocity-IoT/c8y-data-and-control-backend
