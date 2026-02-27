@@ -34,7 +34,7 @@ podTemplate(containers: [
     ),
     containerTemplate(
         name: 'docker',
-        image: 'registry.stage.c8y.io/ci/docker:19.03-dind',
+        image: 'registry.stage.c8y.io/ci/docker:20.10.17-dind',
         command: 'dockerd-entrypoint.sh',
         args: '',
         envVars:[
