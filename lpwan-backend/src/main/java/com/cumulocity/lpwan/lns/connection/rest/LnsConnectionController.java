@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.constraints.NotBlank;
@@ -29,18 +30,21 @@ public class LnsConnectionController {
     LnsConnectionService lnsConnectionService;
 
     @GetMapping(value = "/lns-connection", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("@lnsAuthorizationManager.canRead(authentication)")
     @JsonView(LnsConnection.PublicView.class)
     public @ResponseBody @NotNull Collection<LnsConnection> get() throws LpwanServiceException {
         return lnsConnectionService.getAll();
     }
 
     @GetMapping(value = "/lns-connection/{lnsConnectionName}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("@lnsAuthorizationManager.canRead(authentication)")
     @JsonView(LnsConnection.PublicView.class)
     public @ResponseBody @NotNull LnsConnection get(@PathVariable @NotBlank String lnsConnectionName) throws LpwanServiceException {
         return lnsConnectionService.getByName(lnsConnectionName);
     }
 
     @PostMapping(value = "/lns-connection", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("@lnsAuthorizationManager.canWrite(authentication)")
     @ResponseStatus(HttpStatus.CREATED)
     @JsonView(LnsConnection.PublicView.class)
     public @ResponseBody @NotNull LnsConnection create(@RequestBody @NotNull LnsConnection lnsConnection) throws LpwanServiceException {
@@ -48,18 +52,21 @@ public class LnsConnectionController {
     }
 
     @PutMapping(value = "/lns-connection/{existingLnsConnectionName}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("@lnsAuthorizationManager.canWrite(authentication)")
     @JsonView(LnsConnection.PublicView.class)
     public @ResponseBody @NotNull LnsConnection update(@PathVariable @NotBlank String existingLnsConnectionName, @RequestBody @NotNull LnsConnection lnsConnectionToUpdate) throws LpwanServiceException {
         return lnsConnectionService.update(existingLnsConnectionName, lnsConnectionToUpdate);
     }
 
     @DeleteMapping(value = "/lns-connection/{lnsConnectionName}")
+    @PreAuthorize("@lnsAuthorizationManager.canDelete(authentication)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable @NotNull String lnsConnectionName) throws LpwanServiceException {
         lnsConnectionService.delete(lnsConnectionName);
     }
 
     @GetMapping(value = "/lns-connection/{lnsConnectionName}/device")
+    @PreAuthorize("@lnsAuthorizationManager.canRead(authentication)")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody @NotNull ResponseEntity<Resource> downloadCsvForDeviceMoList(@PathVariable @NotBlank String lnsConnectionName) throws LpwanServiceException {
         InputStreamResource resource = lnsConnectionService.getDeviceManagedObjectsInCsv(lnsConnectionName);
