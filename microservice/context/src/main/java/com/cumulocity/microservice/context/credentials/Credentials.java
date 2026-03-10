@@ -8,5 +8,6 @@ public interface Credentials {
     String getPassword();
     String getTfaToken();
     String getAppKey();
+    String getOrigin();
 }
 

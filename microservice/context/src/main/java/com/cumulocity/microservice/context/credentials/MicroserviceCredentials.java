@@ -82,6 +82,10 @@ public class MicroserviceCredentials implements Credentials {
         return this.appKey;
     }
 
+    public String getOrigin() {
+        return null;
+    }
+
     public CumulocityCredentials toCumulocityCredentials() {
         return new CumulocityCredentialsFactory()
                 .withUsername(getUsername())

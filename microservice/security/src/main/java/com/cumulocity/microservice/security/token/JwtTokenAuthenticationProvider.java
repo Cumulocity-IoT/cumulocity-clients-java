@@ -1,6 +1,5 @@
 package com.cumulocity.microservice.security.token;
 
-import java.util.concurrent.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
@@ -9,6 +8,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.SpringSecurityMessageSource;
+
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider, MessageSourceAware {
@@ -34,12 +35,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider, M
         final JwtTokenAuthentication jwtTokenAuthentication = (JwtTokenAuthentication) authentication;
         JwtCredentials jwtCredentials = jwtTokenAuthentication.getCredentials();
         try {
-            return tokenCache.get(jwtCredentials, new JwtTokenAuthenticationLoader() {
-                @Override
-                public JwtTokenAuthentication call() {
-                    String baseUrl = environment.getProperty("C8Y.baseURL");
-                    return CumulocityCoreAuthenticationClient.authenticateUserAndUpdateToken(baseUrl, jwtTokenAuthentication);
-                }
+            return tokenCache.get(jwtCredentials, () -> {
+                String baseUrl = environment.getProperty("C8Y.baseURL");
+                return CumulocityCoreAuthenticationClient.authenticateUserAndUpdateToken(baseUrl, jwtTokenAuthentication);
             });
         } catch (ExecutionException e) {
             throw new TokenCacheException("Problem with token cache.", e);

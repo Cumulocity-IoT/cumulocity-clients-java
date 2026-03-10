@@ -25,6 +25,12 @@ import com.cumulocity.rest.representation.CumulocityMediaType;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.sdk.client.interceptor.HttpClientInterceptor;
 import com.google.common.net.HttpHeaders;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.glassfish.jersey.client.ClientProperties;
@@ -39,21 +45,16 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.Invocation;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
+import static com.google.common.net.HttpHeaders.X_FORWARDED_HOST;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 
 @ExtendWith(MockitoExtension.class)
 public class RestConnectorTest {
@@ -438,5 +439,23 @@ public class RestConnectorTest {
                 .asInstanceOf(InstanceOfAssertFactories.type(FormDataMultiPart.class))
                 .extracting(form -> form.getField("file").getMediaType())
                 .isEqualTo(mediaType);
+    }
+
+    @Test
+    public void shouldIncludeRequestOriginAsXForwardedHostHeader() {
+        // Given
+        String requestOrigin = "tenant.cumulo.com";
+        ManagedObjectRepresentation representation = new ManagedObjectRepresentation();
+        returnResponseWhenPosting(representation);
+        ManagedObjectRepresentation outputRepresentation = new ManagedObjectRepresentation();
+        when(parser.parse(response, ManagedObjectRepresentation.class, 201)).thenReturn(outputRepresentation);
+        when(clientParameters.getRequestOrigin()).thenReturn(requestOrigin);
+        when(typeBuilder.header(any(), any())).thenReturn(typeBuilder);
+
+        // When
+        restConnector.post(PATH, mediaType, representation);
+
+        // Then
+        verify(typeBuilder).header(X_FORWARDED_HOST, requestOrigin);
     }
 }

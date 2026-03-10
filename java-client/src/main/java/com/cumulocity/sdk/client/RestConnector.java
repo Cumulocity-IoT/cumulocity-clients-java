@@ -31,6 +31,12 @@ import com.cumulocity.sdk.client.interceptor.HttpClientInterceptor;
 import com.cumulocity.sdk.client.rest.mediatypes.ErrorMessageRepresentationReader;
 import com.cumulocity.sdk.client.rest.providers.CumulocityJSONMessageBodyReader;
 import com.cumulocity.sdk.client.rest.providers.CumulocityJSONMessageBodyWriter;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -45,17 +51,12 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
-import jakarta.ws.rs.HttpMethod;
-import jakarta.ws.rs.client.*;
-import jakarta.ws.rs.client.Invocation.Builder;
-import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import static com.cumulocity.sdk.client.util.StringUtils.isNotBlank;
-import static jakarta.ws.rs.core.MediaType.*;
+import static com.google.common.net.HttpHeaders.X_FORWARDED_HOST;
+import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA_TYPE;
 import static jakarta.ws.rs.core.Response.Status.*;
 import static org.glassfish.jersey.media.multipart.Boundary.addBoundary;
 
@@ -372,6 +373,7 @@ public class RestConnector implements RestOperations {
     private Builder addRequestOriginHeader(Builder builder) {
         if (isNotBlank(platformParameters.getRequestOrigin())) {
             builder = builder.header(X_CUMULOCITY_REQUEST_ORIGIN, platformParameters.getRequestOrigin());
+            builder = builder.header(X_FORWARDED_HOST, platformParameters.getRequestOrigin());
         }
         return builder;
     }
@@ -463,7 +465,7 @@ public class RestConnector implements RestOperations {
         config.property(ClientProperties.READ_TIMEOUT, platformParameters.getHttpClientConfig().getHttpReadTimeout());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
 
-        registerClasses(config,platformParameters);
+        registerClasses(config, platformParameters);
 
         if (platformParameters.isAlwaysCloseConnection()) {
             config.register((ClientRequestFilter) cr -> cr.getHeaders().add("Connection", "close"));
@@ -526,7 +528,7 @@ public class RestConnector implements RestOperations {
             }
         }
 
-        registerClasses(config,platformParameters);
+        registerClasses(config, platformParameters);
         if (isProxyRequired(platformParameters) && isProxyAuthenticationRequired(platformParameters)) {
             config.register(new HTTPBasicProxyAuthenticationFilter(platformParameters.getProxyUserId(), platformParameters
                     .getProxyPassword()));

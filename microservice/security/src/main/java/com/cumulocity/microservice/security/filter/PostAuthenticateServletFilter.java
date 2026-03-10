@@ -5,20 +5,18 @@ import com.cumulocity.microservice.context.credentials.Credentials;
 import com.cumulocity.microservice.security.filter.provider.PostAuthorizationContextProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
@@ -38,13 +36,11 @@ public class PostAuthenticateServletFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws IOException, ServletException {
-        Runnable runnable = new Runnable() {
-            public void run() {
-                try {
-                    filterChain.doFilter(request, response);
-                } catch (final Exception ex) {
-                    Throwables.propagate(ex);
-                }
+        Runnable runnable = () -> {
+            try {
+                filterChain.doFilter(request, response);
+            } catch (final Exception ex) {
+                Throwables.propagate(ex);
             }
         };
         if (contextService == null) {
@@ -53,19 +49,10 @@ public class PostAuthenticateServletFilter extends OncePerRequestFilter {
 
         if (contextService != null && credentialsResolvers != null) {
             try {
-                final ImmutableList<Credentials> credentials = from(credentialsResolvers).filter(new Predicate<PostAuthorizationContextProvider<SecurityContext>>() {
-                    public boolean apply(PostAuthorizationContextProvider<SecurityContext> provider) {
-                        return provider.supports(SecurityContextHolder.getContext());
-                    }
-                }).transform(new Function<PostAuthorizationContextProvider<SecurityContext>, Credentials>() {
-                    public Credentials apply(PostAuthorizationContextProvider<SecurityContext> provider) {
-                        return provider.get(SecurityContextHolder.getContext());
-                    }
-                }).filter(new Predicate<Credentials>() {
-                    public boolean apply(Credentials credentials) {
-                        return credentials != null;
-                    }
-                }).toList();
+                final ImmutableList<Credentials> credentials = from(credentialsResolvers)
+                        .filter(provider -> provider.supports(SecurityContextHolder.getContext()))
+                        .transform(provider -> provider.get(SecurityContextHolder.getContext()))
+                        .filter(credentials1 -> credentials1 != null).toList();
 
                 for (final Credentials credential : credentials) {
                     runnable = contextService.withinContext(credential, runnable);

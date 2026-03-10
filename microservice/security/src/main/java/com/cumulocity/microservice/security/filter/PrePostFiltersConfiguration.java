@@ -3,11 +3,12 @@ package com.cumulocity.microservice.security.filter;
 import com.cumulocity.microservice.context.ContextService;
 import com.cumulocity.microservice.context.credentials.Credentials;
 import com.cumulocity.microservice.context.credentials.UserCredentials;
-import com.cumulocity.microservice.security.filter.provider.HttpContextProvider;
+import com.cumulocity.microservice.security.filter.provider.HttpBasicAuthContextProvider;
 import com.cumulocity.microservice.security.filter.provider.PostAuthorizationContextProvider;
 import com.cumulocity.microservice.security.filter.provider.PreAuthorizationContextProvider;
 import com.cumulocity.microservice.security.filter.provider.SpringSecurityContextProvider;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.EnvironmentAware;
@@ -17,7 +18,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.security.core.context.SecurityContext;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
@@ -37,8 +37,8 @@ public class PrePostFiltersConfiguration implements EnvironmentAware {
     }
 
     @Bean
-    public HttpContextProvider httpContextProvider() {
-        return new HttpContextProvider();
+    public HttpBasicAuthContextProvider httpContextProvider() {
+        return new HttpBasicAuthContextProvider();
     }
 
     @Bean

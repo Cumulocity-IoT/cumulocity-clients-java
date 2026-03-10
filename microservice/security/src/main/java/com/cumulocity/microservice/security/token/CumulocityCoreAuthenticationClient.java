@@ -9,7 +9,12 @@ import com.cumulocity.rest.representation.user.UserMediaType;
 import com.cumulocity.sdk.client.CumulocityAuthenticationFilter;
 import com.cumulocity.sdk.client.rest.mediatypes.ErrorMessageRepresentationReader;
 import com.cumulocity.sdk.client.rest.providers.CumulocityJSONMessageBodyReader;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.ext.Provider;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -21,12 +26,6 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.ClientRequestContext;
-import jakarta.ws.rs.client.ClientRequestFilter;
-import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 
 class CumulocityCoreAuthenticationClient {
@@ -51,9 +50,9 @@ class CumulocityCoreAuthenticationClient {
 
     public static Client createClient(JwtTokenAuthentication jwtTokenAuthentication) {
         ClientBuilder clientBuilder = ClientBuilder.newBuilder().withConfig(createClientConfig());
-                if (jwtTokenAuthentication != null) {
-                    clientBuilder.register(createClientWithAuthenticationFilter(jwtTokenAuthentication));
-                }
+        if (jwtTokenAuthentication != null) {
+            clientBuilder.register(createClientWithAuthenticationFilter(jwtTokenAuthentication));
+        }
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         if (attributes instanceof ServletRequestAttributes) {
             HttpServletRequest request = ((ServletRequestAttributes) attributes).getRequest();
@@ -65,22 +64,22 @@ class CumulocityCoreAuthenticationClient {
     }
 
     private static CumulocityAuthenticationFilter createClientWithAuthenticationFilter(JwtTokenAuthentication jwtTokenAuthentication) {
-            JwtCredentials jwtCredentials = jwtTokenAuthentication.getCredentials();
-            if (jwtCredentials instanceof JwtAndXsrfTokenCredentials) {
-                JwtAndXsrfTokenCredentials jwtAndXsrfCred = (JwtAndXsrfTokenCredentials) jwtCredentials;
-                return new CumulocityAuthenticationFilter(
-                        CumulocityOAuthCredentials.builder()
-                                .authenticationMethod(AuthenticationMethod.COOKIE)
-                                .oAuthAccessToken(jwtAndXsrfCred.getJwt().serialize())
-                                .xsrfToken(jwtAndXsrfCred.getXsrfToken())
-                                .build());
-            } else {
-                return new CumulocityAuthenticationFilter(
-                        CumulocityOAuthCredentials.builder()
-                                .authenticationMethod(AuthenticationMethod.HEADER)
-                                .oAuthAccessToken(jwtCredentials.getJwt().serialize())
-                                .build());
-            }
+        JwtCredentials jwtCredentials = jwtTokenAuthentication.getCredentials();
+        if (jwtCredentials instanceof JwtAndXsrfTokenCredentials) {
+            JwtAndXsrfTokenCredentials jwtAndXsrfCred = (JwtAndXsrfTokenCredentials) jwtCredentials;
+            return new CumulocityAuthenticationFilter(
+                    CumulocityOAuthCredentials.builder()
+                            .authenticationMethod(AuthenticationMethod.COOKIE)
+                            .oAuthAccessToken(jwtAndXsrfCred.getJwt().serialize())
+                            .xsrfToken(jwtAndXsrfCred.getXsrfToken())
+                            .build());
+        } else {
+            return new CumulocityAuthenticationFilter(
+                    CumulocityOAuthCredentials.builder()
+                            .authenticationMethod(AuthenticationMethod.HEADER)
+                            .oAuthAccessToken(jwtCredentials.getJwt().serialize())
+                            .build());
+        }
     }
 
     private static ClientConfig createClientConfig() {
@@ -128,12 +127,12 @@ class CumulocityCoreAuthenticationClient {
 
         // this header added by proxy contains domain of origin client. It is forwarded
         // to cumulocity in microservice request
-        private final static String X_Forwarded_Host = "X-Forwarded-Host";
+        public static final String X_FORWARDED_HOST = "X-Forwarded-Host";
 
         private final HttpServletRequest request;
         @Override
         public void filter(ClientRequestContext clientRequestContext) throws IOException {
-            clientRequestContext.getHeaders().add(X_Forwarded_Host, request.getHeader(X_Forwarded_Host));
+            clientRequestContext.getHeaders().add(X_FORWARDED_HOST, request.getHeader(X_FORWARDED_HOST));
         }
     }
 

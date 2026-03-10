@@ -3,11 +3,11 @@ package com.cumulocity.sdk.client;
 import com.cumulocity.model.authentication.CumulocityBasicCredentials;
 import com.cumulocity.model.authentication.CumulocityCredentials;
 import com.cumulocity.model.authentication.CumulocityOAuthCredentials;
-import lombok.RequiredArgsConstructor;
-
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
 import jakarta.ws.rs.core.HttpHeaders;
+import lombok.RequiredArgsConstructor;
+
 import java.io.IOException;
 
 @RequiredArgsConstructor
@@ -18,7 +18,7 @@ public class CumulocityAuthenticationFilter implements ClientRequestFilter {
     @Override
     public void filter(ClientRequestContext ctx) throws IOException {
 
-        CumulocityCredentials.CumulocityCredentialsVisitor<Void> visitor = new CumulocityCredentials.CumulocityCredentialsVisitor<Void>() {
+        CumulocityCredentials.CumulocityCredentialsVisitor<Void> visitor = new CumulocityCredentials.CumulocityCredentialsVisitor<>() {
             @Override
             public Void visit(CumulocityBasicCredentials credentials) {
                 if (!ctx.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {

@@ -1,13 +1,16 @@
 package com.cumulocity.microservice.security.token;
 
 import com.cumulocity.microservice.context.ContextService;
-
-import java.text.ParseException;
-import java.util.Optional;
-
 import com.cumulocity.microservice.context.credentials.UserCredentials;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -18,15 +21,13 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Enumeration;
+import java.util.Optional;
+
+import static com.cumulocity.microservice.security.token.CumulocityCoreAuthenticationClient.ForwardedHeaderOnRequestFilter.X_FORWARDED_HOST;
+
 
 /**
  * Purpose of this class is to take care of authentication against platform of
@@ -68,9 +69,10 @@ public class CumulocityOAuthMicroserviceFilter extends GenericFilterBean {
                     }
                     // it is important to enter context at this point, so in later processing correct credentials are in place
                     authResult.setAuthenticated(true);
-                    SecurityContextHolder.getContext().setAuthentication(authResult);
+                    JwtTokenAuthentication tokenAuthentication = setRequestOrigin((JwtTokenAuthentication) authResult, request);
+                    SecurityContextHolder.getContext().setAuthentication(tokenAuthentication);
                     userContextService.runWithinContext(
-                            ((JwtTokenAuthentication)authResult).getUserCredentials(),
+                            tokenAuthentication.getUserCredentials(),
                             () -> {
                                 try {
                                     chain.doFilter(req, res);
@@ -92,6 +94,14 @@ public class CumulocityOAuthMicroserviceFilter extends GenericFilterBean {
             }
         }
         chain.doFilter(req, res);
+    }
+
+    private static JwtTokenAuthentication setRequestOrigin(JwtTokenAuthentication tokenAuthentication, HttpServletRequest request) {
+        if (tokenAuthentication.getUserCredentials() != null) {
+            final String requestOrigin = request.getHeader(X_FORWARDED_HOST);
+            tokenAuthentication.getUserCredentials().setOrigin(requestOrigin);
+        }
+        return tokenAuthentication;
     }
 
     private boolean shouldAuthenticate() {

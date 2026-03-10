@@ -390,6 +390,7 @@ public class CumulocityClientFeature {
                 .withOAuthAccessToken(login.getOAuthAccessToken())
                 .withXsrfToken(login.getXsrfToken())
                 .withApplicationKey(login.getAppKey())
+                .withRequestOrigin(login.getOrigin())
                 .getCredentials();
         PlatformImpl platform = (PlatformImpl) PlatformBuilder.platform()
                 .withBaseUrl(getBaseUrl())

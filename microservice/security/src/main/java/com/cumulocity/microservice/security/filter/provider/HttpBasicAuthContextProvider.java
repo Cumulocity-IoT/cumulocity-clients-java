@@ -1,22 +1,21 @@
 package com.cumulocity.microservice.security.filter.provider;
-
-import com.cumulocity.microservice.context.credentials.UserCredentials;
 import com.cumulocity.microservice.security.filter.util.HttpRequestUtils.AuthorizationHeader;
-import org.springframework.util.StringUtils;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Optional;
-
+import com.cumulocity.microservice.context.credentials.UserCredentials;
 import static com.cumulocity.microservice.security.filter.util.HttpRequestUtils.TFA_TOKEN_HEADER;
 import static com.cumulocity.microservice.security.filter.util.HttpRequestUtils.XSRF_TOKEN_HEADER;
 import static com.cumulocity.microservice.security.filter.util.HttpRequestUtils.X_CUMULOCITY_APPLICATION_KEY;
 import static com.cumulocity.microservice.security.filter.util.HttpRequestUtils.authorizationHeader;
 import static com.cumulocity.microservice.security.filter.util.HttpRequestUtils.hasAuthorizationHeader;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-public class HttpContextProvider implements PreAuthorizationContextProvider<HttpServletRequest> {
+public class HttpBasicAuthContextProvider implements PreAuthorizationContextProvider<HttpServletRequest> {
     @Override
     public UserCredentials get(HttpServletRequest request) {
         final String authorization = request.getHeader(AUTHORIZATION);
