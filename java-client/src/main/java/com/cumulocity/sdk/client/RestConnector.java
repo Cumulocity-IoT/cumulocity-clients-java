@@ -463,9 +463,7 @@ public class RestConnector implements RestOperations {
         config.property(ClientProperties.READ_TIMEOUT, platformParameters.getHttpClientConfig().getHttpReadTimeout());
         config.property(ClientProperties.FOLLOW_REDIRECTS, true);
 
-        registerClasses(config);
-        config.register(new CumulocityAuthenticationFilter(platformParameters.getCumulocityCredentials()));
-        config.register(new BufferedResponseStreamInterceptor());
+        registerClasses(config,platformParameters);
 
         if (platformParameters.isAlwaysCloseConnection()) {
             config.register((ClientRequestFilter) cr -> cr.getHeaders().add("Connection", "close"));
@@ -528,11 +526,7 @@ public class RestConnector implements RestOperations {
             }
         }
 
-        registerClasses(config);
-
-        config.register(new CumulocityAuthenticationFilter(platformParameters.getCumulocityCredentials()));
-        config.register(new BufferedResponseStreamInterceptor());
-
+        registerClasses(config,platformParameters);
         if (isProxyRequired(platformParameters) && isProxyAuthenticationRequired(platformParameters)) {
             config.register(new HTTPBasicProxyAuthenticationFilter(platformParameters.getProxyUserId(), platformParameters
                     .getProxyPassword()));
@@ -543,11 +537,17 @@ public class RestConnector implements RestOperations {
                 .build();
     }
 
-    private static void registerClasses(ClientConfig config) {
+    private static void registerClasses(ClientConfig config, PlatformParameters platformParameters) {
         config.register(new MultiPartFeature());
         config.register(new CumulocityJSONMessageBodyWriter());
-        config.register(new CumulocityJSONMessageBodyReader());
         config.register(new ErrorMessageRepresentationReader());
+        config.register(new CumulocityAuthenticationFilter(platformParameters.getCumulocityCredentials()));
+        config.register(new BufferedResponseStreamInterceptor());
+
+        SvensonConfig svensonConfigConfig = platformParameters.getSvensonConfig();
+        config.register(new CumulocityJSONMessageBodyReader(svensonConfigConfig));
+
+
     }
 
     private static boolean hasText(String string) {

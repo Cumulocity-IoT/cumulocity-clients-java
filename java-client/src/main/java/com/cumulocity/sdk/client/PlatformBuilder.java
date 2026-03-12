@@ -16,6 +16,7 @@ public class PlatformBuilder {
     private String tfaToken;
     private ResponseMapper responseMapper;
     private boolean forceInitialHost;
+    SvensonConfig svensonConfig;
 
     public Platform build() {
         return configure(new PlatformImpl(baseUrl, buildCredentials()));
@@ -30,6 +31,9 @@ public class PlatformBuilder {
         }
         if (responseMapper != null) {
             platform.setResponseMapper(responseMapper);
+        }
+        if (svensonConfig != null) {
+            platform.setSvensonConfig(svensonConfig);
         }
         platform.setTfaToken(tfaToken);
         platform.setForceInitialHost(forceInitialHost);

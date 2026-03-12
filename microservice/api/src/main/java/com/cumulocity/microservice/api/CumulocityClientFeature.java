@@ -388,6 +388,7 @@ public class CumulocityClientFeature {
                 .withTfaToken(login.getTfaToken())
                 .withResponseMapper(responseMapper)
                 .withForceInitialHost(true)
+                .withSvensonConfig(clientProperties.getSvenson())
                 .build();
         setHttpClientConfig(platform);
         return platform;

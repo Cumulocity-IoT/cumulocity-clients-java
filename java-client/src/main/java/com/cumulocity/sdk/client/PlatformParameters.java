@@ -79,6 +79,8 @@ public class PlatformParameters implements AutoCloseable {
 
     private final Object lock = new Object();
 
+    private SvensonConfig svensonConfig = new SvensonConfig();
+
     /** This property determines whether the chunked encoding is used and if so,
      * the chunk size used by the http client while sending the request.
      * A value < 0 declares that chunked encoding will not be used.
@@ -304,6 +306,14 @@ public class PlatformParameters implements AutoCloseable {
 
     public int getChunkedEncodingSize() {
         return this.chunkedEncodingSize;
+    }
+
+    public SvensonConfig getSvensonConfig() {
+        return svensonConfig;
+    }
+
+    public void setSvensonConfig(SvensonConfig svensonConfig) {
+        this.svensonConfig = svensonConfig;
     }
 
     private class DisabledBufferRequestService implements BufferRequestService {

@@ -1,6 +1,7 @@
 package com.cumulocity.microservice.api;
 
 import com.cumulocity.sdk.client.HttpClientConfig;
+import com.cumulocity.sdk.client.SvensonConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -30,6 +31,9 @@ public class CumulocityClientProperties {
 
     @NestedConfigurationProperty
     private HttpClientConfig httpclient = HttpClientConfig.httpConfig().build();
+
+    @NestedConfigurationProperty
+    private SvensonConfig svenson = new SvensonConfig();
 
     public String getBaseURL() {
         return baseURL;
@@ -72,4 +76,14 @@ public class CumulocityClientProperties {
     public void setHttpclient(HttpClientConfig httpclient) {
         this.httpclient = httpclient;
     }
+
+
+    public SvensonConfig getSvenson() {
+        return svenson;
+    }
+
+    public void setSvenson(SvensonConfig svenson) {
+        this.svenson = svenson;
+    }
 }
+
