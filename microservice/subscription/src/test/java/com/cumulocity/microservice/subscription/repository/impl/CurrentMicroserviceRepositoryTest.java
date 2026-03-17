@@ -2,29 +2,25 @@ package com.cumulocity.microservice.subscription.repository.impl;
 
 import com.cumulocity.microservice.subscription.repository.MicroserviceRepository;
 import com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder;
-import com.cumulocity.model.authentication.CumulocityBasicCredentials;
-import com.cumulocity.model.authentication.CumulocityCredentials;
 import com.cumulocity.rest.representation.application.ApplicationRepresentation;
 import com.cumulocity.rest.representation.application.ApplicationUserRepresentation;
 import com.cumulocity.sdk.client.SDKException;
-import com.google.common.base.Predicate;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.springframework.http.HttpMethod;
 import org.springframework.mock.env.MockEnvironment;
 
 import static com.cumulocity.microservice.subscription.model.MicroserviceMetadataRepresentation.microserviceMetadataRepresentation;
 import static com.cumulocity.microservice.subscription.model.core.PlatformProperties.IsolationLevel.MULTI_TENANT;
 import static com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder.MICROSERVICE_ISOLATION_ENV_NAME;
 import static com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder.microserviceRepositoryBuilder;
+import static com.cumulocity.microservice.subscription.repository.impl.FakeCredentialsSwitchingPlatform.asCredentials;
+import static com.cumulocity.microservice.subscription.repository.impl.FakeCredentialsSwitchingPlatform.byMethod;
 import static com.cumulocity.rest.representation.application.ApplicationRepresentation.MICROSERVICE;
 import static com.cumulocity.rest.representation.application.ApplicationRepresentation.applicationRepresentation;
+import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.springframework.http.HttpMethod.POST;
@@ -75,12 +71,8 @@ public class CurrentMicroserviceRepositoryTest {
                 .build();
         platform.switchTo(asCredentials(platform.bootstrapUserFor(notRegistered)));
 
-        Throwable exception = catchThrowable(new ThrowingCallable() {
-            @Override
-            public void call() throws Throwable {
-                repository.register("cep", microserviceMetadataRepresentation().build());
-            }
-        });
+        Throwable exception = catchThrowable(() ->
+                repository.register("cep", microserviceMetadataRepresentation().build()));
 
         assertThat(exception)
                 .isInstanceOf(SDKException.class)
@@ -95,12 +87,8 @@ public class CurrentMicroserviceRepositoryTest {
                 .build();
         platform.switchTo(asCredentials(platform.bootstrapUserFor(notRegistered)));
 
-        Throwable exception = catchThrowable(new ThrowingCallable() {
-            @Override
-            public void call() throws Throwable {
-                repository.register(microserviceMetadataRepresentation().build());
-            }
-        });
+        Throwable exception = catchThrowable(() ->
+                repository.register(microserviceMetadataRepresentation().build()));
 
         assertThat(exception)
                 .isInstanceOf(SDKException.class)
@@ -170,9 +158,7 @@ public class CurrentMicroserviceRepositoryTest {
         ApplicationRepresentation application = repository.getCurrentApplication();
 
         //then
-        assertThat(application)
-                .isNotNull()
-                .isSameAs(existing);
+        assertThat(application).isSameAs(existing);
     }
 
     @Test
@@ -191,16 +177,9 @@ public class CurrentMicroserviceRepositoryTest {
         Iterable<ApplicationUserRepresentation> subscriptions = repository.getSubscriptions();
 
         //when
-        assertThat(subscriptions)
-                .isNotNull()
-                .hasSize(1);
-        ApplicationUserRepresentation firstSubscription = FluentIterable
-                .from(subscriptions)
-                .first()
-                .get();
-        assertThat(firstSubscription)
-                .isNotNull()
-                .isSameAs(applicationUserRepresentation);
+        assertThat(subscriptions).hasSize(1);
+        ApplicationUserRepresentation firstSubscription = stream(subscriptions.spliterator(), false).findFirst().get();
+        assertThat(firstSubscription).isSameAs(applicationUserRepresentation);
     }
 
     @Test
@@ -219,34 +198,12 @@ public class CurrentMicroserviceRepositoryTest {
         Iterable<ApplicationUserRepresentation> subscriptions = repository.getSubscriptions("not-used-application-id");
 
         //when
-        assertThat(subscriptions)
-                .isNotNull()
-                .hasSize(1);
-        ApplicationUserRepresentation firstSubscription = FluentIterable
-                .from(subscriptions)
-                .first()
-                .get();
-        assertThat(firstSubscription)
-                .isNotNull()
-                .isSameAs(applicationUserRepresentation);
+        assertThat(subscriptions).hasSize(1);
+        ApplicationUserRepresentation firstSubscription = stream(subscriptions.spliterator(), false).findFirst().get();
+        assertThat(firstSubscription).isSameAs(applicationUserRepresentation);
     }
 
-    private Predicate<FakeCredentialsSwitchingPlatform.Request> byMethod(final HttpMethod method) {
-        return new Predicate<FakeCredentialsSwitchingPlatform.Request>() {
-            @Override
-            public boolean apply(FakeCredentialsSwitchingPlatform.Request request) {
-                return request.getMethod().equals(method);
-            }
-        };
-    }
 
-    private CumulocityCredentials asCredentials(ApplicationUserRepresentation user) {
-        return CumulocityBasicCredentials.builder()
-                .username(user.getName())
-                .password(user.getPassword())
-                .tenantId(user.getTenant())
-                .build();
-    }
 
     private MockEnvironment mockEnvironment() {
         MockEnvironment environment = new MockEnvironment();

@@ -13,12 +13,12 @@ import com.cumulocity.rest.representation.application.ApplicationUserRepresentat
 import com.cumulocity.sdk.client.RestOperations;
 import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.buffering.Future;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
@@ -26,10 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.springframework.http.HttpMethod;
 
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.cumulocity.rest.representation.application.ApplicationMediaType.APPLICATION;
 import static lombok.AccessLevel.NONE;
@@ -42,10 +42,10 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
     @Builder
     @Value
     public static class Request {
-        private final String path;
-        private final HttpMethod method;
-        private final MediaType mediaType;
-        private final Object body;
+        String path;
+        HttpMethod method;
+        MediaType mediaType;
+        Object body;
     }
 
     private CumulocityCredentials credentials = CumulocityBasicCredentials.builder()
@@ -66,9 +66,9 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
     }
 
     public Collection<Request> take(Predicate<Request> by) {
-        Collection<Request> filtered = FluentIterable.from(this.requests)
-                .filter(by)
-                .toList();
+        Collection<Request> filtered = requests.stream()
+                        .filter(by)
+                        .collect(Collectors.toList());
 
         requests.removeAll(filtered);
 
@@ -111,7 +111,9 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
             }
 
             private <T extends ResourceRepresentation> T getById(String id) {
-                if (id.equals("currentApplication") && credentials.getUsername().startsWith("service_")) {
+                if ("currentApplication".equals(id) &&
+                        (credentials.getUsername().startsWith("service_") || credentials.getUsername().startsWith("servicebootstrap_"))
+                ) {
                     ApplicationCollectionRepresentation byName = getByName(Splitter.on('_').splitToList(credentials.getUsername()).get(1));
                     return (T) Iterables.getFirst(byName.getApplications(), null);
                 }
@@ -123,14 +125,8 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
 
                 ApplicationCollectionRepresentation byName = new ApplicationCollectionRepresentation();
 
-                FluentIterable<ApplicationRepresentation> filtered = FluentIterable.from(applications.values()).filter(new Predicate<ApplicationRepresentation>() {
-                    @Override
-                    public boolean apply(ApplicationRepresentation app) {
-                        return app.getName().equals(name);
-
-                    }
-                });
-                byName.setApplications(filtered.toList());
+                List<ApplicationRepresentation> filtered = applications.values().stream().filter(app -> app.getName().equals(name)).toList();
+                byName.setApplications(filtered);
                 return (T) byName;
             }
 
@@ -361,7 +357,7 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
             }
 
             @Override
-            public void close() throws Exception {
+            public void close() {
 
             }
         };
@@ -370,7 +366,7 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
     public ApplicationUserRepresentation bootstrapUserFor(ApplicationRepresentation app) {
         return ApplicationUserRepresentation.applicationUserRepresentation()
                 .tenant("any")
-                .name("service_" + app.getName())
+                .name("servicebootstrap_" + app.getName())
                 .password("anypass")
                 .build();
     }
@@ -388,4 +384,17 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
     public void addApplicationUserRepresentation(ApplicationUserRepresentation applicationUserRepresentation) {
         this.listOfCurrentApplicationUsers.add(applicationUserRepresentation);
     }
+
+    public static com.google.common.base.Predicate<Request> byMethod(final HttpMethod method) {
+        return request -> request.getMethod().equals(method);
+    }
+
+    public static CumulocityCredentials asCredentials(ApplicationUserRepresentation user) {
+        return CumulocityBasicCredentials.builder()
+                .username(user.getName())
+                .password(user.getPassword())
+                .tenantId(user.getTenant())
+                .build();
+    }
+
 }

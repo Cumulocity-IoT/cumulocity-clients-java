@@ -7,7 +7,6 @@ import com.cumulocity.rest.representation.application.ApplicationCollectionRepre
 import com.cumulocity.rest.representation.application.ApplicationRepresentation;
 import com.cumulocity.rest.representation.application.ApplicationUserRepresentation;
 import com.cumulocity.rest.representation.application.microservice.ExtensionRepresentation;
-import com.google.common.base.Predicate;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import org.assertj.core.api.Condition;
@@ -20,6 +19,8 @@ import org.springframework.mock.env.MockEnvironment;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import static com.cumulocity.microservice.subscription.model.MicroserviceMetadataRepresentation.microserviceMetadataRepresentation;
@@ -124,7 +125,7 @@ public class LegacyMicroserviceRepositoryTest {
         assertThat(platform.take(byMethod(PUT)))
                 .hasSize(1)
                 .extracting("body")
-                .have(new Condition<Object>() {
+                .have(new Condition<>() {
                     @Override
                     public boolean matches(Object value) {
                         if (value instanceof ApplicationRepresentation) {
@@ -157,7 +158,7 @@ public class LegacyMicroserviceRepositoryTest {
         assertThat(platform.take(byMethod(PUT)))
                 .hasSize(1)
                 .extracting("body")
-                .have(new Condition<Object>() {
+                .have(new Condition<>() {
                     @Override
                     public boolean matches(Object value) {
                         if (value instanceof ApplicationRepresentation) {
@@ -193,8 +194,8 @@ public class LegacyMicroserviceRepositoryTest {
                         .name(appName)
                         .type("MICROSERVICE")
                         .key(resultAppKey)
-                        .requiredRoles(ImmutableList.<String>of())
-                        .roles(ImmutableList.<String>of())
+                        .requiredRoles(ImmutableList.of())
+                        .roles(ImmutableList.of())
                         .build());
     }
 
@@ -220,8 +221,8 @@ public class LegacyMicroserviceRepositoryTest {
                         .name(appName)
                         .type("MICROSERVICE")
                         .key(resultAppKey)
-                        .requiredRoles(ImmutableList.<String>of())
-                        .roles(ImmutableList.<String>of())
+                        .requiredRoles(ImmutableList.of())
+                        .roles(ImmutableList.of())
                         .build());
     }
 
@@ -248,8 +249,8 @@ public class LegacyMicroserviceRepositoryTest {
                         .name(appName)
                         .type("MICROSERVICE")
                         .key(resultAppKey)
-                        .requiredRoles(ImmutableList.<String>of())
-                        .roles(ImmutableList.<String>of())
+                        .requiredRoles(ImmutableList.of())
+                        .roles(ImmutableList.of())
                         .build());
     }
 
@@ -422,12 +423,12 @@ public class LegacyMicroserviceRepositoryTest {
 
     private MicroserviceMetadataRepresentation givenMicroserviceMetadataWithExtensions() {
         return microserviceMetadataRepresentation()
-                .extensions(Arrays.asList(new ExtensionRepresentation()))
+                .extensions(List.of(new ExtensionRepresentation()))
                 .build();
     }
 
     private Condition<? super Object> appRepresentationConditionWithExtensions() {
-        return new Condition<Object>() {
+        return new Condition<>() {
             @Override
             public boolean matches(Object value) {
                 if (value instanceof ApplicationRepresentation) {
@@ -440,7 +441,7 @@ public class LegacyMicroserviceRepositoryTest {
     }
 
     private Condition<? super Object> appRepresentationConditionWithoutExtensions() {
-        return new Condition<Object>() {
+        return new Condition<>() {
             @Override
             public boolean matches(Object value) {
                 if (value instanceof ApplicationRepresentation) {
