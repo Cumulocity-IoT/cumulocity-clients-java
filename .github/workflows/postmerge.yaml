@@ -32,3 +32,17 @@ jobs:
       release-version: ${{ needs.Compliance.outputs.version }}
       release-line: 2025
     secrets: inherit
+
+  Notify-Via-Google-Chat:
+    needs: [ Build-descriptor-update ]
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=default
+    if: ${{ failure() }}
+    steps:
+      - name: Send notification to google chat
+        uses: SimonScholz/google-chat-action@v1.1.0
+        with:
+          webhookUrl: '${{ secrets.CORE_GOOGLE_CHAT_WEBHOOK_URL }}'
+          title: Java-sdk post-merge workflow failed
+          imageUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828843.png'
