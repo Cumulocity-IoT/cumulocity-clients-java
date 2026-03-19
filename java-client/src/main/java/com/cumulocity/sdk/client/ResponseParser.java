@@ -23,6 +23,8 @@ package com.cumulocity.sdk.client;
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.ErrorMessageRepresentation;
 import com.cumulocity.rest.representation.ResourceRepresentation;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 public class ResponseParser {
@@ -116,16 +119,24 @@ public class ResponseParser {
         try {
             if (isJsonResponse(response)) {
                 return read(response, ErrorMessageRepresentation.class).toString();
-            } else {
-                LOG.error("Failed to parse error message to json. Getting error string... ");
-                LOG.error(read(response, String.class));
+            } else if(isHtmlReponse(response)){
+                String error = String.format("Received HTML error response (status=%d, content-type=%s). Skipping JSON parse.\nContent of original error message:\n",
+                        response.getStatus(), Optional.ofNullable(response.getMediaType()).map(MediaType::toString).orElse("unknown"));
+                String htmlString = read(response, String.class);
+                String limitedHtmlString = htmlString.substring(0, Math.min(htmlString.length(), 3000));
+                String sanitizedHtml = Jsoup.clean(limitedHtmlString, Safelist.none());
+                return error + Jsoup.parse(sanitizedHtml).text().replaceAll("\\s+", " ").trim();
+            }else {
+                String error = String.format("Received non-JSON error response (status=%d, content-type=%s). Skipping JSON parse.",
+                        response.getStatus(), Optional.ofNullable(response.getMediaType()).map(MediaType::toString).orElse("unknown"));
+                LOG.error(error);
+                return error;
             }
         } catch (Exception e) {
             LOG.error("Failed to parse error message", e);
         }
         return null;
     }
-
     protected boolean isJsonResponse(Response response){
         MediaType contentType = response.getMediaType();
         if (contentType == null) {
@@ -133,6 +144,14 @@ public class ResponseParser {
         }
         return contentType.getType().contains("application")
                 && contentType.getSubtype().contains("json");
+    }
+    protected boolean isHtmlReponse(Response response){
+        MediaType contentType = response.getMediaType();
+        if (contentType == null) {
+            return false;
+        }
+        return contentType.getType().contains("text")
+                && contentType.getSubtype().contains("html");
     }
 
     public GId parseIdFromLocation(Response response) {

@@ -104,7 +104,12 @@
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>${jsoup.version}</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.nsn.cumulocity.clients-java</groupId>
 			<artifactId>resource-bundle</artifactId>

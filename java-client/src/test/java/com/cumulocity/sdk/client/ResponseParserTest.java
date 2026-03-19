@@ -137,7 +137,6 @@ public class ResponseParserTest {
         when(response.hasEntity()).thenReturn(false);
         when(response.readEntity(ErrorMessageRepresentation.class)).thenThrow(new RuntimeException());
         when(response.getMediaType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
-
         // When
         Throwable thrown = catchThrowable(() -> parser.parse(response, BaseResourceRepresentation.class, EXPECTED_STATUS));
 
@@ -145,7 +144,45 @@ public class ResponseParserTest {
         Assertions.assertThat(thrown).isInstanceOf(SDKException.class)
                 .hasMessage("Http status code: %s", ERROR_STATUS);
     }
+    @Test
+    public void shouldParseHtmlErrorMessage() throws Exception {
+        // Given
+        when(response.getStatus()).thenReturn(ERROR_STATUS);
+        when(response.hasEntity()).thenReturn(true);
+        when(response.readEntity(ErrorMessageRepresentation.class)).thenThrow(new RuntimeException());
+        when(response.getMediaType()).thenReturn(MediaType.TEXT_HTML_TYPE);
+        when(response.readEntity(String.class)).thenReturn("<html>\n" +
+                "<head><title>502 Bad Gateway</title></head>\n" +
+                "<body>\n" +
+                "<center><h1>502 Bad Gateway</h1></center>\n" +
+                "<hr><center>openresty</center>\n" +
+                "</body>\n" +
+                "</html>");
 
+        // When
+        Throwable thrown = catchThrowable(() -> parser.parse(response, BaseResourceRepresentation.class, EXPECTED_STATUS));
+
+        // Then
+        Assertions.assertThat(thrown).isInstanceOf(SDKException.class)
+                .hasMessage("Http status code: %s\nReceived HTML error response (status=%s, content-type=%s)." +
+                        " Skipping JSON parse.\nContent of original error message:\n502 Bad Gateway 502 Bad Gateway openresty", ERROR_STATUS, ERROR_STATUS, MediaType.TEXT_HTML_TYPE.toString());
+    }
+    @Test
+    public void shouldLogStatusCodeAndMediaTypeForNonJSONandNonHtml() throws Exception {
+        // Given
+        when(response.getStatus()).thenReturn(ERROR_STATUS);
+        when(response.hasEntity()).thenReturn(true);
+        when(response.readEntity(ErrorMessageRepresentation.class)).thenThrow(new RuntimeException());
+        when(response.getMediaType()).thenReturn(MediaType.TEXT_PLAIN_TYPE);
+
+        // When
+        Throwable thrown = catchThrowable(() -> parser.parse(response, BaseResourceRepresentation.class, EXPECTED_STATUS));
+
+        // Then
+        Assertions.assertThat(thrown).isInstanceOf(SDKException.class)
+                .hasMessage("Http status code: %s\nReceived non-JSON error response (status=%s, content-type=%s)." +
+                        " Skipping JSON parse.", ERROR_STATUS, ERROR_STATUS, MediaType.TEXT_PLAIN_TYPE.toString());
+    }
     @Test
     public void shouldParseIdFromHeader() throws Exception {
         // Given
