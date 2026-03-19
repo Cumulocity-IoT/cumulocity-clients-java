@@ -284,6 +284,9 @@ public class PlatformParameters implements AutoCloseable {
                     } catch (Exception e) {
                         log.debug("Error while closing restConnector.", e);
                     }
+                    finally {
+                        restConnector = null;
+                    }
                 }
             }
         }

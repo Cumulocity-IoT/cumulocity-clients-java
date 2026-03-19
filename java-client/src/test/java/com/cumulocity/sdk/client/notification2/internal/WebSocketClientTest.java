@@ -1,6 +1,7 @@
 package com.cumulocity.sdk.client.notification2.internal;
 
 import com.cumulocity.rest.representation.reliable.notification.NotificationTokenRequestRepresentation;
+import com.cumulocity.sdk.client.Platform;
 import com.cumulocity.sdk.client.messaging.notifications.Token;
 import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
 import com.cumulocity.sdk.client.notification2.AckMode;
@@ -45,6 +46,7 @@ public class WebSocketClientTest {
     private final ArgumentCaptor<NotificationTokenRequestRepresentation> tokenReqestCaptor = ArgumentCaptor.forClass(NotificationTokenRequestRepresentation.class);
     private final TokenApi tokenApi = mock(TokenApi.class);
     private final WebSocketConnector connector = mock(WebSocketConnector.class);
+    private final Platform platform = mock(Platform.class);
 
     private WebSocketClient client;
 
@@ -74,12 +76,14 @@ public class WebSocketClientTest {
             log.info("listener sleep end");
             return null;
         }).when(notificationListener).onMessage(any(), any(), any(), any());
+
+        when(platform.getTokenApi()).thenReturn(tokenApi);
     }
 
     private void initClient(Duration tokenRefreshInterval) {
         client = new WebSocketClient(WS_URL, SUBSCRIBER, SUBSCRIPTION_NAME, ACK_MODE,
                 TENANT_ID, DEVICE_ID, notificationListener, Duration.ofSeconds(5L), tokenRefreshInterval,
-                IS_TOKEN_SHARED, IS_TOKEN_PERSISTENT, tokenApi, connector);
+                IS_TOKEN_SHARED, IS_TOKEN_PERSISTENT, platform, connector);
     }
 
     private void sleep(long millis) {

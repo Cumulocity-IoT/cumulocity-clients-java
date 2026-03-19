@@ -4,10 +4,9 @@ import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.reliable.notification.NotificationSubscriptionFilterRepresentation;
 import com.cumulocity.rest.representation.reliable.notification.NotificationSubscriptionRepresentation;
-import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionApi;
+import com.cumulocity.sdk.client.Platform;
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionCollection;
 import com.cumulocity.sdk.client.messaging.notifications.NotificationSubscriptionFilter;
-import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
 import com.cumulocity.sdk.client.notification2.NotificationListener;
 import com.cumulocity.sdk.client.notification2.Notifications2Api;
 import com.cumulocity.sdk.client.notification2.Subscription;
@@ -18,6 +17,7 @@ import com.cumulocity.sdk.client.util.StringUtils;
 import lombok.AccessLevel;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.time.Duration;
 import java.util.List;
@@ -45,18 +45,15 @@ public class Notifications2ApiImpl implements Notifications2Api {
     // constructor args
     private final Notifications2Properties notifications2Properties;
     private final String tenantId;
-    private final NotificationSubscriptionApi notificationSubscriptionApi;
-    private final TokenApi tokenApi;
+    private final Platform platform;
 
     @Setter(AccessLevel.PACKAGE) // for unit tests
     private BiFunction<Subscription, NotificationListener, WebSocketClient> clientFactoryFunction;
 
-    public Notifications2ApiImpl(Notifications2Properties notifications2Properties, String tenantId, NotificationSubscriptionApi notificationSubscriptionApi,
-                                 TokenApi tokenApi) {
+    public Notifications2ApiImpl(Notifications2Properties notifications2Properties, String tenantId, Platform platform) {
         this.notifications2Properties = notifications2Properties;
         this.tenantId = tenantId;
-        this.notificationSubscriptionApi = notificationSubscriptionApi;
-        this.tokenApi = tokenApi;
+        this.platform = platform;
         clientFactoryFunction = this::createClient;
         if (this.notifications2Properties.isDisabled()) {
             log.info("C8Y.notifications2.websocketUrl is empty - Notifications 2.0 will be disabled");
@@ -67,7 +64,7 @@ public class Notifications2ApiImpl implements Notifications2Api {
         return new WebSocketClient(notifications2Properties.getWebsocketUrl(), subscription.getId().getSubscriber(), subscription.getId().getName(), subscription.getAckMode(),
                 tenantId, subscription.getDeviceId(), listener,
                 Duration.ofSeconds(5L), notifications2Properties.getTokenRefreshInterval(), subscription.isShared(), subscription.isPersistent(),
-                tokenApi, new TooTallNateWebSocketConnector());
+                platform, new TooTallNateWebSocketConnector());
     }
 
     @Override
@@ -108,13 +105,13 @@ public class Notifications2ApiImpl implements Notifications2Api {
         log.trace("Deleting {}", subscriptionId);
         ensureNotifications2Enabled();
         disconnect(subscriptionId, true);
-        final NotificationSubscriptionCollection notificationSubscriptionCollection = notificationSubscriptionApi
+        final NotificationSubscriptionCollection notificationSubscriptionCollection = platform.getNotificationSubscriptionApi()
                 .getSubscriptionsByFilter(new NotificationSubscriptionFilter().bySubscription(subscriptionId.getName()));
         List<NotificationSubscriptionRepresentation> subscriptions = notificationSubscriptionCollection.get().getSubscriptions();
-        if (subscriptions.size() > 0) {
+        if (!CollectionUtils.isEmpty(subscriptions)) {
             subscriptions.forEach(s -> {
                 log.trace("Deleting {}", s);
-                notificationSubscriptionApi.delete(s);
+                platform.getNotificationSubscriptionApi().delete(s);
             });
         }
     }
@@ -163,7 +160,7 @@ public class Notifications2ApiImpl implements Notifications2Api {
      * @return true/false
      */
     boolean subscriptionExists(String subscriptionName) {
-        final NotificationSubscriptionCollection notificationSubscriptionCollection = notificationSubscriptionApi
+        final NotificationSubscriptionCollection notificationSubscriptionCollection = platform.getNotificationSubscriptionApi()
                 .getSubscriptionsByFilter(new NotificationSubscriptionFilter().bySubscription(subscriptionName));
         List<NotificationSubscriptionRepresentation> subscriptions = notificationSubscriptionCollection.get().getSubscriptions();
         return subscriptions != null && subscriptions.size() > 0;
@@ -199,6 +196,6 @@ public class Notifications2ApiImpl implements Notifications2Api {
         subscriptionRepresentation.setSubscriptionFilter(subscriptionFilter);
         subscriptionRepresentation.setNonPersistent(!subscription.isPersistent());
 
-        notificationSubscriptionApi.subscribe(subscriptionRepresentation);
+        platform.getNotificationSubscriptionApi().subscribe(subscriptionRepresentation);
     }
 }

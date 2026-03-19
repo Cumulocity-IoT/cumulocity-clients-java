@@ -301,8 +301,7 @@ public class PlatformImpl extends PlatformParameters implements Platform {
         return new Notifications2ApiImpl(
                 this.getNotifications2(),
                 this.getTenantId(),
-                this.getNotificationSubscriptionApi(),
-                this.getTokenApi()
+                this
         );
     }
 

@@ -44,6 +44,7 @@ public class Notifications2ApiImplTest {
     public void setupMocks() {
         when(platform.getNotifications2()).thenReturn(new Notifications2Properties().withWebsocketUrl(WS_URL));
         when(platform.getTenantId()).thenReturn("Tenant1");
+        when(platform.getNotificationSubscriptionApi()).thenReturn(notificationSubscriptionApi);
         when(notificationSubscriptionApi.getSubscriptionsByFilter(any())).thenReturn(notificationSubscriptionCollection);
         when(notificationSubscriptionCollection.get()).thenReturn(pagedRep);
         when(pagedRep.getSubscriptions()).thenReturn(Collections.emptyList());
@@ -51,7 +52,7 @@ public class Notifications2ApiImplTest {
     }
 
     private void initApiWithMocks() {
-        api = new Notifications2ApiImpl(platform.getNotifications2(), "tenant1", notificationSubscriptionApi, mock(TokenApi.class));
+        api = new Notifications2ApiImpl(platform.getNotifications2(), "tenant1", platform);
         api.setClientFactoryFunction((sub, lis) -> client);
     }
 

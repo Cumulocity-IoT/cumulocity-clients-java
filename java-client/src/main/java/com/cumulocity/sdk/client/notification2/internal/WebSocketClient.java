@@ -1,8 +1,8 @@
 package com.cumulocity.sdk.client.notification2.internal;
 
 import com.cumulocity.rest.representation.reliable.notification.NotificationTokenRequestRepresentation;
+import com.cumulocity.sdk.client.Platform;
 import com.cumulocity.sdk.client.messaging.notifications.Token;
-import com.cumulocity.sdk.client.messaging.notifications.TokenApi;
 import com.cumulocity.sdk.client.notification2.AckMode;
 import com.cumulocity.sdk.client.notification2.Notification;
 import com.cumulocity.sdk.client.notification2.NotificationListener;
@@ -45,7 +45,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
     private Duration tokenRefreshInterval;
     private final boolean isTokenShared;
     private final boolean isTokenPersistent;
-    private final TokenApi tokenApi;
+    private final Platform platform;
     private final ScheduledExecutorService scheduler;
     private final WebSocketConnector connector;
 
@@ -60,7 +60,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
 
     public WebSocketClient(String webSocketBaseUrl, String subscriber, String subscriptionName, AckMode ackMode,
                            String tenantId, String deviceId, NotificationListener notificationListener, Duration reconnectDelay, Duration tokenRefreshInterval,
-                           boolean isTokenShared, boolean isTokenPersistent, TokenApi tokenApi, WebSocketConnector connector) {
+                           boolean isTokenShared, boolean isTokenPersistent, Platform platform, WebSocketConnector connector) {
         this.webSocketBaseUrl = webSocketBaseUrl;
         this.subscriber = subscriber;
         this.subscriptionName = subscriptionName;
@@ -72,7 +72,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
         this.tokenRefreshInterval = tokenRefreshInterval;
         this.scheduler = Executors.newScheduledThreadPool(2);
         this.connector = connector;
-        this.tokenApi = tokenApi;
+        this.platform = platform;
         this.isTokenShared = isTokenShared;
         this.isTokenPersistent = isTokenPersistent;
     }
@@ -275,7 +275,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
 
         final NotificationTokenRequestRepresentation tokenRequestRepresentation =
                 new NotificationTokenRequestRepresentation(subscriber, subscriptionName, null, true, expirationMinutes, isTokenShared, !isTokenPersistent);
-        token = tokenApi.create(tokenRequestRepresentation);
+        token = platform.getTokenApi().create(tokenRequestRepresentation);
     }
 
     /**
@@ -285,7 +285,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
         log.debug("Refreshing token (content in TRACE logs)");
         log.trace(token.toString());
         try {
-            token = tokenApi.refresh(token);
+            token = platform.getTokenApi().refresh(token);
         }
         catch (Exception e) {
             log.warn("Couldn't refresh token - creating new instead", e);
@@ -300,7 +300,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
         log.debug("Unsubscribing token (content in TRACE logs)");
         log.trace(token.toString());
         try {
-            tokenApi.unsubscribe(token);
+            platform.getTokenApi().unsubscribe(token);
         }
         catch (Exception e) {
             log.warn("Couldn't unsubscribe token", e);
