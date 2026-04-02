@@ -6,4 +6,3 @@
 /microservice/custom-decoders/ @Cumulocity-IoT/c8y-data-and-control-backend
 /microservice/custom-encoders/ @Cumulocity-IoT/c8y-data-and-control-backend
 /microservice/lpwan-custom-codec/ @Cumulocity-IoT/c8y-data-and-control-backend
-/mqtt-service/ @Cumulocity-IoT/c8y-data-in-motion

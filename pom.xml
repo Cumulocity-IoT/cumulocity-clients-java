@@ -31,7 +31,6 @@
         <module>java-sms-client</module>
         <module>java-client-services</module>
         <module>java-mqtt-client</module>
-        <module>mqtt-service</module>
     </modules>
 
     <properties>
