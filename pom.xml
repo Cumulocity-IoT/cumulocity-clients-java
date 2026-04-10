@@ -58,7 +58,7 @@
         <lombok.version>1.18.42</lombok.version> <!-- bound with spring-boot.version -->
         <microemu.version>2.0.4</microemu.version>
         <mock-server.version>5.15.0</mock-server.version>
-        <spring-boot.version>3.5.11</spring-boot.version>
+        <spring-boot.version>3.5.12</spring-boot.version>
         <svenson.version>1.5.8</svenson.version>
         <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
 
