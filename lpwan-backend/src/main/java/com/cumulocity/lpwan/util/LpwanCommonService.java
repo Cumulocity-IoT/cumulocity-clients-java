@@ -95,8 +95,17 @@ public class LpwanCommonService {
                 String version = null;
                 try {
                     ApplicationRepresentation representation = applicationApi.currentApplication().get();
-                    version = representation.getManifest().get("version").toString();
-                    log.info("Agent version : {}", version);
+                    if (representation != null && representation.getManifest() != null) {
+                        Object versionObj = representation.getManifest().get("version");
+                        if (versionObj != null) {
+                            version = versionObj.toString();
+                            log.info("Agent version : {}", version);
+                        } else {
+                            log.warn("Version key not found in manifest");
+                        }
+                    } else {
+                        log.warn("ApplicationRepresentation or manifest is null");
+                    }
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                 }
