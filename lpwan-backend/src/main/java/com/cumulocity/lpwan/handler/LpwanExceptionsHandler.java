@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -97,6 +98,19 @@ public class LpwanExceptionsHandler {
     public ResponseEntity<ErrorMessageRepresentation> handleIllegalArgumentException(IllegalArgumentException exception) {
         log.error(exception.getMessage(), exception);
         return buildErrorResponse(exception, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * This method handles the <b>AuthorizationDeniedException</b>.
+     *
+     * @param exception       represents the AuthorizationDeniedException
+     * @return ResponseEntity <code>HttpStatus.FORBIDDEN</code>
+     */
+    @ExceptionHandler(value = AuthorizationDeniedException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorMessageRepresentation> handleAuthorizationDeniedException(AuthorizationDeniedException exception) {
+        log.error(exception.getMessage(), exception);
+        return buildErrorResponse(exception, HttpStatus.FORBIDDEN);
     }
 
     /**

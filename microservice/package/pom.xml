@@ -50,6 +50,11 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.nsn.cumulocity.clients-java</groupId>
+			<artifactId>microservice-security</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>com.google.code.svenson</groupId>
 			<artifactId>svenson</artifactId>
 			<version>1.5.12</version>
