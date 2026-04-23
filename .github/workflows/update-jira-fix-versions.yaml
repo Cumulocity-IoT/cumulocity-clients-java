@@ -1,0 +1,54 @@
+# Description:
+# This workflow automatically updates the Fix Version in JIRA based on release tags in the repository.
+# It first calls a shared composite action, which calculates the version number and extracts the list
+# of related JIRA tickets from the commits between the current and the previous tag. Then, for each
+# extracted ticket, a job is executed using the jira-bot action to update the corresponding JIRA issue
+# by adding the derived Fix Version.
+
+name: Update Jira Fix Versions
+
+# Trigger: run this workflow only for release tags (tags with the "clients-java-" prefix)
+on:
+  push:
+    tags:
+      - clients-java-*
+
+jobs:
+  extract-data:
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=default
+    permissions:
+      contents: read
+    outputs:
+      fix_version: ${{ steps.data.outputs.fix_version }}
+      tickets_matrix: ${{ steps.data.outputs.tickets_matrix }}
+    steps:
+      - name: Extract the ticket numbers and fix version to be updated in Jira
+        id: data
+        uses: Cumulocity-IoT/c8y-manticore-actions/extact-jira-tickets-and-fix-version@v1
+        with:
+          tag: ${{ github.ref }}
+          tag_prefix: clients-java-
+          jira_username: ${{ secrets.JIRA_USERNAME }}
+          jira_token: ${{ secrets.JIRA_TOKEN }}
+
+  update-jira:
+    needs: [extract-data]
+    if: needs.extract-data.outputs.tickets_matrix != '[]'
+    runs-on:
+      - runs-on=${{ github.run_id }}
+      - runner=default
+    # Use a matrix strategy to run one job per ticket
+    strategy:
+      matrix:
+        ticket: ${{ fromJson(needs.extract-data.outputs.tickets_matrix) }}
+    steps:
+      - name: Run jira-bot for updating the ticket ${{ matrix.ticket }} with fix version ${{ needs.extract-data.outputs.fix_version }}
+        uses: Cumulocity-IoT/jira-bot@master
+        with:
+          jira-url: "${{ vars.JIRA_BASE_URL }}"
+          jira-username: "${{ vars.JIRA_USER_EMAIL }}"
+          jira-api-token: "${{ secrets.JIRA_API_TOKEN }}"
+          ticket-number: ${{ matrix.ticket }}
+          version-name: ${{ needs.extract-data.outputs.fix_version }}
