@@ -43,7 +43,7 @@
 		<docker-client.version>8.16.0</docker-client.version>
 		<docker-java.version>3.2.13</docker-java.version>
 		<hibernate-validator.version>8.0.2.Final</hibernate-validator.version>
-		<maven-plugin-version>3.2.5</maven-plugin-version>
+		<maven-plugin-version>3.9.14</maven-plugin-version>
 		<!-- TODO: fix javadoc generation. Will be implemented in DM-1177 -->
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 	</properties>
