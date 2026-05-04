@@ -71,23 +71,17 @@ public class CumulocityOAuthMicroserviceFilter extends GenericFilterBean {
                     authResult.setAuthenticated(true);
                     JwtTokenAuthentication tokenAuthentication = setRequestOrigin((JwtTokenAuthentication) authResult, request);
                     SecurityContextHolder.getContext().setAuthentication(tokenAuthentication);
-                    userContextService.runWithinContext(
+                    userContextService.callWithinContext(
                             tokenAuthentication.getUserCredentials(),
                             () -> {
-                                try {
-                                    chain.doFilter(req, res);
-                                } catch (Exception e) {
-                                    throw new AuthenticationServiceException("Error on login attempt", e);
-                                }
+                                chain.doFilter(req, res);
+                                return null;
                             });
                     return;
                 } catch (AuthenticationException failed) {
                     log.warn("Error {}", failed);
                     logger.warn(failed);
                     SecurityContextHolder.clearContext();
-                    if (debug) {
-                        logger.debug("Authentication request for failed: " + failed);
-                    }
                     authenticationEntryPoint.commence(request, response, failed);
                     return;
                 }

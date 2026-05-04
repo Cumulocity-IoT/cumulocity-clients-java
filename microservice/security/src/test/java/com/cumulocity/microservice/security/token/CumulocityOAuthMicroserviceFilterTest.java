@@ -22,17 +22,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import static com.cumulocity.microservice.security.token.CookieReader.AUTHORIZATION_KEY;
 import static com.cumulocity.microservice.security.token.CumulocityCoreAuthenticationClient.ForwardedHeaderOnRequestFilter.X_FORWARDED_HOST;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.Mockito.*;
 
 public class CumulocityOAuthMicroserviceFilterTest {
 
-    private final static String SAMPLE_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOm51bGwsImlzcyI6ImN1bXVsb2NpdHkuZGVmYXVsdC5zdmMuY2x1c3Rlci5sb2NhbCIsImF1ZCI6ImN1bXVsb2NpdHkuZGVmYXVsdC5zdmMuY2x1c3Rlci5sb2NhbCIsInN1YiI6ImFkbWluIiwidGNpIjoiZDMwMTczNjYtY2Y3Yi00MjdlLWE2OTMtNzJiYjg2MGE5MDgzIiwiaWF0IjoxNTY1NzYxMTg0LCJuYmYiOjE1NjU3NjExODQsImV4cCI6MTU2Njk3MDc4NCwidGZhIjpmYWxzZSwidGVuIjoibWFuYWdlbWVudCIsInhzcmZUb2tlbiI6InZ2VXlpS3h6c1VHQlhNbGNPb2RrIn0.TDz9k0NfKeLK5f0dwZ_gqOWyweMLpaIdEtU6snos9_0ephtI4HibCVEOV9JPoHZnaqjAUyfmhQc7WN2JLpMX6Q";
-    private final static String SAMPLE_X_XSRF_TOKEN = "vvUyiKxzsUGBXMlcOodk";
+    private static final String SAMPLE_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOm51bGwsImlzcyI6ImN1bXVsb2NpdHkuZGVmYXVsdC5zdmMuY2x1c3Rlci5sb2NhbCIsImF1ZCI6ImN1bXVsb2NpdHkuZGVmYXVsdC5zdmMuY2x1c3Rlci5sb2NhbCIsInN1YiI6ImFkbWluIiwidGNpIjoiZDMwMTczNjYtY2Y3Yi00MjdlLWE2OTMtNzJiYjg2MGE5MDgzIiwiaWF0IjoxNTY1NzYxMTg0LCJuYmYiOjE1NjU3NjExODQsImV4cCI6MTU2Njk3MDc4NCwidGZhIjpmYWxzZSwidGVuIjoibWFuYWdlbWVudCIsInhzcmZUb2tlbiI6InZ2VXlpS3h6c1VHQlhNbGNPb2RrIn0.TDz9k0NfKeLK5f0dwZ_gqOWyweMLpaIdEtU6snos9_0ephtI4HibCVEOV9JPoHZnaqjAUyfmhQc7WN2JLpMX6Q";
+    private static final String SAMPLE_X_XSRF_TOKEN = "vvUyiKxzsUGBXMlcOodk";
 
     private CumulocityOAuthMicroserviceFilter filter;
     private AuthenticationEntryPoint authenticationEntryPoint;
@@ -66,14 +68,14 @@ public class CumulocityOAuthMicroserviceFilterTest {
     public void shouldAuthenticateWithAuthorizationBearer() throws IOException, ServletException {
         request.addHeader("Authorization", "Bearer " + SAMPLE_TOKEN);
         mockSuccessAuthentication();
-        mockContextServiceInvokeRunnable();
+        mockContextServiceInvokeCallable();
 
         filter.doFilter(request, response, chain);
 
         JwtTokenAuthentication authentication = (JwtTokenAuthentication) SecurityContextHolder.getContext().getAuthentication();
         assertThat(authentication.getCredentials().getJwt().serialize()).isEqualTo(SAMPLE_TOKEN);
         verify(chain).doFilter(request, response);
-        verify(contextService).runWithinContext(any(UserCredentials.class), any(Runnable.class));
+        verify(contextService).callWithinContext(any(UserCredentials.class), any(Callable.class));
     }
 
     @Test
@@ -82,7 +84,7 @@ public class CumulocityOAuthMicroserviceFilterTest {
         request.setCookies(cookies);
         request.addHeader("X-XSRF-TOKEN", SAMPLE_X_XSRF_TOKEN);
         mockSuccessAuthentication();
-        mockContextServiceInvokeRunnable();
+        mockContextServiceInvokeCallable();
 
         filter.doFilter(request, response, chain);
 
@@ -91,7 +93,7 @@ public class CumulocityOAuthMicroserviceFilterTest {
         assertThat(credentials.getJwt().serialize()).isEqualTo(SAMPLE_TOKEN);
         assertThat(credentials.getXsrfToken()).isEqualTo(SAMPLE_X_XSRF_TOKEN);
         verify(chain).doFilter(request, response);
-        verify(contextService).runWithinContext(same(userCredentials), any(Runnable.class));
+        verify(contextService).callWithinContext(same(userCredentials), any(Callable.class));
     }
 
     @Test
@@ -146,6 +148,24 @@ public class CumulocityOAuthMicroserviceFilterTest {
     }
 
 
+    @Test
+    public void shouldPropagateIOExceptionWithoutMappingTo401() throws IOException, ServletException {
+        // Given
+        request.addHeader("Authorization", "Bearer " + SAMPLE_TOKEN);
+        mockSuccessAuthentication();
+        IOException ioException = new IOException("IO error");
+
+        mockContextServiceInvokeCallable();
+        doThrow(ioException).when(chain).doFilter(request, response);
+
+        // When --> Then - IOException should propagate, not be mapped to 401
+        assertThatThrownBy(() -> filter.doFilter(request, response, chain))
+                .isEqualTo(ioException);
+
+        verify(authenticationEntryPoint, times(0)).commence(any(), any(), any());
+    }
+
+
     private void mockSuccessAuthentication() {
         when(authenticationManager.authenticate(any(JwtTokenAuthentication.class))).thenAnswer((Answer<JwtTokenAuthentication>) invocation -> {
             JwtTokenAuthentication jwtTokenAuthentication = invocation.getArgument(0);
@@ -154,11 +174,10 @@ public class CumulocityOAuthMicroserviceFilterTest {
         });
     }
 
-    private void mockContextServiceInvokeRunnable() {
+    private void mockContextServiceInvokeCallable() {
         doAnswer(invocationOnMock -> {
-            Runnable runnableObject = (Runnable)invocationOnMock.getArguments()[1];
-            runnableObject.run();
-            return null;
-        }).when(contextService).runWithinContext(or(any(UserCredentials.class), Mockito.isNull()), any(Runnable.class));
+            Callable<?> callableObject = invocationOnMock.getArgument(1);
+            return callableObject.call();
+        }).when(contextService).callWithinContext(or(any(UserCredentials.class), Mockito.isNull()), any(Callable.class));
     }
 }
