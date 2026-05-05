@@ -11,16 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.beans.ConstructorProperties;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.compare;
 
 @Slf4j
 @Repository
@@ -33,7 +29,8 @@ public class MicroserviceSubscriptionsRepository {
     }
 
     public Collection<MicroserviceCredentials> getCurrentSubscriptions() {
-        return this.currentSubscriptions;
+        // Return unmodifiable copy to prevent concurrent modification issues
+        return Collections.unmodifiableCollection(new ArrayList<>(currentSubscriptions));
     }
 
     @ToString
@@ -120,16 +117,22 @@ public class MicroserviceSubscriptionsRepository {
     }
 
     public Subscriptions retrieveSubscriptions(String applicationId) {
-        List<MicroserviceCredentials> subscriptions = StreamSupport.stream(repository.getSubscriptions(applicationId).spliterator(), false).map(representation -> MicroserviceCredentials.builder()
-                .username(representation.getName())
-                .tenant(representation.getTenant())
-                .password(representation.getPassword())
-                .oAuthAccessToken(null)
-                .xsrfToken(null)
-                .appKey(platformProperties.getApplicationKey())
-                .build()).collect(Collectors.toCollection(ArrayList::new));
-        moveManagementToFront(subscriptions);
-        return diffWithCurrentSubscriptions(subscriptions);
+        try {
+            List<MicroserviceCredentials> subscriptions = StreamSupport.stream(repository.getSubscriptions(applicationId).spliterator(), false).map(representation -> MicroserviceCredentials.builder()
+                    .username(representation.getName())
+                    .tenant(representation.getTenant())
+                    .password(representation.getPassword())
+                    .oAuthAccessToken(null)
+                    .xsrfToken(null)
+                    .appKey(platformProperties.getApplicationKey())
+                    .build()).collect(Collectors.toCollection(ArrayList::new));
+            moveManagementToFront(subscriptions);
+            return diffWithCurrentSubscriptions(subscriptions);
+        }
+        catch (Throwable t) {
+            log.error("Failed to retrieve subscriptions for application '{}': {}", applicationId, t.getMessage(), t);
+            return Subscriptions.builder().all(currentSubscriptions).removed(new ArrayList()).added(new ArrayList()).build();
+        }
     }
 
     private void moveManagementToFront(List<MicroserviceCredentials> subscriptions) {
@@ -150,13 +153,16 @@ public class MicroserviceSubscriptionsRepository {
     }
 
     public Subscriptions diffWithCurrentSubscriptions(List<MicroserviceCredentials> credentials) {
-        final Collection<MicroserviceCredentials> removed = subtract(currentSubscriptions, credentials);
-        final Collection<MicroserviceCredentials> added = subtract(credentials, currentSubscriptions);
-        return Subscriptions.builder()
-                .all(credentials)
-                .removed(removed)
-                .added(added)
-                .build();
+        synchronized (this) {
+            final Collection<MicroserviceCredentials> removed = subtract(currentSubscriptions, credentials);
+            final Collection<MicroserviceCredentials> added = subtract(credentials, currentSubscriptions);
+
+            return Subscriptions.builder()
+                    .all(credentials)
+                    .removed(removed)
+                    .added(added)
+                    .build();
+        }
     }
 
     private Collection<MicroserviceCredentials> subtract(Collection<MicroserviceCredentials> a, final Collection<MicroserviceCredentials> b) {
@@ -169,6 +175,8 @@ public class MicroserviceSubscriptionsRepository {
     }
 
     public void updateCurrentSubscriptions(final Collection<MicroserviceCredentials> subscriptions) {
-        currentSubscriptions = subscriptions;
+        synchronized (this) {
+            currentSubscriptions = subscriptions;
+        }
     }
 }
