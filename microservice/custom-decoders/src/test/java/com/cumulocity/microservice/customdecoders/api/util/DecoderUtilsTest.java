@@ -46,7 +46,7 @@ class DecoderUtilsTest {
         assertEquals(5, dateTime.getHourOfDay());
         assertEquals(42, dateTime.getMinuteOfHour());
         assertEquals(53, dateTime.getSecondOfMinute());
-        assertEquals("Etc/GMT", dateTime.getZone().toString());
+        assertEquals("UTC", dateTime.getZone().toString());
     }
 
     @Test
