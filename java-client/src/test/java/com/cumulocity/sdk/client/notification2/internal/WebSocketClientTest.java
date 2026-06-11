@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Duration;
 
 import static com.cumulocity.sdk.client.notification2.internal.WebSocketClient.MESSAGE_SHUTDOWN;
-import static com.cumulocity.sdk.client.notification2.internal.WebSocketClient.MESSAGE_TOKEN_REFRESH;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -56,10 +55,9 @@ public class WebSocketClientTest {
     @BeforeEach
     public void setup() {
         when(tokenApi.create(any())).thenReturn(token);
-        when(tokenApi.refresh(any())).thenReturn(token);
         when(token.getTokenString()).thenReturn("abcd");
         when(connector.getRawSocket()).thenReturn(new Object());
-        initClient(Duration.ofMinutes(10));
+        initClient();
         lastAckTimestamp = null;
         lastListenerNotification = null;
         doAnswer(invocationOnMock -> {
@@ -80,9 +78,9 @@ public class WebSocketClientTest {
         when(platform.getTokenApi()).thenReturn(tokenApi);
     }
 
-    private void initClient(Duration tokenRefreshInterval) {
+    private void initClient() {
         client = new WebSocketClient(WS_URL, SUBSCRIBER, SUBSCRIPTION_NAME, ACK_MODE,
-                TENANT_ID, DEVICE_ID, notificationListener, Duration.ofSeconds(5L), tokenRefreshInterval,
+                TENANT_ID, DEVICE_ID, notificationListener,
                 IS_TOKEN_SHARED, IS_TOKEN_PERSISTENT, platform, connector);
     }
 
@@ -111,20 +109,6 @@ public class WebSocketClientTest {
     }
 
     @Test
-    public void shouldRefreshToken() {
-        client.setTokenRefreshInterval(Duration.ofSeconds(2));
-        client.start();
-        client.onWebsocketOpen();
-        sleep(3000);
-        client.stop(false);
-
-        verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(1)).refresh(eq(token));
-        verify(connector, times(2)).connect(eq(client));
-        assertFalse(client.isRunning());
-    }
-
-    @Test
     public void shouldReconnectOnWebSocketClose() {
         client.setReconnectDelay(Duration.ofMillis(100));
         client.start();
@@ -132,8 +116,7 @@ public class WebSocketClientTest {
         client.onWebsocketClosed(101, "random");
         sleep(200);
 
-        verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(1)).refresh(eq(token));
+        verify(tokenApi, times(2)).create(any());
         verify(connector, times(2)).connect(eq(client));
         assertTrue(client.isRunning());
     }
@@ -148,22 +131,8 @@ public class WebSocketClientTest {
         sleep(200);
 
         verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(0)).refresh(any());
         verify(connector, times(1)).connect(eq(client));
         assertFalse(client.isRunning());
-    }
-
-    @Test
-    public void shouldNotReconnectOnWebsocketClosedWhenMessageIsTokenRefresh() {
-        client.setReconnectDelay(Duration.ofMillis(100));
-        client.start();
-        client.onWebsocketOpen();
-        client.onWebsocketClosed(101, MESSAGE_TOKEN_REFRESH);
-        sleep(200);
-
-        verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(0)).refresh(any());
-        verify(connector, times(1)).connect(eq(client));
     }
 
     @Test
@@ -175,7 +144,6 @@ public class WebSocketClientTest {
         sleep(200);
 
         verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(0)).refresh(any());
         verify(connector, times(1)).connect(eq(client));
     }
 
@@ -187,8 +155,7 @@ public class WebSocketClientTest {
         client.onWebsocketError(new RuntimeException("some error"));
         sleep(200);
 
-        verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(1)).refresh(eq(token));
+        verify(tokenApi, times(2)).create(any());
         verify(connector, times(2)).connect(eq(client));
         assertTrue(client.isRunning());
     }
@@ -203,22 +170,8 @@ public class WebSocketClientTest {
         sleep(200);
 
         verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(0)).refresh(any());
         verify(connector, times(1)).connect(eq(client));
         assertFalse(client.isRunning());
-    }
-
-    @Test
-    public void shouldNotReconnectOnWebsocketErrorWhenMessageIsTokenRefresh() {
-        client.setReconnectDelay(Duration.ofMillis(100));
-        client.start();
-        client.onWebsocketOpen();
-        client.onWebsocketError(new RuntimeException(MESSAGE_TOKEN_REFRESH));
-        sleep(200);
-
-        verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(0)).refresh(any());
-        verify(connector, times(1)).connect(eq(client));
     }
 
     @Test
@@ -230,7 +183,6 @@ public class WebSocketClientTest {
         sleep(200);
 
         verify(tokenApi, times(1)).create(any());
-        verify(tokenApi, times(0)).refresh(any());
         verify(connector, times(1)).connect(eq(client));
     }
 
@@ -315,6 +267,37 @@ public class WebSocketClientTest {
         assertNotNull(notification.getPayload());
         assertNull(lastAckTimestamp);
         assertNotNull(lastListenerNotification);
+    }
+
+    @Test
+    public void shouldReconnectAndNotCallListenerOnImmediateAckFailure() {
+        client.setReconnectDelay(Duration.ofMillis(100));
+        client.start();
+        client.onWebsocketOpen();
+        doThrow(new RuntimeException("send failed")).when(connector).send(any());
+
+        client.onWebsocketMessage(MESSAGE);
+        sleep(200);
+
+        verify(notificationListener, times(0)).onMessage(any(), any(), any(), any());
+        verify(tokenApi, times(2)).create(any());
+        verify(connector, times(2)).connect(eq(client));
+    }
+
+    @Test
+    public void shouldReconnectAndStillCallListenerOnSynchronousAckFailure() {
+        client.setAckMode(AckMode.SYNCHRONOUS);
+        client.setReconnectDelay(Duration.ofMillis(100));
+        client.start();
+        client.onWebsocketOpen();
+        doThrow(new RuntimeException("send failed")).when(connector).send(any());
+
+        client.onWebsocketMessage(MESSAGE);
+        sleep(200);
+
+        verify(notificationListener, times(1)).onMessage(any(), any(), any(), any());
+        verify(tokenApi, times(2)).create(any());
+        verify(connector, times(2)).connect(eq(client));
     }
 
     @Test

@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.With;
 
-import java.time.Duration;
-
 @Setter
 @Getter
 @NoArgsConstructor
@@ -20,18 +18,8 @@ public class Notifications2Properties {
      */
     @With
     private String websocketUrl;
-    /**
-     * Token refresh interval in minutes for Notifications 2.0.
-     * From property <b>C8Y.notifications2.tokenRefreshIntervalMinutes</b>
-     */
-    @With
-    private long tokenRefreshIntervalMinutes = 5;
 
     public boolean isDisabled() {
         return StringUtils.isBlank(this.websocketUrl);
-    }
-
-    public Duration getTokenRefreshInterval() {
-        return Duration.ofMinutes(tokenRefreshIntervalMinutes);
     }
 }

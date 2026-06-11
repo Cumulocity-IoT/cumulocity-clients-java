@@ -6,6 +6,7 @@ import com.cumulocity.sdk.client.messaging.notifications.Token;
 import com.cumulocity.sdk.client.notification2.AckMode;
 import com.cumulocity.sdk.client.notification2.Notification;
 import com.cumulocity.sdk.client.notification2.NotificationListener;
+import com.cumulocity.sdk.client.notification2.exception.AckFailedException;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,9 +27,9 @@ public class WebSocketClient implements WebSocketConnectorListener {
     // constants
     private static final String URL_PATTERN = "%s/notification2/consumer/?token=%s&consumer=%s";
     private static final int NORMAL_CLOSURE_STATUS = 1000;
-    public static final String MESSAGE_TOKEN_REFRESH = "Token refresh";
+    private static final long TOKEN_EXPIRY_MINUTES = 24 * 60;
+    private static final Duration DEFAULT_RECONNECT_DELAY = Duration.ofSeconds(5L);
     public static final String MESSAGE_SHUTDOWN = "Shutdown";
-
 
     // required constructor arguments
     private final String webSocketBaseUrl;
@@ -39,10 +40,8 @@ public class WebSocketClient implements WebSocketConnectorListener {
     private final String tenantId;
     private final String deviceId;
     private final NotificationListener notificationListener;
-    @Setter
+    @Setter // for unit tests
     private Duration reconnectDelay;
-    @Setter
-    private Duration tokenRefreshInterval;
     private final boolean isTokenShared;
     private final boolean isTokenPersistent;
     private final Platform platform;
@@ -50,16 +49,14 @@ public class WebSocketClient implements WebSocketConnectorListener {
     private final WebSocketConnector connector;
 
     // created on the fly
-    private Token token;
-    private Object rawSocket;
-    private boolean connected = false;
+    private volatile Token token;
+    private volatile Object rawSocket;
 
-    // handles for scheduled tasks
+    // handle for scheduled reconnect task
     ScheduledFuture<?> connectTaskHandle = null;
-    ScheduledFuture<?> tokenRefreshTaskHandle = null;
 
     public WebSocketClient(String webSocketBaseUrl, String subscriber, String subscriptionName, AckMode ackMode,
-                           String tenantId, String deviceId, NotificationListener notificationListener, Duration reconnectDelay, Duration tokenRefreshInterval,
+                           String tenantId, String deviceId, NotificationListener notificationListener,
                            boolean isTokenShared, boolean isTokenPersistent, Platform platform, WebSocketConnector connector) {
         this.webSocketBaseUrl = webSocketBaseUrl;
         this.subscriber = subscriber;
@@ -68,9 +65,8 @@ public class WebSocketClient implements WebSocketConnectorListener {
         this.tenantId = tenantId;
         this.deviceId = deviceId;
         this.notificationListener = notificationListener;
-        this.reconnectDelay = reconnectDelay;
-        this.tokenRefreshInterval = tokenRefreshInterval;
-        this.scheduler = Executors.newScheduledThreadPool(2);
+        this.reconnectDelay = DEFAULT_RECONNECT_DELAY;
+        this.scheduler = Executors.newScheduledThreadPool(1);
         this.connector = connector;
         this.platform = platform;
         this.isTokenShared = isTokenShared;
@@ -78,8 +74,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
     }
 
     /**
-     * Connects to web socket and schedules token refresh job
-     * package private
+     * Connects to web socket
      */
     public void start() {
         log.debug("{} {} Starting client", subscriber, subscriptionName);
@@ -87,7 +82,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
     }
 
     /**
-     * Disconnects and stops the client including scheduled jobs for reconnection and token refresh
+     * Disconnects and stops the client including scheduled jobs for reconnection
      */
     public void stop(boolean unsubscribe) {
         log.debug("{} {} Shutting down", subscriber, subscriptionName);
@@ -125,15 +120,7 @@ public class WebSocketClient implements WebSocketConnectorListener {
 
     private void connect() {
         try {
-            if (tokenRefreshTaskHandle != null) {
-                tokenRefreshTaskHandle.cancel(true);
-            }
-            if (token == null) {
-                createToken();
-            } else {
-                refreshToken();
-            }
-            scheduleTokenRefresh();
+            createToken();
             String url = String.format(URL_PATTERN, webSocketBaseUrl, token.getTokenString(), subscriber);
             log.trace("Connecting to: {}", url);
 
@@ -147,22 +134,19 @@ public class WebSocketClient implements WebSocketConnectorListener {
     }
 
 
-    void sendAck(String ackHeader) {
+    void sendAck(String ackHeader) throws AckFailedException {
         try {
             connector.send(ackHeader);
         } catch (Exception e) {
-            log.warn("{} Exception when sending ACK message for subscriber, details in TRACE logs, {}", subscriber, e.getMessage());
-            log.trace(e.getMessage(), e);
+            log.warn("Exception when sending ACK message for subscriber {}", subscriber, e);
+            throw new AckFailedException(e.getMessage(), e);
         }
     }
 
-    boolean reconnect() {
-        if (!scheduler.isTerminated()) {
+    synchronized boolean reconnect() {
+        if (!scheduler.isTerminated() && !scheduler.isShutdown()) {
             if (connectTaskHandle != null) {
                 connectTaskHandle.cancel(true);
-            }
-            if (tokenRefreshTaskHandle != null) {
-                tokenRefreshTaskHandle.cancel(true);
             }
             log.trace("{} {} Scheduling reconnection in {} milliseconds", subscriber, subscriptionName, reconnectDelay.toMillis());
             connectTaskHandle = scheduler.schedule(this::connect, reconnectDelay.toMillis(), TimeUnit.MILLISECONDS);
@@ -173,31 +157,15 @@ public class WebSocketClient implements WebSocketConnectorListener {
         }
     }
 
-    private void scheduleTokenRefresh() {
-        log.trace("{} {} Scheduling next token refresh in {} milliseconds", subscriber, subscriptionName, tokenRefreshInterval.toMillis());
-        tokenRefreshTaskHandle = scheduler.schedule(() -> {
-            if (connected) {
-                log.trace("{} {} Refreshing token and reconnecting", subscriber, subscriptionName);
-                if (rawSocket != null) {
-                    log.trace("{} {} Closing websocket", subscriber, subscriptionName);
-                    connector.close(NORMAL_CLOSURE_STATUS, MESSAGE_TOKEN_REFRESH);
-                }
-                log.trace("{} {} Reconnecting", subscriber, subscriptionName);
-                connect();
-            }
-        }, tokenRefreshInterval.toMillis(), TimeUnit.MILLISECONDS);
-    }
-
     @Override
     public void onWebsocketClosed(int code, String reason) {
-        connected = false;
         log.debug("Connection closed, subscriber: {} subscriptionName: {}, reason: {}", subscriber, subscriptionName, reason);
         if (scheduler.isTerminated() || scheduler.isShutdown()) {
             log.debug("{} {} Client terminated and won't reconnect", subscriber, subscriptionName);
             return;
         }
-        if (reason.contains(MESSAGE_SHUTDOWN) || reason.contains(MESSAGE_TOKEN_REFRESH)) {
-            log.debug("{} {} Client received a shutdown or token refresh message", subscriber, subscriptionName);
+        if (reason != null && reason.contains(MESSAGE_SHUTDOWN)) {
+            log.debug("{} {} Client received shutdown message", subscriber, subscriptionName);
             return;
         }
         reconnect();
@@ -205,23 +173,21 @@ public class WebSocketClient implements WebSocketConnectorListener {
 
     @Override
     public void onWebsocketError(Throwable t) {
-        connected = false;
-        log.debug("Connection failure, subscriber: {}, subscriptionName {}, error message: {}", subscriber, subscriptionName, t.getMessage(), t);
         if (scheduler.isTerminated() || scheduler.isShutdown()) {
             log.debug("{} {} Client terminated and won't reconnect", subscriber, subscriptionName);
             return;
         }
-        if (t.getMessage() != null && (t.getMessage().contains(MESSAGE_SHUTDOWN) || t.getMessage().contains(MESSAGE_TOKEN_REFRESH))) {
-            log.debug("{} {} Client received a shutdown or token refresh message", subscriber, subscriptionName);
+        if (t.getMessage() != null && t.getMessage().contains(MESSAGE_SHUTDOWN)) {
+            log.debug("{} {} Client received shutdown message", subscriber, subscriptionName);
             return;
         }
+        log.warn("Connection failure, subscriber: {}, subscriptionName {}, error message: {}", subscriber, subscriptionName, t.getMessage(), t);
         reconnect();
     }
 
     @Override
     public void onWebsocketOpen() {
         rawSocket = connector.getRawSocket();
-        connected = true;
         log.debug("{} {} Successfully connected", subscriber, subscriptionName);
     }
 
@@ -232,28 +198,41 @@ public class WebSocketClient implements WebSocketConnectorListener {
         log.trace(text + "\nAssigned UUID: " + uuid);
 
         Notification notification = Notification.parse(text);
-        log.trace(uuid + " Parsed Notification");
+        log.trace("{} Parsed Notification", uuid);
 
         String ackHeader = notification.getAckHeader();
         if (ackMode == AckMode.NONE) {
-            log.trace(uuid + " No ACK will be sent (AckMode.NONE used)");
+            log.trace("{} No ACK will be sent (AckMode.NONE used)", uuid);
         } else if (ackHeader == null) {
-            log.trace(uuid + " No ACK will be sent (ACK header is null)");
+            log.trace("{} No ACK will be sent (ACK header is null)", uuid);
         } else if (ackMode == AckMode.IMMEDIATE) {
-            log.trace(uuid + " Sending IMMEDIATE ACK");
-            sendAck(ackHeader);
+            log.trace("{} Sending IMMEDIATE ACK", uuid);
+            try {
+                sendAck(ackHeader);
+            } catch (AckFailedException e) {
+                log.warn("{} Failed to send ACK message, reconnecting, listener won't be triggered", uuid);
+                reconnect();
+                return;
+            }
         }
         try {
-            log.trace(uuid + " Processing message in listener");
+            log.trace("{} Processing message in listener", uuid);
             notificationListener.onMessage(notification, subscriptionName, tenantId, deviceId);
             if (ackMode == AckMode.SYNCHRONOUS && notification.getAckHeader() != null) {
-                log.trace(uuid + " Sending POST_PROCESS ACK");
-                sendAck(ackHeader);
+                log.trace("{} Sending POST_PROCESS ACK", uuid);
+                try {
+                    sendAck(ackHeader);
+                }
+                catch (AckFailedException e) {
+                    log.warn("{} Failed to send ACK message, reconnecting, message might be reprocessed after reconnect", uuid, e);
+                    reconnect();
+                }
             }
-        } catch (Exception e) {
-            log.warn(uuid + " notification listener threw an exception", e);
+        }
+        catch (Exception e) {
+            log.warn("{} notification listener threw an exception", uuid, e);
             if (ackMode == AckMode.SYNCHRONOUS) {
-                log.warn(uuid + " notification won't be sent for the message");
+                log.warn("{} notification won't be sent for the message", uuid);
             }
         }
     }
@@ -267,36 +246,23 @@ public class WebSocketClient implements WebSocketConnectorListener {
     }
 
     /**
-     * Obtains a token that can be used when connecting to websocket server
+     * Creates a token used when connecting to websocket server. A new token is created on each connection attempt.
      */
     void createToken() {
-        long expirationMinutes = tokenRefreshInterval.plusMinutes(1).toMinutes();
-        log.debug("Generating new token for {} and subscription {}, expiration after {} minutes", subscriber, subscriptionName, expirationMinutes);
+        log.debug("Generating new token for {} and subscription {}", subscriber, subscriptionName);
 
         final NotificationTokenRequestRepresentation tokenRequestRepresentation =
-                new NotificationTokenRequestRepresentation(subscriber, subscriptionName, null, true, expirationMinutes, isTokenShared, !isTokenPersistent);
+                new NotificationTokenRequestRepresentation(subscriber, subscriptionName, null, true, TOKEN_EXPIRY_MINUTES, isTokenShared, !isTokenPersistent);
         token = platform.getTokenApi().create(tokenRequestRepresentation);
-    }
-
-    /**
-     * This method is used to refresh the token before it's expired
-     */
-    void refreshToken() {
-        log.debug("Refreshing token (content in TRACE logs)");
-        log.trace(token.toString());
-        try {
-            token = platform.getTokenApi().refresh(token);
-        }
-        catch (Exception e) {
-            log.warn("Couldn't refresh token - creating new instead", e);
-            createToken();
-        }
     }
 
     /**
      * This method is used to unsubscribe token after shutting down connection
      */
     void unsubscribeToken() {
+        if (token == null) {
+            return;
+        }
         log.debug("Unsubscribing token (content in TRACE logs)");
         log.trace(token.toString());
         try {

@@ -19,7 +19,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,8 +61,7 @@ public class Notifications2ApiImpl implements Notifications2Api {
 
     private WebSocketClient createClient(Subscription subscription, NotificationListener listener) {
         return new WebSocketClient(notifications2Properties.getWebsocketUrl(), subscription.getId().getSubscriber(), subscription.getId().getName(), subscription.getAckMode(),
-                tenantId, subscription.getDeviceId(), listener,
-                Duration.ofSeconds(5L), notifications2Properties.getTokenRefreshInterval(), subscription.isShared(), subscription.isPersistent(),
+                tenantId, subscription.getDeviceId(), listener, subscription.isShared(), subscription.isPersistent(),
                 platform, new TooTallNateWebSocketConnector());
     }
 
