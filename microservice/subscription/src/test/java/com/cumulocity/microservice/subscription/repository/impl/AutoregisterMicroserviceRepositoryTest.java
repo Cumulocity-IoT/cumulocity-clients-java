@@ -4,6 +4,7 @@ import com.cumulocity.microservice.subscription.model.MicroserviceMetadataRepres
 import com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder;
 import com.cumulocity.rest.representation.application.ApplicationRepresentation;
 import com.cumulocity.rest.representation.application.ApplicationUserRepresentation;
+import com.cumulocity.rest.representation.application.microservice.ExtensionRepresentation;
 import com.cumulocity.sdk.client.SDKException;
 import com.google.common.base.Suppliers;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +12,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import static com.cumulocity.microservice.subscription.model.MicroserviceMetadataRepresentation.EXTENSIONS_FIELD_NAME;
 import static com.cumulocity.microservice.subscription.model.MicroserviceMetadataRepresentation.microserviceMetadataRepresentation;
 import static com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder.APP_SERVICEBOOTSTRAP_PREFIX;
 import static com.cumulocity.microservice.subscription.repository.MicroserviceRepositoryBuilder.microserviceRepositoryBuilder;
@@ -24,6 +29,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 
 public class AutoregisterMicroserviceRepositoryTest {
 
@@ -74,6 +80,74 @@ public class AutoregisterMicroserviceRepositoryTest {
             assertThat(registered.getType()).isEqualTo(MICROSERVICE);
             assertThat(registered.getName()).isEqualTo(APPLICATION_NAME);
 
+        }
+
+        @Test
+        void shouldNotUpdateApplication_whenExtensionsDoNotChange() {
+            //given - existing application as returned by the platform, where the "extensions" dynamic
+            //property is deserialized into raw maps (not typed ExtensionRepresentation objects)
+            ApplicationRepresentation existing = applicationRepresentation()
+                    .type(MICROSERVICE)
+                    .name(APPLICATION_NAME)
+                    .requiredRoles(List.of(OLD_REQUIRED_ROLE))
+                    .build();
+            Map<String, Object> existingExtension = new LinkedHashMap<>();
+            existingExtension.put("type", "microservice");
+            existingExtension.put("version", "1.0");
+            existing.set(List.of(existingExtension), EXTENSIONS_FIELD_NAME);
+            platform.addApplication(existing);
+            platform.switchTo(asCredentials(platform.bootstrapUserFor(existing)));
+
+            //when - metadata carries the same extension, but as a typed representation
+            ExtensionRepresentation extension = new ExtensionRepresentation();
+            extension.setType("microservice");
+            extension.setProperty("version", "1.0");
+            MicroserviceMetadataRepresentation metadata = microserviceMetadataRepresentation()
+                    .requiredRole(OLD_REQUIRED_ROLE)
+                    .extension(extension)
+                    .build();
+            ApplicationRepresentation registered = repository.register(APPLICATION_NAME, metadata);
+
+            //then - extensions are logically unchanged, so no update (PUT) must be issued
+            assertThat(registered).isNotNull();
+            assertThat(platform.take(byMethod(PUT))).isEmpty();
+        }
+
+        @Test
+        void shouldUpdateApplication_whenExtensionsChange() {
+            //given
+            ApplicationRepresentation existing = applicationRepresentation()
+                    .type(MICROSERVICE)
+                    .name(APPLICATION_NAME)
+                    .requiredRoles(List.of(OLD_REQUIRED_ROLE))
+                    .build();
+            Map<String, Object> existingExtension = new LinkedHashMap<>();
+            existingExtension.put("type", "microservice");
+            existingExtension.put("version", "1.0");
+            existing.set(List.of(existingExtension), EXTENSIONS_FIELD_NAME);
+            platform.addApplication(existing);
+            platform.switchTo(asCredentials(platform.bootstrapUserFor(existing)));
+
+            //when - extension version differs
+            ExtensionRepresentation extension = new ExtensionRepresentation();
+            extension.setType("microservice");
+            extension.setProperty("version", "2.0");
+            MicroserviceMetadataRepresentation metadata = microserviceMetadataRepresentation()
+                    .requiredRole(OLD_REQUIRED_ROLE)
+                    .extension(extension)
+                    .build();
+            repository.register(APPLICATION_NAME, metadata);
+
+            //then - the change must trigger an update (PUT) carrying the new extension
+            Collection<FakeCredentialsSwitchingPlatform.Request> puts = platform.take(byMethod(PUT));
+            assertThat(puts).hasSize(1);
+            List<ExtensionRepresentation> updatedExtensions = extractExtentions(puts);
+            assertThat(updatedExtensions).containsExactly(extension);
+        }
+
+        private static List<ExtensionRepresentation> extractExtentions(Collection<FakeCredentialsSwitchingPlatform.Request> puts) {
+            return (List<ExtensionRepresentation>) ((ApplicationRepresentation) puts.iterator().next().getBody())
+                    .get(EXTENSIONS_FIELD_NAME);
         }
 
         @Test

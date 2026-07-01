@@ -6,12 +6,15 @@ import com.cumulocity.microservice.subscription.repository.MicroserviceRepositor
 import com.cumulocity.microservice.subscription.repository.application.ApplicationApi;
 import com.cumulocity.microservice.subscription.repository.application.ApplicationApiRepresentation;
 import com.cumulocity.microservice.subscription.repository.application.CurrentApplicationApi;
+import com.cumulocity.model.JSONBase;
 import com.cumulocity.rest.representation.application.ApplicationRepresentation;
 import com.cumulocity.rest.representation.application.ApplicationUserRepresentation;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static com.cumulocity.microservice.subscription.repository.impl.CurrentMicroserviceRepository.handleException;
@@ -39,7 +42,7 @@ public class AutoregisterMicroserviceRepository implements MicroserviceRepositor
 
     @Override
     public ApplicationRepresentation register(final MicroserviceMetadataRepresentation metadata) {
-        log.info("Self registration procedure start for current application with {}", metadata);
+        log.debug("Self registration procedure start for current application with {}", metadata);
         // load existing application checking proper state
         ApplicationRepresentation application = delegate.register(metadata);
         return update(application, metadata);
@@ -67,7 +70,7 @@ public class AutoregisterMicroserviceRepository implements MicroserviceRepositor
 
     private ApplicationRepresentation update(ApplicationRepresentation source, MicroserviceMetadataRepresentation metadata) {
         if (noChangeInApplicationMetadata(source, metadata)) {
-            log.info("Not updating current application during autoregistration. Application is up to date.");
+            log.debug("Not updating current application during autoregistration. Application is up to date.");
             return source;
         }
         try {
@@ -93,8 +96,12 @@ public class AutoregisterMicroserviceRepository implements MicroserviceRepositor
     }
 
     private static boolean isEqualCollectionNullSafe(Collection<?> c1, Collection<?> c2) {
-        return c1 == null && c2 == null ||
-               c1 != null && c2 != null && isEqualCollection(c1, c2);
+        // The metadata builder always materializes unset roles/requiredRoles as empty lists, while the
+        // application loaded from the platform may have null for the same (absent) fields. Treat null and
+        // empty as equal so an absent collection on either side is not mistaken for a change.
+        return isEqualCollection(
+                c1 == null ? Collections.emptyList() : c1,
+                c2 == null ? Collections.emptyList() : c2);
     }
 
     private CurrentApplicationApi currentApplicationApi() {
@@ -103,10 +110,19 @@ public class AutoregisterMicroserviceRepository implements MicroserviceRepositor
 
     private static boolean extentionsEqualNullSafe(ApplicationRepresentation source, MicroserviceMetadataRepresentation metadata) {
         Object sourceExtensions = source.get(MicroserviceMetadataRepresentation.EXTENSIONS_FIELD_NAME);
-        return sourceExtensions == null && metadata.getExtensions() == null
-                ||
-                sourceExtensions instanceof Collection<?> extensionsCollection &&
-                        isEqualCollectionNullSafe(extensionsCollection, metadata.getExtensions());
+        // The source application is deserialized from the platform response, so its "extensions" dynamic
+        // property is a collection of raw maps, while metadata.getExtensions() is a list of typed
+        // ExtensionRepresentation objects. Comparing them directly (e.g. via isEqualCollection) can never
+        // match. Normalize both sides to their canonical JSON form before comparing.
+        return isEqualCollection(normalizeExtensions(sourceExtensions), normalizeExtensions(metadata.getExtensions()));
+    }
+
+    private static List<?> normalizeExtensions(Object extensions) {
+        if (extensions == null) {
+            return Collections.emptyList();
+        }
+        List<?> parsed = JSONBase.fromJSON(JSONBase.getJSONGenerator().forValue(extensions), List.class);
+        return parsed == null ? Collections.emptyList() : parsed;
     }
 
 }

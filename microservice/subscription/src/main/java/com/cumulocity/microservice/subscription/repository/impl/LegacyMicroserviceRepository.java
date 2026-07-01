@@ -56,7 +56,7 @@ public class LegacyMicroserviceRepository implements MicroserviceRepository {
     @Override
     @Deprecated
     public ApplicationRepresentation register(final String applicationName, final MicroserviceMetadataRepresentation metadata) {
-        log.debug("registering {} with {}", applicationName, metadata);
+        log.info("registering {} with {}", applicationName, metadata);
         final ApplicationRepresentation application = getByName(applicationName);
         if (application == null) {
             return create(applicationName, metadata);

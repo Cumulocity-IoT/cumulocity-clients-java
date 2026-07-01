@@ -55,14 +55,17 @@ public class MicroserviceRepositoryBuilder {
 
         if (env.containsProperty(MICROSERVICE_ISOLATION_ENV_NAME)) {
             // per ms credentials, e.g. servicebootstrap_reporting-agent
+            log.info("Creating CurrentMicroserviceRepository with user: {}", username);
             return new CurrentMicroserviceRepository(connector, api);
         }
         if (isAutoregistrationMode(env) && isCurrentBootstrapUser(username)) {
             // per ms credentials, internal only, e.g. servicebootstrap_lwm2m
+            log.info("Creating AutoregisterMicroserviceRepository with user: {}", username);
             return new AutoregisterMicroserviceRepository(connector, api);
         }
         if (isGlobalBoostrapUser(username)) {
             // global servicebootstrap credentials (with role subscriptions_read)
+            log.info("Creating LegacyMicroserviceRepository with user: {}", username);
             return new LegacyMicroserviceRepository(applicationName, applicationKey, connector, api);
         }
         log.warn("Unexpected configuration for bootstrap. User: {}, isolation: {}, autoregister: {}. Will fallback to LegacyMicroserviceRepository",
