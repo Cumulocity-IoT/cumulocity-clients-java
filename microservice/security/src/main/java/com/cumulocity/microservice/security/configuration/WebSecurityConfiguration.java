@@ -9,7 +9,7 @@ import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,9 +27,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
+import static java.util.Optional.ofNullable;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Order(99)
@@ -60,7 +60,7 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http, HandlerMappingIntrospector introspector, ServerProperties serverProperties,
+            HttpSecurity http, ServerProperties serverProperties,
             CumulocityOAuthMicroserviceFilter cumulocityOAuthMicroserviceFilter,
             PreAuthenticateServletFilter preAuthenticateServletFilter,
             PostAuthenticateServletFilter postAuthenticateServletFilter,
@@ -72,20 +72,20 @@ public class WebSecurityConfiguration {
         }
 
         // https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#match-by-mvc
-        MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector)
-                .servletPath(serverProperties.getServlet().getContextPath());
+        PathPatternRequestMatcher.Builder mvc = PathPatternRequestMatcher.withDefaults()
+                .basePath(ofNullable(serverProperties.getServlet().getContextPath()).orElse("/"));
 
         http
                 .authorizeHttpRequests(authorize -> authorize
                         // https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#match-by-dispatcher-type
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-                        .requestMatchers(mvc.pattern("/metadata")).permitAll()
-                        .requestMatchers(mvc.pattern("/health")).permitAll()
-                        .requestMatchers(mvc.pattern("/prometheus")).permitAll()
-                        .requestMatchers(mvc.pattern("/metrics")).permitAll()
-                        .requestMatchers(mvc.pattern("/version")).permitAll()
-                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/loggers/*")).hasAnyRole(securityRolesLoggersActuator)
-                        .requestMatchers(mvc.pattern(HttpMethod.POST, "/loggers")).hasAnyRole(securityRolesLoggersActuator)
+                        .requestMatchers(mvc.matcher("/metadata")).permitAll()
+                        .requestMatchers(mvc.matcher("/health")).permitAll()
+                        .requestMatchers(mvc.matcher("/prometheus")).permitAll()
+                        .requestMatchers(mvc.matcher("/metrics")).permitAll()
+                        .requestMatchers(mvc.matcher("/version")).permitAll()
+                        .requestMatchers(mvc.matcher(HttpMethod.POST, "/loggers/*")).hasAnyRole(securityRolesLoggersActuator)
+                        .requestMatchers(mvc.matcher(HttpMethod.POST, "/loggers")).hasAnyRole(securityRolesLoggersActuator)
                         .anyRequest().fullyAuthenticated()
                 )
                 .httpBasic(withDefaults())

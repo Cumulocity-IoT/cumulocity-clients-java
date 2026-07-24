@@ -1,6 +1,6 @@
 package com.cumulocity.microservice.properties;
 
-import org.springframework.boot.DefaultPropertiesPropertySource;
+import org.springframework.boot.env.DefaultPropertiesPropertySource;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.annotation.Order;

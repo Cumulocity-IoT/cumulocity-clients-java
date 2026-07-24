@@ -44,7 +44,8 @@
 
         <aspectj.version>1.9.25.1</aspectj.version> <!-- bound with spring-boot.version -->
         <bouncycastle.version>1.84</bouncycastle.version>
-        <cometd.version>3.0.10</cometd.version>
+        <cometd.version>9.0.1</cometd.version> <!-- CometD 9 targets Jetty 12.1 / Java 17 -->
+
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <commons-io.version>2.21.0</commons-io.version>
@@ -52,7 +53,8 @@
         <guava.version>33.4.8-jre</guava.version>
         <httpclient.version>4.5.14</httpclient.version>
         <jaxrs-api.version>3.1.0</jaxrs-api.version>
-        <jetty.version>12.0.36</jetty.version> <!-- bound with spring-boot.version -->
+        <jersey.version>3.1.12</jersey.version> <!-- pinned: Spring Boot 4.0's Jersey 4.0 dropped jersey-apache-connector -->
+        <jetty.version>12.1.10</jetty.version> <!-- bound with spring-boot.version -->
         <joda-time.version>2.14.1</joda-time.version>
         <jsoup.version>1.22.1</jsoup.version>
         <jsr305-api.version>3.0.2</jsr305-api.version>
@@ -60,7 +62,7 @@
         <microemu.version>2.0.4</microemu.version>
         <mock-server.version>5.15.0</mock-server.version>
         <nimbusds.version>10.9</nimbusds.version>
-        <spring-boot.version>3.5.15</spring-boot.version>
+        <spring-boot.version>4.0.7</spring-boot.version>
         <svenson.version>1.5.8</svenson.version>
         <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
 
@@ -546,6 +548,12 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -554,6 +562,13 @@
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
 
             <!-- BOM DEPENDENCIES START -->
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>${jersey.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
@@ -698,7 +713,7 @@
             </dependency>
             <dependency>
                 <groupId>org.cometd.java</groupId>
-                <artifactId>cometd-java-client</artifactId>
+                <artifactId>cometd-java-client-common</artifactId>
                 <version>${cometd.version}</version>
             </dependency>
             <dependency>

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.config.CustomScopeConfigurer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -129,6 +130,7 @@ public class EnableContextSupportConfigurationTest {
     @TestPropertySource(properties = {
             "tenantCacheExpirationTimeout=123456"
     })
+    @Import(TestConfiguration.class)
     @SpringBootTest(classes = EnableContextSupportConfiguration.class )
     public class TenantCacheExpirationTimeoutFromPropertiesTest {
         @Autowired
@@ -145,6 +147,7 @@ public class EnableContextSupportConfigurationTest {
     }
 
     @Nested
+    @Import(TestConfiguration.class)
     @SpringBootTest(classes = EnableContextSupportConfiguration.class )
     public class TenantCacheExpirationTimeoutMissingFromPropertiesTest {
         @Autowired

@@ -2,8 +2,8 @@ package com.cumulocity.microservice.monitoring.health.indicator.memory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health;
 
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;

@@ -21,7 +21,9 @@
 
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
-        <spring-boot.version>3.5.15</spring-boot.version>
+        <rest-assured.version>5.5.7</rest-assured.version> <!-- no longer managed by Spring Boot 4.0; kept at the 3.5.x version -->
+        <spring-boot.version>4.0.7</spring-boot.version>
+        <spring-framework.version>7.0.8</spring-framework.version> <!-- bound with spring-boot.version -->
     </properties>
 
     <modules>
@@ -68,6 +70,18 @@
             <!-- BOM DEPENDENCIES END -->
 
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
+
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+                <version>${spring-framework.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
 
             <!-- COMPILE DEPENDENCIES START -->
             <dependency>
@@ -120,6 +134,16 @@
             <!-- PLEASE add new dependencies ALPHABETICALLY -->
 
             <!-- TEST DEPENDENCIES START -->
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${rest-assured.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>spring-mock-mvc</artifactId>
+                <version>${rest-assured.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-test</artifactId>

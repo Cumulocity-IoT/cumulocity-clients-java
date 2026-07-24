@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +44,9 @@ public abstract class BaseSvensonJSONContext<T extends Message.Mutable> {
         return parse(new ReaderInputStream(reader));
     }
 
-    public T[] parse(String json) throws ParseException {
-        return parse(new StringReader(json));
+    // CometD 9's JSONContext.parse(String) returns List<T> (CometD 3 returned an array).
+    public List<T> parse(String json) throws ParseException {
+        return Arrays.asList(parse(new StringReader(json)));
     }
 
     public String generate(T message) {

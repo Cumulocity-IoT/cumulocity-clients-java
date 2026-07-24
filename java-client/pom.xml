@@ -49,21 +49,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cometd.java</groupId>
-			<artifactId>cometd-java-client</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>jetty-client</artifactId>
-					<groupId>org.eclipse.jetty</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jetty-io</artifactId>
-					<groupId>org.eclipse.jetty</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>jetty-http</artifactId>
-					<groupId>org.eclipse.jetty</groupId>
-				</exclusion>
-			</exclusions>
+			<artifactId>cometd-java-client-common</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.connectors</groupId>
@@ -143,11 +129,23 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
@@ -165,18 +163,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty.ee10</groupId>
-			<artifactId>jetty-ee10-proxy</artifactId>
+			<groupId>org.eclipse.jetty.ee11</groupId>
+			<artifactId>jetty-ee11-proxy</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty.ee10</groupId>
-			<artifactId>jetty-ee10-servlet</artifactId>
+			<groupId>org.eclipse.jetty.ee11</groupId>
+			<artifactId>jetty-ee11-servlet</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty.ee10</groupId>
-			<artifactId>jetty-ee10-servlets</artifactId>
+			<groupId>org.eclipse.jetty.ee11</groupId>
+			<artifactId>jetty-ee11-servlets</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

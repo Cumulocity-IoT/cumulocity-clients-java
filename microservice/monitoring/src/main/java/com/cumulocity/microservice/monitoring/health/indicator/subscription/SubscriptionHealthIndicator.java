@@ -3,8 +3,8 @@ package com.cumulocity.microservice.monitoring.health.indicator.subscription;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuate.health.AbstractHealthIndicator;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.health.contributor.AbstractHealthIndicator;
+import org.springframework.boot.health.contributor.Health;
 import org.springframework.stereotype.Component;
 
 @Slf4j

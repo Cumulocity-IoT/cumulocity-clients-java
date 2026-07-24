@@ -6,9 +6,9 @@
 package com.cumulocity.lpwan.tenant.option;
 
 import java.nio.charset.Charset;
+import java.util.Base64;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
@@ -31,11 +31,11 @@ public class EncryptionService {
             throw new DecryptFailedException("Cannot decrypt unencrypted string");
         }
         String withoutPrefix = withoutPrefix(encrypted);
-        String salt = extractSalt(withoutPrefix);
-        String key = extractKey(withoutPrefix);
         try {
+            String salt = extractSalt(withoutPrefix);
+            String key = extractKey(withoutPrefix);
             return Encryptors.text(password, salt).decrypt(key);
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IllegalArgumentException e) {
             throw new DecryptFailedException("Decrypting of string failed", e);
         }
     }
@@ -55,16 +55,16 @@ public class EncryptionService {
 
     private String mergeSalt(String encrypted, String salt) {
         String merged = encrypted + salt;
-        return new String(Base64.encode(merged.getBytes(CHARSET)), CHARSET);
+        return new String(Base64.getEncoder().encode(merged.getBytes(CHARSET)), CHARSET);
     }
 
     private String extractSalt(String encrypted) {
-        String decoded = new String(Base64.decode(encrypted.getBytes(CHARSET)));
+        String decoded = new String(Base64.getMimeDecoder().decode(encrypted.getBytes(CHARSET)));
         return StringUtils.right(decoded, 16);
     }
 
     private String extractKey(String encrypted) {
-        String decoded = new String(Base64.decode(encrypted.getBytes(CHARSET)));
+        String decoded = new String(Base64.getMimeDecoder().decode(encrypted.getBytes(CHARSET)));
         return decoded.substring(0, decoded.length() - 16);
     }
 

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
@@ -75,7 +75,7 @@ public class MethodSecurityConfigurationTest {
     @Autowired
     private TestService testService;
 
-    @MockBean
+    @MockitoBean
     private ApplicationApi applications;
 
     @Test

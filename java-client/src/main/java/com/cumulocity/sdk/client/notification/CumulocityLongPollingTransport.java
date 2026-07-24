@@ -24,13 +24,15 @@ import com.cumulocity.sdk.client.RestConnector;
 import org.cometd.bayeux.Message.Mutable;
 import org.cometd.client.transport.HttpClientTransport;
 import org.cometd.client.transport.TransportListener;
+import org.eclipse.jetty.http.HttpCookie;
+import org.eclipse.jetty.http.HttpCookieStore;
 import org.glassfish.jersey.client.ClientProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientRequestContext;
 import jakarta.ws.rs.client.ClientRequestFilter;
-import java.net.CookieStore;
-import java.net.HttpCookie;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -45,6 +47,9 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static jakarta.ws.rs.core.HttpHeaders.COOKIE;
 
 class CumulocityLongPollingTransport extends HttpClientTransport {
+
+    // CometD 9 removed the protected `logger` field that AbstractClientTransport used to expose.
+    private static final Logger logger = LoggerFactory.getLogger(CumulocityLongPollingTransport.class);
 
     private static final int WORKERS = 4;
 
@@ -85,7 +90,7 @@ class CumulocityLongPollingTransport extends HttpClientTransport {
     }
 
     @Override
-    public void abort() {
+    public void abort(Throwable failure) {
         List<MessageExchange> exchanges = new ArrayList<MessageExchange>();
         synchronized (this.exchanges) {
             _aborted = true;
@@ -157,13 +162,13 @@ class CumulocityLongPollingTransport extends HttpClientTransport {
     }
 
     protected void addCookieHeader(ClientRequestContext exchange) {
-        CookieStore cookieStore = getCookieStore();
+        HttpCookieStore cookieStore = getHttpCookieStore();
         if (cookieStore != null) {
             StringBuilder builder = new StringBuilder();
-            for (HttpCookie cookie : cookieStore.getCookies()) {
+            for (HttpCookie cookie : cookieStore.all()) {
                 if (builder.length() > 0)
                     builder.append("; ");
-                builder.append(cookie.toString());
+                builder.append(cookie.getName()).append("=").append(cookie.getValue());
             }
             if (builder.length() > 0) {
                 exchange.getHeaders().add(COOKIE, builder.toString());

@@ -404,13 +404,10 @@ class SubscriberImpl<T> implements Subscriber<T, Message>, ConnectionListener {
                             "and/or /meta/connect and/or on subscription watcher next run", retriesCount);
                 } else {
                     log.debug("Detected a short network failure, retrying to subscribe channel: {}", channel.getId());
-                    channel.unsubscribe(listener, new MessageListener() {
-                        @Override
-                        public void onMessage(ClientSessionChannel channel, Message message) {
+                    // CometD 9: the unsubscribe callback is a ClientSession.MessageListener (single-arg).
+                    channel.unsubscribe(listener, (ClientSession.MessageListener) m ->
                             subscribe(subscription.getId(), subscribeOperationListener, listener.handler, autoRetry,
-                                    retriesCount + 1);
-                        }
-                    });
+                                    retriesCount + 1));
                 }
             } else if (autoRetry) {
                 log.debug("Detected an error (either server or long network error), " +

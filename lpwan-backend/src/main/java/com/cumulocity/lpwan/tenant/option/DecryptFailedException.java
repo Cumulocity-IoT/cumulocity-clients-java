@@ -16,7 +16,7 @@ public class DecryptFailedException extends Exception {
         super(message);
     }
 
-    public DecryptFailedException(String message, IllegalStateException cause) {
+    public DecryptFailedException(String message, Throwable cause) {
         super(message, cause);
     }
 }

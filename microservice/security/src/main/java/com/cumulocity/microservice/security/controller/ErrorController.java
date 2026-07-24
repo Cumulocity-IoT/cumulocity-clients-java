@@ -1,11 +1,11 @@
 package com.cumulocity.microservice.security.controller;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
-import org.springframework.boot.autoconfigure.web.servlet.error.ErrorViewResolver;
+import org.springframework.boot.autoconfigure.web.WebProperties;
+import org.springframework.boot.webmvc.autoconfigure.error.BasicErrorController;
+import org.springframework.boot.webmvc.autoconfigure.error.ErrorViewResolver;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.boot.webmvc.error.ErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 
 public class ErrorController extends BasicErrorController {
 
-    public ErrorController(ErrorAttributes errorAttributes, ServerProperties serverProperties, ObjectProvider<ErrorViewResolver> errorViewResolvers) {
-        super(errorAttributes, serverProperties.getError(), errorViewResolvers.orderedStream().collect(Collectors.toList()));
+    public ErrorController(ErrorAttributes errorAttributes, WebProperties webProperties, ObjectProvider<ErrorViewResolver> errorViewResolvers) {
+        super(errorAttributes, webProperties.getError(), errorViewResolvers.orderedStream().collect(Collectors.toList()));
     }
 
     @Override

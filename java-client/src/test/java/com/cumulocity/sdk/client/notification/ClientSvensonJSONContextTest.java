@@ -69,7 +69,7 @@ public class ClientSvensonJSONContextTest {
     @Test
     public final void shouldParseFromStringAndData() throws ParseException {
         jsonContextClient = new ClientSvensonJSONContext(EventRepresentation.class);
-        final Mutable[] unserialized = jsonContextClient.parse(MESSAGE_JSON_ARRAY);
+        final Mutable[] unserialized = jsonContextClient.parse(MESSAGE_JSON_ARRAY).toArray(new Mutable[0]);
         verifyUnserialized(unserialized, EventRepresentation.class);
     }
 
@@ -88,7 +88,7 @@ public class ClientSvensonJSONContextTest {
 
     @Test
     public final void shouldParseFromString() throws ParseException {
-        final Mutable[] unserialized = jsonContextClient.parse(MESSAGE_JSON_ARRAY);
+        final Mutable[] unserialized = jsonContextClient.parse(MESSAGE_JSON_ARRAY).toArray(new Mutable[0]);
         verifyUnserialized(unserialized);
     }
 

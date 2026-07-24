@@ -203,7 +203,7 @@ public class MessageExchangeTest {
             @Override
             public List<Mutable> answer(InvocationOnMock invocation) throws Throwable {
                 String content = invocation.getArgument(0);
-                return Arrays.asList(new ClientSvensonJSONContext(OperationRepresentation.class).parse(content));
+                return new ClientSvensonJSONContext(OperationRepresentation.class).parse(content);
             }
         });
         //When

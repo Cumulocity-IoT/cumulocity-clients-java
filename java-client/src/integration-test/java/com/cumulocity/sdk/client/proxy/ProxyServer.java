@@ -3,12 +3,12 @@ package com.cumulocity.sdk.client.proxy;
 import lombok.SneakyThrows;
 import org.eclipse.jetty.client.Request;
 import org.eclipse.jetty.server.handler.ConnectHandler;
-import org.eclipse.jetty.ee10.proxy.AsyncProxyServlet;
+import org.eclipse.jetty.ee11.proxy.AsyncProxyServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Handler.Sequence;
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
-import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

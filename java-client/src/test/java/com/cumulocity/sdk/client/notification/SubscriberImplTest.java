@@ -273,13 +273,13 @@ public class SubscriberImplTest {
                 onError.incrementAndGet();
             }
         };
-        final ArgumentCaptor<MessageListener> unsubscribeListenerCaptor = ArgumentCaptor.forClass(MessageListener.class);
+        final ArgumentCaptor<ClientSession.MessageListener> unsubscribeListenerCaptor = ArgumentCaptor.forClass(ClientSession.MessageListener.class);
         subscriber.subscribe(channelId, subscribeOperationListener, listener, true);
         verify(metaSubscribeChannel).addListener(listenerCaptor.capture());
         Message message = mockSubscribeMessage(false, ImmutableMap.of("failure", "Network unreachable!"));
         listenerCaptor.getValue().onMessage(metaSubscribeChannel, message);
         verify(channel).unsubscribe(any(MessageListener.class), unsubscribeListenerCaptor.capture());
-        unsubscribeListenerCaptor.getValue().onMessage(metaUnsubscribeChannel, message);
+        unsubscribeListenerCaptor.getValue().onMessage(message);
         listenerCaptor.getValue().onMessage(metaSubscribeChannel, mockSubscribeMessage(true,
                 ImmutableMap.of(Message.SUBSCRIPTION_FIELD, channelId)));
 
