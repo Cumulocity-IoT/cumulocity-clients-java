@@ -142,6 +142,15 @@ public class LpwanRepository {
         return FluentIterable.of();
     }
 
+    /**
+     * Creates or returns an account for a network server to authenticate with, through the user API.
+     *
+     * @deprecated The user API requires an e-mail address, so this invents one, and any address is a
+     * password reset path into the account (DM-6988). Use
+     * {@link com.cumulocity.lpwan.platform.service.LpwanDeviceUserService#getOrProvision(String)}, which
+     * needs none. Kept for agents that have not migrated yet; do not add callers.
+     */
+    @Deprecated
     public UserRepresentation createOrGetUser(final String tenant, final String username, final String emailHost) throws LpwanUserNotFoundException {
         com.google.common.base.Optional<UserRepresentation> userOpt = handled(new Callable<UserRepresentation>() {
             @Override

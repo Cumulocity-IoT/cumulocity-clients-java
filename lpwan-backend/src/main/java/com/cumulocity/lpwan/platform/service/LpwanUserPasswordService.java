@@ -6,6 +6,10 @@ import com.cumulocity.model.option.OptionPK;
 import com.cumulocity.rest.representation.tenant.OptionRepresentation;
 import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -27,6 +31,12 @@ import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 @RequiredArgsConstructor
 @Slf4j
 public class LpwanUserPasswordService {
+
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    /** Core: {@code @Size(max = 256)} on {@code OptionRepresentation.key}. */
+    private static final int MAX_OPTION_KEY_LENGTH = 256;
+
     @Setter
     @Value("${application.name}")
     private String appName;
@@ -68,9 +78,88 @@ public class LpwanUserPasswordService {
         });
     }
 
+    /**
+     * Stores the account issued for the given device id. User name and password go in one option so that
+     * neither can be stored without the other, and in a different one from {@link #get()} so both can
+     * coexist while an agent migrates.
+     */
+    public void saveDeviceUser(String deviceId, String userName, String password) {
+        String value = serialize(new StoredDeviceUser(userName, password));
+        options.save(OptionRepresentation.asOptionRepresentation(appName, getDeviceUserKey(deviceId), value));
+    }
+
+    /** The account provisioned for the given device id, empty when there is none in this tenant yet. */
+    public Optional<StoredDeviceUser> getDeviceUser(String deviceId) {
+        OptionRepresentation fetchedOption;
+        try {
+            fetchedOption = options.getOption(new OptionPK(appName, getDeviceUserKey(deviceId)));
+        } catch (SDKException e) {
+            if (e.getHttpStatus() == SC_NOT_FOUND) {
+                return Optional.empty();
+            }
+            throw e;
+        }
+        return deserialize(fetchedOption.getValue());
+    }
+
+    private static String serialize(StoredDeviceUser deviceUser) {
+        try {
+            return JSON_MAPPER.writeValueAsString(deviceUser);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Could not serialize the device user credentials", e);
+        }
+    }
+
+    /**
+     * An unreadable value reads as absent, so the account is re-provisioned and recovers. A value naming
+     * an account without a password is returned as it is - the caller must not re-provision that.
+     */
+    private static Optional<StoredDeviceUser> deserialize(String value) {
+        if (value == null || value.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            StoredDeviceUser deviceUser = JSON_MAPPER.readValue(value, StoredDeviceUser.class);
+            if (deviceUser.userName() == null) {
+                log.warn("The stored device user does not name an account, treating it as absent");
+                return Optional.empty();
+            }
+            return Optional.of(deviceUser);
+        } catch (JsonProcessingException e) {
+            log.warn("The stored device user credentials could not be read, treating them as absent", e);
+            return Optional.empty();
+        }
+    }
+
     private String getUserPasswordKey() {
         String userPasswordKey = "credentials.%s.password";
         return String.format(userPasswordKey, LnsConnectionDeserializer.getRegisteredAgentName().toLowerCase());
+    }
+
+    /** How many characters of device id the key that stores it has room for. */
+    public int maxDeviceIdLength() {
+        return MAX_OPTION_KEY_LENGTH - getDeviceUserKey("").length();
+    }
+
+    /** Keyed by device id so accounts do not overwrite each other. {@code credentials.} makes the platform encrypt it. */
+    private String getDeviceUserKey(String deviceId) {
+        String deviceUserKey = "credentials.%s.device.%s";
+        return String.format(deviceUserKey, LnsConnectionDeserializer.getRegisteredAgentName().toLowerCase(), deviceId);
+    }
+
+    /**
+     * Persisted form of a provisioned device user. The {@code @JsonProperty} names are the stored format;
+     * renaming a component without them makes every stored account unreadable.
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record StoredDeviceUser(@JsonProperty("username") String userName,
+                                   @JsonProperty("password") String password) {
+
+        /** Overridden so the generated one cannot put the password into a log line. */
+        @Override
+        public String toString() {
+            return "StoredDeviceUser[userName=" + userName + ", password=***]";
+        }
     }
 
     private static class StrongPasswordGenerator {
