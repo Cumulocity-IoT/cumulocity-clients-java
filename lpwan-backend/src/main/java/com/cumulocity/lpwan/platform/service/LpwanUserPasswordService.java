@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,9 @@ public class LpwanUserPasswordService {
 
     /** Core: {@code @Size(max = 256)} on {@code OptionRepresentation.key}. */
     private static final int MAX_OPTION_KEY_LENGTH = 256;
+
+    /** Core: {@code OptionEncryptionService} substitutes this for a value it will not decrypt for us. */
+    private static final String ENCRYPTED_PLACEHOLDER = "<<Encrypted>>";
 
     @Setter
     @Value("${application.name}")
@@ -82,22 +86,43 @@ public class LpwanUserPasswordService {
      * Stores the account issued for the given device id. User name and password go in one option so that
      * neither can be stored without the other, and in a different one from {@link #get()} so both can
      * coexist while an agent migrates.
+     *
+     * @param credentialsCategory see {@link #getDeviceUser(String, String)}
      */
-    public void saveDeviceUser(String deviceId, String userName, String password) {
+    public void saveDeviceUser(String credentialsCategory, String deviceId, String userName, String password) {
         String value = serialize(new StoredDeviceUser(userName, password));
-        options.save(OptionRepresentation.asOptionRepresentation(appName, getDeviceUserKey(deviceId), value));
+        options.save(OptionRepresentation.asOptionRepresentation(
+                validated(credentialsCategory), getDeviceUserKey(deviceId), value));
     }
 
-    /** The account provisioned for the given device id, empty when there is none in this tenant yet. */
-    public Optional<StoredDeviceUser> getDeviceUser(String deviceId) {
+    /**
+     * The account provisioned for the given device id, empty when there is none in this tenant yet.
+     *
+     * @param credentialsCategory the tenant option category to store under, which has to be the
+     *                            microservice's settings category - its application's context path - because
+     *                            the platform decrypts a {@code credentials.} option only for the
+     *                            microservice whose settings category matches. The same value has to be
+     *                            passed here and to {@link #saveDeviceUser}, or nothing can be read back.
+     */
+    public Optional<StoredDeviceUser> getDeviceUser(String credentialsCategory, String deviceId) {
         OptionRepresentation fetchedOption;
         try {
-            fetchedOption = options.getOption(new OptionPK(appName, getDeviceUserKey(deviceId)));
+            fetchedOption = options.getOption(new OptionPK(validated(credentialsCategory), getDeviceUserKey(deviceId)));
         } catch (SDKException e) {
             if (e.getHttpStatus() == SC_NOT_FOUND) {
                 return Optional.empty();
             }
             throw e;
+        }
+        if (ENCRYPTED_PLACEHOLDER.equals(fetchedOption.getValue())) {
+            // Reading this as absent would send the caller down the "account exists but its password is
+            // lost" path, which describes neither the cause nor the remedy.
+            throw new IllegalStateException(String.format(
+                    "The platform returned %s instead of the credentials of device id %s, so the category "
+                            + "'%s' they are stored under is not this microservice's settings category and "
+                            + "they can never be read back. The category has to be the application's "
+                            + "context path.",
+                    ENCRYPTED_PLACEHOLDER, deviceId, credentialsCategory));
         }
         return deserialize(fetchedOption.getValue());
     }
@@ -111,29 +136,40 @@ public class LpwanUserPasswordService {
     }
 
     /**
-     * An unreadable value reads as absent, so the account is re-provisioned and recovers. A value naming
-     * an account without a password is returned as it is - the caller must not re-provision that.
+     * Only nothing at all reads as absent. A value that is present but unusable throws: callers treat
+     * absent as "safe to provision from scratch", and a stored value we cannot parse is no evidence of
+     * that - it may name an account in use. A value naming an account without a password is returned as
+     * it is; the caller must not re-provision that either.
      */
     private static Optional<StoredDeviceUser> deserialize(String value) {
         if (value == null || value.isEmpty()) {
             return Optional.empty();
         }
+        StoredDeviceUser deviceUser;
         try {
-            StoredDeviceUser deviceUser = JSON_MAPPER.readValue(value, StoredDeviceUser.class);
-            if (deviceUser.userName() == null) {
-                log.warn("The stored device user does not name an account, treating it as absent");
-                return Optional.empty();
-            }
-            return Optional.of(deviceUser);
+            deviceUser = JSON_MAPPER.readValue(value, StoredDeviceUser.class);
         } catch (JsonProcessingException e) {
-            log.warn("The stored device user credentials could not be read, treating them as absent", e);
-            return Optional.empty();
+            throw new IllegalStateException("The stored device user credentials could not be read", e);
         }
+        if (deviceUser.userName() == null) {
+            throw new IllegalStateException("The stored device user credentials do not name an account");
+        }
+        return Optional.of(deviceUser);
     }
 
     private String getUserPasswordKey() {
         String userPasswordKey = "credentials.%s.password";
         return String.format(userPasswordKey, LnsConnectionDeserializer.getRegisteredAgentName().toLowerCase());
+    }
+
+    /** A category that names nothing would store where nothing can be read back. */
+    private static String validated(String credentialsCategory) {
+        if (StringUtils.isBlank(credentialsCategory)) {
+            throw new IllegalArgumentException("The credentials category must name the application's context "
+                    + "path - the platform decrypts a credentials option only for the microservice whose "
+                    + "settings category matches the category it is stored under.");
+        }
+        return credentialsCategory;
     }
 
     /** How many characters of device id the key that stores it has room for. */

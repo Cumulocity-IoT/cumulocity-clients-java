@@ -73,6 +73,9 @@ public class LpwanDeviceUserService {
      * Returns the credentials for the given device id, provisioning the account on first use and reusing
      * the stored ones after that.
      *
+     * @param credentialsCategory the tenant option category the credentials are stored under, which has to
+     *                            be the agent's application context path - see
+     *                            {@link LpwanUserPasswordService#getDeviceUser}
      * @param deviceId permanent identity of the account; changing it provisions a second one. Short
      *                 enough for the option key that stores the credentials - around 230 characters -
      *                 not {@code .} or {@code ..}, and free of whitespace, slashes, backslashes,
@@ -80,9 +83,10 @@ public class LpwanDeviceUserService {
      * @throws LpwanDeviceUserCredentialsLostException if the account exists but its password does not
      * @throws IllegalArgumentException                if the device id breaks one of those rules
      */
-    public DeviceUserCredentials getOrProvision(final String deviceId) throws LpwanDeviceUserCredentialsLostException {
+    public DeviceUserCredentials getOrProvision(final String credentialsCategory, final String deviceId)
+            throws LpwanDeviceUserCredentialsLostException {
         validateDeviceId(deviceId);
-        Optional<StoredDeviceUser> stored = lpwanUserPasswordService.getDeviceUser(deviceId);
+        Optional<StoredDeviceUser> stored = lpwanUserPasswordService.getDeviceUser(credentialsCategory, deviceId);
         if (stored.isPresent()) {
             String userName = stored.get().userName();
             if (stored.get().password() == null) {
@@ -103,7 +107,7 @@ public class LpwanDeviceUserService {
         DeviceCredentialsRepresentation issued = provision(deviceId);
         log.info("The platform issued the account {} for device id {}", issued.getUsername(), deviceId);
         try {
-            lpwanUserPasswordService.saveDeviceUser(deviceId, issued.getUsername(), issued.getPassword());
+            lpwanUserPasswordService.saveDeviceUser(credentialsCategory, deviceId, issued.getUsername(), issued.getPassword());
         } catch (Exception e) {
             discardUser(issued.getUsername(), e);
             throw e;
@@ -158,9 +162,13 @@ public class LpwanDeviceUserService {
                 userName));
     }
 
-    /** The user name already provisioned for the given device id, without provisioning anything. */
-    public Optional<String> getProvisionedUserName(String deviceId) {
-        return lpwanUserPasswordService.getDeviceUser(deviceId).map(StoredDeviceUser::userName);
+    /**
+     * The user name already provisioned for the given device id, without provisioning anything.
+     *
+     * @param credentialsCategory see {@link #getOrProvision}
+     */
+    public Optional<String> getProvisionedUserName(String credentialsCategory, String deviceId) {
+        return lpwanUserPasswordService.getDeviceUser(credentialsCategory, deviceId).map(StoredDeviceUser::userName);
     }
 
     /**

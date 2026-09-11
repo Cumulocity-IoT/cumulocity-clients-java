@@ -39,6 +39,7 @@ import static org.mockito.Mockito.*;
 class LpwanDeviceUserServiceTest {
 
     private static final String TENANT_ID = "t12345";
+    private static final String CATEGORY = "loriot";
     private static final String DEVICE_ID = "loriot-agent-output";
     private static final String USER_NAME = "device_loriot-agent-output";
     private static final String GENERATED_PASSWORD = "issued-by-the-platform";
@@ -78,7 +79,7 @@ class LpwanDeviceUserServiceTest {
     void shouldProvisionThroughTheDeviceRegistrationFlowInOrder() throws Exception {
         stubProvisioning();
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.userName()).isEqualTo(USER_NAME);
         assertThat(credentials.password()).isEqualTo(GENERATED_PASSWORD);
@@ -95,7 +96,7 @@ class LpwanDeviceUserServiceTest {
     void shouldAcceptTheRequestBeforeCollectingCredentials() throws Exception {
         stubProvisioning();
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         verify(restConnector).put(eq(REQUEST_PATH), eq(DeviceControlMediaType.NEW_DEVICE_REQUEST), requestCaptor.capture());
         assertThat(requestCaptor.getValue().getStatus()).isEqualTo("ACCEPTED");
@@ -106,7 +107,7 @@ class LpwanDeviceUserServiceTest {
     void shouldNeverTouchTheUserApiForCreationOrUpdate() throws Exception {
         stubProvisioning();
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         verify(userApi, never()).create(anyString(), any(UserRepresentation.class));
         verify(userApi, never()).update(anyString(), any(UserRepresentation.class));
@@ -117,9 +118,9 @@ class LpwanDeviceUserServiceTest {
     void shouldStoreTheIssuedUserNameAndPassword() throws Exception {
         stubProvisioning();
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
-        verify(lpwanUserPasswordService).saveDeviceUser(DEVICE_ID, USER_NAME, GENERATED_PASSWORD);
+        verify(lpwanUserPasswordService).saveDeviceUser(CATEGORY, DEVICE_ID, USER_NAME, GENERATED_PASSWORD);
     }
 
     /** The user name is whatever the platform says it is, never derived from the device id. */
@@ -127,15 +128,15 @@ class LpwanDeviceUserServiceTest {
     void shouldReportTheUserNameThePlatformIssuedEvenWhenItIsNotDerivedFromTheDeviceId() throws Exception {
         DeviceCredentialsRepresentation issued = issuedCredentials();
         issued.setUsername("some-other-name");
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(DEVICE_ID)).thenReturn(newDeviceRequest());
         doThrow(new SDKException(404, "not accepted yet")).doReturn(issued)
                 .when(deviceCredentialsApi).pollCredentials(DEVICE_ID);
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.userName()).isEqualTo("some-other-name");
-        verify(lpwanUserPasswordService).saveDeviceUser(DEVICE_ID, "some-other-name", GENERATED_PASSWORD);
+        verify(lpwanUserPasswordService).saveDeviceUser(CATEGORY, DEVICE_ID, "some-other-name", GENERATED_PASSWORD);
     }
 
     /** A record's generated toString would print the password; it must not reach a log line. */
@@ -153,7 +154,7 @@ class LpwanDeviceUserServiceTest {
     void shouldRemoveTheRegistrationRecordAfterwards() throws Exception {
         NewDeviceRequestRepresentation request = stubProvisioning();
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         verify(deviceCredentialsApi).delete(request);
     }
@@ -163,13 +164,13 @@ class LpwanDeviceUserServiceTest {
         stubStoredDeviceUser(USER_NAME, GENERATED_PASSWORD);
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenReturn(new UserRepresentation());
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.userName()).isEqualTo(USER_NAME);
         assertThat(credentials.password()).isEqualTo(GENERATED_PASSWORD);
         verify(deviceCredentialsApi, never()).register(anyString());
         verify(deviceCredentialsApi, never()).pollCredentials(anyString());
-        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString());
+        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
     }
 
     /** The stored name is looked up and handed out verbatim, never rebuilt from the device id. */
@@ -178,7 +179,7 @@ class LpwanDeviceUserServiceTest {
         stubStoredDeviceUser("device_renamed-by-the-platform", GENERATED_PASSWORD);
         when(userApi.getUser(TENANT_ID, "device_renamed-by-the-platform")).thenReturn(new UserRepresentation());
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.userName()).isEqualTo("device_renamed-by-the-platform");
         verify(userApi).getUser(TENANT_ID, "device_renamed-by-the-platform");
@@ -189,11 +190,11 @@ class LpwanDeviceUserServiceTest {
     void shouldProvisionWhenNothingIsStoredYet() throws Exception {
         stubProvisioning();
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         // twice: the attempt that moves the request to PENDING_ACCEPTANCE, then the real collect
         verify(deviceCredentialsApi, times(2)).pollCredentials(DEVICE_ID);
-        verify(lpwanUserPasswordService).saveDeviceUser(DEVICE_ID, USER_NAME, GENERATED_PASSWORD);
+        verify(lpwanUserPasswordService).saveDeviceUser(CATEGORY, DEVICE_ID, USER_NAME, GENERATED_PASSWORD);
     }
 
     /** A stored account the tenant no longer has is worthless, so it is provisioned again. */
@@ -203,7 +204,7 @@ class LpwanDeviceUserServiceTest {
         stubStoredDeviceUser(USER_NAME, GENERATED_PASSWORD);
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenThrow(new SDKException(404, "not found"));
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         verify(deviceCredentialsApi).register(DEVICE_ID);
     }
@@ -218,11 +219,11 @@ class LpwanDeviceUserServiceTest {
         stubStoredDeviceUser(USER_NAME, GENERATED_PASSWORD);
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenThrow(new SDKException(500, "boom"));
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class);
 
         verify(deviceCredentialsApi, never()).register(anyString());
-        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString());
+        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -230,7 +231,7 @@ class LpwanDeviceUserServiceTest {
         stubStoredDeviceUser(USER_NAME, GENERATED_PASSWORD);
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenThrow(new SDKException(403, "forbidden"));
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class);
 
         verify(deviceCredentialsApi, never()).register(anyString());
@@ -245,12 +246,12 @@ class LpwanDeviceUserServiceTest {
     void shouldFailLoudlyWhenTheAccountIsKnownButItsPasswordIsNot() {
         stubStoredDeviceUser(USER_NAME, null);
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(LpwanDeviceUserCredentialsLostException.class)
                 .hasMessageContaining(USER_NAME);
 
         verify(deviceCredentialsApi, never()).register(anyString());
-        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString());
+        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
     }
 
     /** Nothing is looked up in that case either - the account is not to be touched at all. */
@@ -258,7 +259,7 @@ class LpwanDeviceUserServiceTest {
     void shouldNotEvenCheckExistenceWhenThePasswordIsNotStored() {
         stubStoredDeviceUser(USER_NAME, null);
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(LpwanDeviceUserCredentialsLostException.class);
 
         verify(userApi, never()).getUser(anyString(), anyString());
@@ -272,16 +273,16 @@ class LpwanDeviceUserServiceTest {
      */
     @Test
     void shouldRefuseToProvisionOverAnAccountThatAlreadyExists() {
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenReturn(new UserRepresentation());
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(LpwanDeviceUserCredentialsLostException.class)
                 .hasMessageContaining(USER_NAME);
 
         verify(deviceCredentialsApi, never()).register(anyString());
         verify(deviceCredentialsApi, never()).pollCredentials(anyString());
-        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString());
+        verify(lpwanUserPasswordService, never()).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
     }
 
     /** With nothing stored and no such account, the first provisioning must still go ahead. */
@@ -290,7 +291,7 @@ class LpwanDeviceUserServiceTest {
         stubProvisioning();
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenThrow(new SDKException(404, "not found"));
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.password()).isEqualTo(GENERATED_PASSWORD);
         verify(deviceCredentialsApi).register(DEVICE_ID);
@@ -299,10 +300,10 @@ class LpwanDeviceUserServiceTest {
     /** The guard must not turn a platform blip into a refusal to provision either. */
     @Test
     void shouldNotSwallowAFailureWhileCheckingForAnAccountToProtect() {
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(userApi.getUser(TENANT_ID, USER_NAME)).thenThrow(new SDKException(500, "boom"));
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class);
 
         verify(deviceCredentialsApi, never()).register(anyString());
@@ -312,15 +313,15 @@ class LpwanDeviceUserServiceTest {
     void shouldReportTheProvisionedUserNameWithoutProvisioning() throws Exception {
         stubStoredDeviceUser(USER_NAME, GENERATED_PASSWORD);
 
-        assertThat(deviceUserService.getProvisionedUserName(DEVICE_ID)).contains(USER_NAME);
+        assertThat(deviceUserService.getProvisionedUserName(CATEGORY, DEVICE_ID)).contains(USER_NAME);
         verify(deviceCredentialsApi, never()).register(anyString());
     }
 
     @Test
     void shouldReportNoProvisionedUserNameWhenTheAccountWasNeverProvisioned() throws Exception {
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
 
-        assertThat(deviceUserService.getProvisionedUserName(DEVICE_ID)).isEmpty();
+        assertThat(deviceUserService.getProvisionedUserName(CATEGORY, DEVICE_ID)).isEmpty();
     }
 
     /**
@@ -329,7 +330,7 @@ class LpwanDeviceUserServiceTest {
      */
     @Test
     void shouldCarryOnWhenARegistrationRecordAlreadyExists() throws Exception {
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(DEVICE_ID)).thenThrow(new SDKException(422, "already exists"));
         when(restConnector.get(eq(REQUEST_PATH), eq(DeviceControlMediaType.NEW_DEVICE_REQUEST), eq(NewDeviceRequestRepresentation.class)))
                 .thenReturn(newDeviceRequest());
@@ -337,7 +338,7 @@ class LpwanDeviceUserServiceTest {
                 .thenThrow(new SDKException(404, "not accepted yet"))
                 .thenReturn(issuedCredentials());
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.password()).isEqualTo(GENERATED_PASSWORD);
     }
@@ -347,7 +348,7 @@ class LpwanDeviceUserServiceTest {
         NewDeviceRequestRepresentation request = stubProvisioning();
         doThrow(new SDKException(500, "boom")).when(deviceCredentialsApi).delete(request);
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.password()).isEqualTo(GENERATED_PASSWORD);
     }
@@ -356,9 +357,9 @@ class LpwanDeviceUserServiceTest {
     @Test
     void shouldNotHandOutCredentialsThatCouldNotBeStored() throws Exception {
         stubProvisioning();
-        doThrow(new SDKException(500, "boom")).when(lpwanUserPasswordService).saveDeviceUser(anyString(), anyString(), anyString());
+        doThrow(new SDKException(500, "boom")).when(lpwanUserPasswordService).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class);
     }
 
@@ -366,9 +367,9 @@ class LpwanDeviceUserServiceTest {
     @Test
     void shouldRemoveTheAccountAgainWhenItsCredentialsCouldNotBeStored() throws Exception {
         stubProvisioning();
-        doThrow(new SDKException(500, "boom")).when(lpwanUserPasswordService).saveDeviceUser(anyString(), anyString(), anyString());
+        doThrow(new SDKException(500, "boom")).when(lpwanUserPasswordService).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class);
 
         verify(userApi).delete(TENANT_ID, USER_NAME);
@@ -378,10 +379,10 @@ class LpwanDeviceUserServiceTest {
     @Test
     void shouldReportTheSaveFailureEvenWhenTheAccountCannotBeRemovedAgain() throws Exception {
         stubProvisioning();
-        doThrow(new SDKException(500, "save failed")).when(lpwanUserPasswordService).saveDeviceUser(anyString(), anyString(), anyString());
+        doThrow(new SDKException(500, "save failed")).when(lpwanUserPasswordService).saveDeviceUser(anyString(), anyString(), anyString(), anyString());
         doThrow(new SDKException(403, "delete forbidden")).when(userApi).delete(TENANT_ID, USER_NAME);
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class)
                 .hasMessageContaining("save failed");
     }
@@ -391,7 +392,7 @@ class LpwanDeviceUserServiceTest {
     void shouldNotRemoveTheAccountWhenItsCredentialsWereStored() throws Exception {
         stubProvisioning();
 
-        deviceUserService.getOrProvision(DEVICE_ID);
+        deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         verify(userApi, never()).delete(anyString(), anyString());
     }
@@ -401,7 +402,7 @@ class LpwanDeviceUserServiceTest {
     @ValueSource(strings = {"", " ", "with space", "with\ttab", "with/slash", "with+plus", "with$dollar",
             "with:colon", ".", ".."})
     void shouldRefuseADeviceIdThePlatformWouldNotAccept(String deviceId) {
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(deviceId))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, deviceId))
                 .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(deviceCredentialsApi, restConnector);
@@ -410,7 +411,7 @@ class LpwanDeviceUserServiceTest {
     /** Core's pattern excludes it, but its annotation message does not name it. */
     @Test
     void shouldRefuseADeviceIdContainingABackslash() {
-        assertThatThrownBy(() -> deviceUserService.getOrProvision("with\\backslash"))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, "with\\backslash"))
                 .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(deviceCredentialsApi, restConnector);
@@ -422,7 +423,7 @@ class LpwanDeviceUserServiceTest {
     void shouldRefuseADeviceIdContainingAControlCharacter(int controlCharacter) {
         String deviceId = "with" + (char) controlCharacter + "control";
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(deviceId))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, deviceId))
                 .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(deviceCredentialsApi, restConnector);
@@ -433,31 +434,31 @@ class LpwanDeviceUserServiceTest {
     @ValueSource(strings = {"loriot-agent-output", "a", "with.dot", "with_underscore", "with-dash",
             "MixedCase123", "with@at", "with#hash"})
     void shouldAcceptADeviceIdThePlatformWouldAccept(String deviceId) throws Exception {
-        when(lpwanUserPasswordService.getDeviceUser(deviceId)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, deviceId)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(deviceId)).thenReturn(newDeviceRequest());
         when(deviceCredentialsApi.pollCredentials(deviceId))
                 .thenThrow(new SDKException(404, "not accepted yet"))
                 .thenReturn(issuedCredentials());
 
-        assertThat(deviceUserService.getOrProvision(deviceId)).isNotNull();
+        assertThat(deviceUserService.getOrProvision(CATEGORY, deviceId)).isNotNull();
     }
 
     /** Exactly at the limit is allowed; one over is not. */
     @Test
     void shouldAcceptADeviceIdAtTheLengthLimit() throws Exception {
         String deviceId = "d".repeat(MAX_DEVICE_ID_LENGTH);
-        when(lpwanUserPasswordService.getDeviceUser(deviceId)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, deviceId)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(deviceId)).thenReturn(newDeviceRequest());
         when(deviceCredentialsApi.pollCredentials(deviceId))
                 .thenThrow(new SDKException(404, "not accepted yet"))
                 .thenReturn(issuedCredentials());
 
-        assertThat(deviceUserService.getOrProvision(deviceId)).isNotNull();
+        assertThat(deviceUserService.getOrProvision(CATEGORY, deviceId)).isNotNull();
     }
 
     @Test
     void shouldRefuseANullDeviceId() {
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(null))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, null))
                 .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(deviceCredentialsApi, restConnector);
@@ -465,7 +466,7 @@ class LpwanDeviceUserServiceTest {
 
     @Test
     void shouldRefuseADeviceIdLongerThanTheOptionKeyCanHold() {
-        assertThatThrownBy(() -> deviceUserService.getOrProvision("d".repeat(MAX_DEVICE_ID_LENGTH + 1)))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, "d".repeat(MAX_DEVICE_ID_LENGTH + 1)))
                 .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(deviceCredentialsApi, restConnector);
@@ -478,7 +479,7 @@ class LpwanDeviceUserServiceTest {
      */
     @Test
     void shouldRefuseADeviceIdThePlatformWouldAcceptButStorageWouldNot() {
-        assertThatThrownBy(() -> deviceUserService.getOrProvision("d".repeat(1000)))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, "d".repeat(1000)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("at most " + MAX_DEVICE_ID_LENGTH);
 
@@ -487,11 +488,11 @@ class LpwanDeviceUserServiceTest {
     /** A 403 here means the service user lacks ROLE_DEVICE_BOOTSTRAP; it must not look like "not accepted yet". */
     @Test
     void shouldNotHideAFailureOtherThanNotAcceptedYet() throws Exception {
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(DEVICE_ID)).thenReturn(newDeviceRequest());
         when(deviceCredentialsApi.pollCredentials(DEVICE_ID)).thenThrow(new SDKException(403, "forbidden"));
 
-        assertThatThrownBy(() -> deviceUserService.getOrProvision(DEVICE_ID))
+        assertThatThrownBy(() -> deviceUserService.getOrProvision(CATEGORY, DEVICE_ID))
                 .isInstanceOf(SDKException.class);
 
         verify(restConnector, never()).put(anyString(), any(DeviceControlMediaType.class), any(NewDeviceRequestRepresentation.class));
@@ -501,11 +502,11 @@ class LpwanDeviceUserServiceTest {
     @Test
     void shouldSkipTheAcceptWhenTheRequestIsAlreadyAccepted() throws Exception {
         NewDeviceRequestRepresentation request = newDeviceRequest();
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(DEVICE_ID)).thenReturn(request);
         when(deviceCredentialsApi.pollCredentials(DEVICE_ID)).thenReturn(issuedCredentials());
 
-        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(DEVICE_ID);
+        LpwanDeviceUserService.DeviceUserCredentials credentials = deviceUserService.getOrProvision(CATEGORY, DEVICE_ID);
 
         assertThat(credentials.password()).isEqualTo(GENERATED_PASSWORD);
         verify(restConnector, never()).put(anyString(), any(DeviceControlMediaType.class), any(NewDeviceRequestRepresentation.class));
@@ -514,7 +515,7 @@ class LpwanDeviceUserServiceTest {
 
     private NewDeviceRequestRepresentation stubProvisioning() {
         NewDeviceRequestRepresentation request = newDeviceRequest();
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID)).thenReturn(Optional.empty());
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID)).thenReturn(Optional.empty());
         when(deviceCredentialsApi.register(DEVICE_ID)).thenReturn(request);
         when(deviceCredentialsApi.pollCredentials(DEVICE_ID))
                 .thenThrow(new SDKException(404, "not accepted yet"))
@@ -523,7 +524,7 @@ class LpwanDeviceUserServiceTest {
     }
 
     private void stubStoredDeviceUser(String userName, String password) {
-        when(lpwanUserPasswordService.getDeviceUser(DEVICE_ID))
+        when(lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID))
                 .thenReturn(Optional.of(new StoredDeviceUser(userName, password)));
     }
 
