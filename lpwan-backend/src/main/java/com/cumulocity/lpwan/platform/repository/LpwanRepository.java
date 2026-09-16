@@ -147,7 +147,7 @@ public class LpwanRepository {
      *
      * @deprecated The user API requires an e-mail address, so this invents one, and any address is a
      * password reset path into the account (DM-6988). Use
-     * {@link com.cumulocity.lpwan.platform.service.LpwanDeviceUserService#getOrProvision(String)}, which
+     * {@link com.cumulocity.lpwan.platform.service.LpwanDeviceUserService#getOrProvision}, which
      * needs none. Kept for agents that have not migrated yet; do not add callers.
      */
     @Deprecated
