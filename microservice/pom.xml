@@ -21,7 +21,7 @@
 
         <cumulocity.clients.version>${project.version}</cumulocity.clients.version>
         <googleauth.version>1.1.1</googleauth.version>
-        <rest-assured.version>5.5.7</rest-assured.version> <!-- no longer managed by Spring Boot 4.0; kept at the 3.5.x version -->
+        <rest-assured.version>6.0.1</rest-assured.version> <!-- no longer managed by Spring Boot 4.0; kept at the 3.5.x version -->
         <spring-boot.version>4.0.7</spring-boot.version>
         <spring-framework.version>7.0.8</spring-framework.version> <!-- bound with spring-boot.version -->
     </properties>
