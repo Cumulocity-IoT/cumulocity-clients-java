@@ -13,7 +13,7 @@
     <name>Cumulocity :: Clients Java :: Microservice :: LPWAN Custom Codec Base</name>
 
     <properties>
-        <springfox.version>2.6.1</springfox.version>
+        <springfox.version>3.0.0</springfox.version>
         <assertj-swagger.version>0.8.1</assertj-swagger.version>
         <assertj-core.version>3.27.7</assertj-core.version>
     </properties>
