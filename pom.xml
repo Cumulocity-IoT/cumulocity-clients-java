@@ -53,7 +53,7 @@
         <guava.version>33.4.8-jre</guava.version>
         <httpclient.version>4.5.14</httpclient.version>
         <jaxrs-api.version>3.1.0</jaxrs-api.version>
-        <jersey.version>3.1.12</jersey.version> <!-- pinned: Spring Boot 4.0's Jersey 4.0 dropped jersey-apache-connector -->
+        <jersey.version>4.0.2</jersey.version> <!-- pinned: Spring Boot 4.0's Jersey 4.0 dropped jersey-apache-connector -->
         <jetty.version>12.1.10</jetty.version> <!-- bound with spring-boot.version -->
         <joda-time.version>2.14.1</joda-time.version>
         <jsoup.version>1.22.1</jsoup.version>
