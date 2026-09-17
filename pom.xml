@@ -63,7 +63,7 @@
         <mock-server.version>5.15.0</mock-server.version>
         <nimbusds.version>10.9</nimbusds.version>
         <spring-boot.version>4.0.7</spring-boot.version>
-        <svenson.version>1.5.8</svenson.version>
+        <svenson.version>1.6.1</svenson.version>
         <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
 
         <exclude.test.groups>com.cumulocity.test.category.IntegrationTest</exclude.test.groups>
