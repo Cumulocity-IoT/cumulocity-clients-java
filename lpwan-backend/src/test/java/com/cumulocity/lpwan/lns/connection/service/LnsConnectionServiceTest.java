@@ -33,9 +33,9 @@ import com.cumulocity.sdk.client.inventory.InventoryFilter;
 import com.cumulocity.sdk.client.inventory.ManagedObjectCollection;
 import com.cumulocity.sdk.client.inventory.PagedManagedObjectCollectionRepresentation;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.MapType;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
@@ -136,7 +136,7 @@ public class LnsConnectionServiceTest {
     private final String EMPTY_LNS_CONNECTIONS_MAP_JSON = "{}";
 
     @Before
-    public void setup() throws JsonProcessingException {
+    public void setup() throws JacksonException {
         LnsConnectionDeserializer.registerLnsConnectionConcreteClass("sample", SampleConnection.class);
 
         VALID_LNS_CONNECTIONS_MAP = JSON_MAPPER.readerWithView(LnsConnection.InternalView.class)
@@ -229,7 +229,7 @@ public class LnsConnectionServiceTest {
     }
 
     @Test
-    public void doLoadLnsConnectionFromTenantOptions_JSON_MAPPER_throws_JsonProcessingException() {
+    public void doLoadLnsConnectionFromTenantOptions_JSON_MAPPER_throws_JacksonException() {
         OptionPK lnsConnectionsOptionKey = new OptionPK("sample", "credentials.lns.connections.map");
         OptionRepresentation lnsConnectionsOptionRepresentation = OptionRepresentation.asOptionRepresentation(
                 lnsConnectionsOptionKey.getCategory(),
@@ -734,7 +734,7 @@ public class LnsConnectionServiceTest {
     }
 
     @Test
-    public void doDelete_with_existing_connectionName() throws LpwanServiceException, JsonProcessingException {
+    public void doDelete_with_existing_connectionName() throws LpwanServiceException, JacksonException {
         OptionPK lnsConnectionsOptionKey = new OptionPK("sample", "credentials.lns.connections.map");
         OptionRepresentation lnsConnectionsOptionRepresentation = OptionRepresentation.asOptionRepresentation(lnsConnectionsOptionKey.getCategory(), lnsConnectionsOptionKey.getKey(), VALID_LNS_CONNECTIONS_MAP_JSON);
 

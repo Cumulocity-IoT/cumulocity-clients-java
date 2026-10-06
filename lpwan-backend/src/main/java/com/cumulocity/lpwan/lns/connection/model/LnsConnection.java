@@ -7,9 +7,10 @@ package com.cumulocity.lpwan.lns.connection.model;
 
 import com.cumulocity.lpwan.exception.InputDataValidationException;
 import com.cumulocity.sdk.client.util.StringUtils;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -24,6 +25,7 @@ import java.util.*;
  * All the fields with sensitive data which should not be serialized and sent to the client
  * have to be marked with InternalView and rest with PublicView.
  */
+@JsonAutoDetect(creatorVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonDeserialize(using = LnsConnectionDeserializer.class)
 @Getter
 @Setter

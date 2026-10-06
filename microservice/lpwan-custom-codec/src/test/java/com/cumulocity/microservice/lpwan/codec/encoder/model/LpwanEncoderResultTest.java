@@ -1,7 +1,7 @@
 package com.cumulocity.microservice.lpwan.codec.encoder.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class LpwanEncoderResultTest {
     @Test
-    public void fportShouldNotAppearTwiceOnSerialization() throws JsonProcessingException {
+    public void fportShouldNotAppearTwiceOnSerialization() throws JacksonException {
         LpwanEncoderResult lpwanEncoderResult = new LpwanEncoderResult();
         lpwanEncoderResult.setEncodedCommand("9F000000");
         Map<String, String> properties = new HashMap<>();
@@ -50,7 +50,7 @@ public class LpwanEncoderResultTest {
     }
 
     @Test
-    public void deserializedObjectShouldHaveFPort() throws JsonProcessingException {
+    public void deserializedObjectShouldHaveFPort() throws JacksonException {
         String inputJson = "{\"encodedCommand\":\"9F000000\",\"properties\":{\"fport\":\"20\"},\"message\":\"Successfully Encoded the payload\",\"success\":true}";
         ObjectMapper objectMapper = new ObjectMapper();
         LpwanEncoderResult lpwanEncoderResult = objectMapper.readValue(inputJson, LpwanEncoderResult.class);

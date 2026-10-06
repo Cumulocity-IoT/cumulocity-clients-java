@@ -31,9 +31,11 @@ import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.cumulocity.sdk.client.inventory.InventoryFilter;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.type.MapType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -69,7 +71,14 @@ public class LnsConnectionService {
 
     private static final String LNS_CONNECTIONS_KEY = "credentials.lns.connections.map";
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    // Jackson 2 defaults: the serialized map is persisted as a tenant option and has to stay
+    // readable by, and identical to, what earlier SDK versions wrote. DEFAULT_VIEW_INCLUSION has
+    // to be restored on top: configureForJackson2() does not cover it, and Jackson 3 flipped its
+    // default to false, which would drop every property of an implementation that carries no
+    // @JsonView from the view-filtered read and write below.
+    private static final ObjectMapper JSON_MAPPER = JsonMapper.builderWithJackson2Defaults()
+            .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+            .build();
     private static final MapType mapType = JSON_MAPPER.getTypeFactory().constructMapType(ConcurrentHashMap.class, String.class, LnsConnection.class);
 
     @Autowired
@@ -364,7 +373,7 @@ public class LnsConnectionService {
                         .readerWithView(LnsConnection.InternalView.class)
                         .forType(mapType)
                         .readValue(lnsConnectionsString);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 String message = String.format("Error unmarshalling the below JSON string containing LNS connection map stored as a tenant option with key '%s'. \n%s", tenantOptionKeyForLnsConnectionMap, lnsConnectionsString);
                 log.error(message, e);
                 throw new LpwanServiceException(message, e);
@@ -384,7 +393,7 @@ public class LnsConnectionService {
             lnsConnectionsString = JSON_MAPPER
                     .writerWithView(LnsConnection.InternalView.class)
                     .writeValueAsString(lnsConnections);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             String message = String.format("Error marshaling the LNS connections map and store as a tenant option with key '%s'.", lnsConnectionsTenantOptionKey);
             log.error(message, e);
             throw new LpwanServiceException(message, e);

@@ -8,8 +8,8 @@ package com.cumulocity.lpwan.sample.connection.model;
 import com.cumulocity.lpwan.exception.InputDataValidationException;
 import com.cumulocity.lpwan.lns.connection.model.LnsConnection;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@JsonDeserialize(using = JsonDeserializer.None.class) // Important to override the base class' usage of LnsConnectionDeserializer which produces an infinite loop
+@JsonDeserialize(using = ValueDeserializer.None.class) // Important to override the base class' usage of LnsConnectionDeserializer which produces an infinite loop
 @Getter
 @Setter
 @NoArgsConstructor

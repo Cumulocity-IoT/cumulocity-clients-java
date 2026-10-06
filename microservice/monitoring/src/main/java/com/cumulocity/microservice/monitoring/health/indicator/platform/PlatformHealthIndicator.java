@@ -7,7 +7,9 @@ import com.cumulocity.microservice.subscription.model.core.PlatformProperties;
 import com.cumulocity.model.authentication.CumulocityCredentials;
 import com.cumulocity.model.authentication.CumulocityCredentialsFactory;
 import com.cumulocity.sdk.client.*;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -96,7 +98,9 @@ public class PlatformHealthIndicator extends AbstractHealthIndicator {
         private final ObjectMapper mapper;
 
         public JacksonResponseMapper() {
-            this.mapper = new ObjectMapper();
+            // Jackson 2 defaults: platform responses keep binding exactly as they did.
+            this.mapper = JsonMapper.builderWithJackson2Defaults()
+                    .enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
         }
 
         @SneakyThrows

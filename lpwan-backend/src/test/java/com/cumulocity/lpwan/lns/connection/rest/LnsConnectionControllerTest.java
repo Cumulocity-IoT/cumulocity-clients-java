@@ -9,7 +9,7 @@ import com.cumulocity.lpwan.lns.connection.model.LnsConnection;
 import com.cumulocity.lpwan.lns.connection.model.LnsConnectionDeserializer;
 import com.cumulocity.lpwan.lns.connection.service.LnsConnectionService;
 import com.cumulocity.lpwan.sample.connection.model.SampleConnection;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

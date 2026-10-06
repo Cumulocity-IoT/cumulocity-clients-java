@@ -8,8 +8,10 @@ import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.option.TenantOptionApi;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -33,7 +35,11 @@ import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 @Slf4j
 public class LpwanUserPasswordService {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    // Jackson 2 defaults: the credentials are persisted as a tenant option and have to stay
+    // readable by, and identical to, what earlier SDK versions wrote.
+    private static final ObjectMapper JSON_MAPPER = JsonMapper.builderWithJackson2Defaults()
+            .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+            .build();
 
     /** Core: {@code @Size(max = 256)} on {@code OptionRepresentation.key}. */
     private static final int MAX_OPTION_KEY_LENGTH = 256;
@@ -130,7 +136,7 @@ public class LpwanUserPasswordService {
     private static String serialize(StoredDeviceUser deviceUser) {
         try {
             return JSON_MAPPER.writeValueAsString(deviceUser);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Could not serialize the device user credentials", e);
         }
     }
@@ -148,7 +154,7 @@ public class LpwanUserPasswordService {
         StoredDeviceUser deviceUser;
         try {
             deviceUser = JSON_MAPPER.readValue(value, StoredDeviceUser.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("The stored device user credentials could not be read", e);
         }
         if (deviceUser.userName() == null) {

@@ -2,7 +2,7 @@ package com.cumulocity.microservice.customdecoders.api.model;
 
 import com.cumulocity.microservice.customdecoders.api.configuration.JacksonConfiguration;
 import com.cumulocity.rest.representation.event.EventRepresentation;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;

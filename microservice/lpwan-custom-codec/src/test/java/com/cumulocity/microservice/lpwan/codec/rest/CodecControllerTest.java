@@ -14,7 +14,7 @@ import com.cumulocity.microservice.lpwan.codec.encoder.model.LpwanEncoderInputDa
 import com.cumulocity.microservice.lpwan.codec.handler.CodecExceptionsHandler;
 import com.cumulocity.microservice.lpwan.codec.model.DeviceInfo;
 import com.cumulocity.model.idtype.GId;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

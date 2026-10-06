@@ -3,9 +3,12 @@ package com.cumulocity.agent.packaging.uploadMojo.platform.client.impl;
 import com.cumulocity.agent.packaging.uploadMojo.platform.client.Executor;
 import com.cumulocity.agent.packaging.uploadMojo.platform.client.Request;
 import com.cumulocity.agent.packaging.uploadMojo.configuration.CredentialsConfiguration;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 import com.google.common.base.Throwables;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,12 +42,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @Getter(value = AccessLevel.PRIVATE)
 public class ApacheHttpClientExecutor implements Executor {
 
-    private final ObjectMapper mapper = new ObjectMapper(){{
-        setSerializationInclusion(NON_NULL);
-        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    }};
+    private final ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
+            .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+            .changeDefaultPropertyInclusion(inclusion -> inclusion.withValueInclusion(NON_NULL)
+                    .withContentInclusion(NON_NULL))
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+            .build();
 
     private final CloseableHttpClient client;
     private final String url;

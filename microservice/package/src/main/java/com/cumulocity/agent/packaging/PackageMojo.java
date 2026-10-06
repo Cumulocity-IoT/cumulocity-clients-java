@@ -4,9 +4,11 @@ import com.cumulocity.agent.packaging.microservice.MicroserviceDockerClient;
 import com.cumulocity.model.DataSize;
 import com.cumulocity.model.Resources;
 import com.cumulocity.model.application.MicroserviceManifest;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 import com.github.dockerjava.api.model.AuthConfig;
 import com.github.dockerjava.api.model.AuthConfigurations;
 import com.google.common.base.Charsets;
@@ -90,7 +92,9 @@ public class PackageMojo extends BaseMicroserviceMojo {
 
     public PackageMojo() {
         super();
-        mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        mapper = JsonMapper.builderWithJackson2Defaults()
+                .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+                .enable(SerializationFeature.INDENT_OUTPUT).build();
     }
 
     @Override

@@ -1,20 +1,44 @@
 package com.cumulocity.lpwan.devicetype.service;
 
 import com.cumulocity.lpwan.devicetype.model.DeviceType;
+import com.cumulocity.lpwan.devicetype.model.UplinkConfiguration;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DeviceTypeMapperTest {
 
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private DeviceTypeMapper deviceTypeMapper = new DeviceTypeMapper(objectMapper);
+    private DeviceTypeMapper deviceTypeMapper = new DeviceTypeMapper();
+
+    @Test
+    public void shouldAcceptNullForPrimitivesAndIgnoreUnknownFragments() {
+        ManagedObjectRepresentation managedObject = new ManagedObjectRepresentation();
+
+        Map<String, Object> uplinkConfiguration = new HashMap<>();
+        uplinkConfiguration.put("messageTypeId", 1);
+        uplinkConfiguration.put("littleEndian", null);
+        uplinkConfiguration.put("signed", null);
+        uplinkConfiguration.put("bcd", null);
+
+        managedObject.setProperty("c8y_Registers", List.of(uplinkConfiguration));
+        managedObject.setProperty("c8y_IsDeviceType", new HashMap<>());
+
+        DeviceType deviceType = deviceTypeMapper.convertManagedObjectToDeviceType(managedObject);
+
+        assertEquals(1, deviceType.getUplinkConfigurations().size());
+        UplinkConfiguration configuration = deviceType.getUplinkConfigurations().get(0);
+        assertEquals(1, configuration.getMessageTypeId());
+        assertFalse(configuration.isLittleEndian());
+        assertFalse(configuration.isSigned());
+        assertFalse(configuration.isBcd());
+    }
 
     @Test
     public void shouldInitializeDeviceTypeObjectFields() {

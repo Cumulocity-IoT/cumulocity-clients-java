@@ -7,8 +7,8 @@ package com.cumulocity.lpwan.lns.connection.model;
 
 import com.cumulocity.lpwan.exception.InputDataValidationException;
 import com.cumulocity.lpwan.sample.connection.model.SampleConnection;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.JsonExpectationsHelper;
@@ -204,7 +204,7 @@ class LnsConnectionTest {
     }
 
     @Test
-    void doDeSerializeLnsConnection_with_valueType_as_LnsConnection_insteadof_SampleConnection() throws JsonProcessingException {
+    void doDeSerializeLnsConnection_with_valueType_as_LnsConnection_insteadof_SampleConnection() throws JacksonException {
         com.cumulocity.lpwan.lns.connection.model.LnsConnectionDeserializer.registerLnsConnectionConcreteClass("sample", SampleConnection.class);
 
         LnsConnection lnsConnection = jsonObjectMapper.readValue(VALID_SAMPLE_CONNECTION_JSON_INTERNAL_VIEW, LnsConnection.class);

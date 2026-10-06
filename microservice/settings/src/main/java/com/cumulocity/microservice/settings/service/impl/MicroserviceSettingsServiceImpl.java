@@ -7,7 +7,9 @@ import com.cumulocity.microservice.settings.service.MicroserviceSettingsService;
 import com.cumulocity.microservice.subscription.model.core.PlatformProperties;
 
 import com.cumulocity.rest.representation.tenant.OptionsRepresentation;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.json.JsonMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
@@ -58,7 +60,10 @@ public class MicroserviceSettingsServiceImpl implements MicroserviceSettingsServ
 
     @Override
     public <T> T getAs(Class<T> clazz) {
-        final ObjectMapper mapper = new ObjectMapper();
+        // Jackson 2 defaults: binding of the caller's settings class - unknown-property
+        // strictness and getter-as-setter handling included - stays as it was.
+        final ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
+                .enable(MapperFeature.DEFAULT_VIEW_INCLUSION).build();
         return mapper.convertValue(getAll(), clazz);
     }
 
