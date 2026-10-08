@@ -43,7 +43,7 @@
         <nexus.basePath>/nexus/content/repositories</nexus.basePath>
 
         <aspectj.version>1.9.25.1</aspectj.version> <!-- bound with spring-boot.version -->
-        <bouncycastle.version>1.84</bouncycastle.version>
+        <bouncycastle.version>1.85</bouncycastle.version>
         <cometd.version>9.0.1</cometd.version> <!-- CometD 9 targets Jetty 12.1 / Java 17 -->
 
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
