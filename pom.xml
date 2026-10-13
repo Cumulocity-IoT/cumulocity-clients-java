@@ -61,6 +61,7 @@
         <lombok.version>1.18.46</lombok.version> <!-- bound with spring-boot.version -->
         <microemu.version>2.0.4</microemu.version>
         <mock-server.version>5.15.0</mock-server.version>
+        <netty.version>4.2.17.Final</netty.version> <!-- overrides Spring Boot 4.0.7's 4.2.15.Final: CVE-2026-73508 in netty-codec-dns -->
         <nimbusds.version>10.9</nimbusds.version>
         <spring-boot.version>4.0.7</spring-boot.version>
         <svenson.version>1.5.8</svenson.version>
@@ -573,6 +574,13 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-bom</artifactId>
                 <version>${jetty.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>${netty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
