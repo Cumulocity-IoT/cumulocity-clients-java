@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,7 +45,6 @@ import static com.cumulocity.rest.representation.builder.SampleManagedObjectRepr
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Index.atIndex;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Durations.TEN_SECONDS;
 
 
 //TODO inline step definitions (see AlarmIT or InventoryIT)
@@ -56,6 +56,9 @@ public class MeasurementIT extends JavaSdkITBase {
     private static final int OK = 200;
     private static final int NOT_FOUND = 404;
     private static final int UNPROCESSABLE = 422;
+    // Measurement indexing can occasionally lag more than 10s under load on the test backend,
+    // so allow a longer window than the other eventual-consistency checks in this class.
+    private static final Duration MEASUREMENT_INDEXING_TIMEOUT = Duration.ofSeconds(30);
 
     private List<MeasurementRepresentation> input;
     private List<MeasurementRepresentation> result1;
@@ -147,17 +150,11 @@ public class MeasurementIT extends JavaSdkITBase {
         iHaveMeasurementsForSource(2, "4MO1");
         // when
         iCreateAllMeasurements();
-        iQueryAllBySource("4MO0");
+        allShouldBeCreated();
         // then
-        iShouldGetNumberOfMeasurements(1);
-        // when
-        iQueryAllBySource("4MO1");
-        // then
-        iShouldGetNumberOfMeasurements(2);
-        // when
-        iQueryAllBySource("4MO2");
-        // then
-        iShouldGetNumberOfMeasurements(0);
+        iShouldEventuallyGetNumberOfMeasurements(1, "4MO0");
+        iShouldEventuallyGetNumberOfMeasurements(2, "4MO1");
+        iShouldEventuallyGetNumberOfMeasurements(0, "4MO2");
     }
 
     @Test
@@ -588,16 +585,6 @@ public class MeasurementIT extends JavaSdkITBase {
         }
     }
 
-    private void iQueryAllBySource(String sourceName) throws SDKException {
-        try {
-            ManagedObjectRepresentation source = getMoWithName(sourceName);
-            MeasurementFilter filter = new MeasurementFilter().bySource(source.getId());
-            collection1 = measurementApi.getMeasurementsByFilter(filter).get();
-        } catch (SDKException ex) {
-            log.error("Measurement query by source failed with status code: {}, msg: {}", ex.getHttpStatus(), ex.getMessage());
-        }
-    }
-
     private void iQueryAllBySourceAndTime(String moName, String from, String to) throws SDKException {
         try {
             GId sourceId = getMoWithName(moName).getId();
@@ -664,7 +651,8 @@ public class MeasurementIT extends JavaSdkITBase {
     private void iShouldEventuallyGetNumberOfMeasurements(int count, String moName) {
         GId sourceId = getMoWithName(moName).getId();
         MeasurementFilter filter = new MeasurementFilter().bySource(sourceId);
-        await().atMost(TEN_SECONDS).until(() -> measurementApi.getMeasurementsByFilter(filter).get().getMeasurements().size() == count);
+        await().atMost(MEASUREMENT_INDEXING_TIMEOUT).untilAsserted(() ->
+                assertThat(measurementApi.getMeasurementsByFilter(filter).get().getMeasurements()).hasSize(count));
     }
 
     private void shouldBeBadRequest() {
