@@ -51,6 +51,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import static com.google.common.net.HttpHeaders.X_FORWARDED_HOST;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -208,7 +209,38 @@ public class RestConnectorTest {
         restConnector.delete(PATH);
 
         // Then
-        verify(parser).checkStatus(response, 204);
+        verify(parser).checkStatus(response, 202, 204);
+        verify(response).close();
+    }
+
+    @Test
+    public void shouldDeleteWhenPlatformContinuesInBackground() {
+        // Given
+        restConnector = new RestConnector(clientParameters, new ResponseParser(), client);
+        when(webResource.request()).thenReturn(typeBuilder);
+        when(typeBuilder.delete()).thenReturn(Response.accepted("Managed object delete is being continued in background").build());
+        acceptDefaultMediaType();
+
+        // When
+        Throwable thrown = catchThrowable(() -> restConnector.delete(PATH));
+
+        // Then
+        Assertions.assertThat(thrown).isNull();
+    }
+
+    @Test
+    public void shouldFailDeleteOnServerError() {
+        // Given
+        restConnector = new RestConnector(clientParameters, new ResponseParser(), client);
+        when(webResource.request()).thenReturn(typeBuilder);
+        when(typeBuilder.delete()).thenReturn(Response.serverError().build());
+        acceptDefaultMediaType();
+
+        // When
+        Throwable thrown = catchThrowable(() -> restConnector.delete(PATH));
+
+        // Then
+        Assertions.assertThat(thrown).isInstanceOf(SDKException.class);
     }
 
     @Test
@@ -217,13 +249,27 @@ public class RestConnectorTest {
         BaseResourceRepresentation representation = new BaseResourceRepresentation();
         BaseResourceRepresentation outputRepresentation = new BaseResourceRepresentation();
         returnResponseWhenPut(representation);
-        when(parser.parse(response, BaseResourceRepresentation.class, 200)).thenReturn(outputRepresentation);
+        when(parser.parse(response, BaseResourceRepresentation.class, 200, 204)).thenReturn(outputRepresentation);
 
         // When
         BaseResourceRepresentation result = restConnector.put(PATH, mediaType, representation);
 
         // Then
         assertThat(result, sameInstance(outputRepresentation));
+    }
+
+    @Test
+    public void shouldReturnSentRepresentationWhenPutAnswersNoContent() {
+        // Given
+        BaseResourceRepresentation representation = new BaseResourceRepresentation();
+        returnResponseWhenPut(representation);
+        when(parser.parse(response, BaseResourceRepresentation.class, 200, 204)).thenReturn(null);
+
+        // When
+        BaseResourceRepresentation result = restConnector.put(PATH, mediaType, representation);
+
+        // Then
+        assertThat(result, sameInstance(representation));
     }
 
     private void returnResponseWhenPut(BaseResourceRepresentation representation) {

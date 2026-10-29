@@ -353,7 +353,8 @@ public class RestConnector implements RestOperations {
     public <T extends ResourceRepresentation> T put(String path, MediaType mediaType, T representation) throws SDKException {
 
         Response response = httpPut(path, mediaType, representation);
-        return (T) parseResponseWithoutId(representation.getClass(), response, OK.getStatusCode());
+        T repFromPlatform = (T) parseResponseWithoutId(representation.getClass(), response, OK.getStatusCode(), NO_CONTENT.getStatusCode());
+        return repFromPlatform != null ? repFromPlatform : representation;
     }
 
     private Builder addApplicationKeyHeader(Builder builder) {
@@ -446,8 +447,9 @@ public class RestConnector implements RestOperations {
         builder = addTfaHeader(builder);
         builder = addRequestOriginHeader(builder);
         builder = applyInterceptors(builder);
-        Response response = builder.delete();
-        responseParser.checkStatus(response, NO_CONTENT.getStatusCode());
+        try (Response response = builder.delete()) {
+            responseParser.checkStatus(response, ACCEPTED.getStatusCode(), NO_CONTENT.getStatusCode());
+        }
     }
 
     public static Client createClient(PlatformParameters platformParameters) {
