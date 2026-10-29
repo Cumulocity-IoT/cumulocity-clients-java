@@ -39,6 +39,9 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ResponseParserTest {
@@ -72,6 +75,18 @@ public class ResponseParserTest {
 
         // Then
         assertThat(result, sameInstance(representation));
+    }
+
+    @Test
+    public void shouldReturnNullWithoutReadingOnNoContent() {
+        when(response.getStatus()).thenReturn(204);
+
+        BaseResourceRepresentation parsed = parser.parse(response, BaseResourceRepresentation.class, 204);
+        String parsedObject = parser.parseObject(response, 204, String.class);
+
+        Assertions.assertThat(parsed).isNull();
+        Assertions.assertThat(parsedObject).isNull();
+        verify(response, never()).readEntity(any(Class.class));
     }
 
     @Test

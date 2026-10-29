@@ -64,14 +64,18 @@ public class ResponseParser {
     public <T extends ResourceRepresentation> T parse(Response response, Class<T> type, int... expectedStatusCodes) throws SDKException {
 
         checkStatus(response, expectedStatusCodes);
-        return read(response, type);
+        return isNoContent(response) ? null : read(response, type);
     }
 
     public <T extends Object> T parseObject(Response response, int expectedStatusCode,
             Class<T> type) throws SDKException {
 
         checkStatus(response, expectedStatusCode);
-        return read(response, type);
+        return isNoContent(response) ? null : read(response, type);
+    }
+
+    private boolean isNoContent(Response response) {
+        return response.getStatus() == Response.Status.NO_CONTENT.getStatusCode();
     }
 
     public void checkStatus(Response response, int... expectedStatusCodes) throws SDKException {
