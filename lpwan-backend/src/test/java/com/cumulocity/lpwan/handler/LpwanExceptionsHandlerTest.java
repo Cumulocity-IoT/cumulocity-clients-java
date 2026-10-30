@@ -7,8 +7,12 @@ package com.cumulocity.lpwan.handler;
 
 import com.cumulocity.lpwan.exception.InputDataValidationException;
 import com.cumulocity.lpwan.exception.LpwanServiceException;
+import com.cumulocity.lpwan.exception.LpwanUserManagementNotPermittedException;
+import com.cumulocity.lpwan.lns.connection.model.LnsConnectionDeserializer;
+import com.cumulocity.lpwan.sample.connection.model.SampleConnection;
 import com.cumulocity.rest.representation.ErrorDetails;
 import com.cumulocity.rest.representation.ErrorMessageRepresentation;
+import com.cumulocity.sdk.client.SDKException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -97,5 +101,18 @@ class LpwanExceptionsHandlerTest {
         assertNotNull(details);
         assertEquals(UnsupportedOperationException.class.getCanonicalName(), details.getExpectionClass());
         assertEquals(exception.getMessage(), details.getExceptionMessage());
+    }
+
+    @Test
+    void doHandleException_LpwanUserManagementNotPermittedException() {
+        LnsConnectionDeserializer.registerLnsConnectionConcreteClass("Loriot", SampleConnection.class);
+        LpwanUserManagementNotPermittedException exception = new LpwanUserManagementNotPermittedException(new SDKException(403, "forbidden"));
+        ResponseEntity<ErrorMessageRepresentation> responseEntity = new LpwanExceptionsHandler().handleLpwanUserManagementNotPermittedException(exception);
+
+        assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
+        assertEquals("Setting up the Loriot integration for the first time requires a user with user management "
+                + "admin rights.", responseEntity.getBody().getMessage());
+        assertEquals(LpwanUserManagementNotPermittedException.class.getCanonicalName(), responseEntity.getBody().getDetails().getExpectionClass());
     }
 }

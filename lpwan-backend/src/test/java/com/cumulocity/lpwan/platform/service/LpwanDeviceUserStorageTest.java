@@ -14,8 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -29,10 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Kept apart from {@link LpwanUserPasswordServiceTest}, which is JUnit 4 and does not run - the vintage
- * engine is excluded in this module's pom.
- */
+/** Reading the account an earlier version provisioned through the platform's device registration flow. */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class LpwanDeviceUserStorageTest {
@@ -47,9 +42,6 @@ class LpwanDeviceUserStorageTest {
     @Mock
     private TenantOptionApi tenantOptionApi;
 
-    @Captor
-    private ArgumentCaptor<OptionRepresentation> optionCaptor;
-
     private LpwanUserPasswordService lpwanUserPasswordService;
 
     @BeforeEach
@@ -61,43 +53,27 @@ class LpwanDeviceUserStorageTest {
     }
 
     /**
-     * The real budget, so the value the service test stubs cannot drift from it. A device id that just
-     * fits must produce a key at core's 256 character limit.
-     */
-    @Test
-    void shouldReportHowMuchOfTheOptionKeyIsLeftForTheDeviceId() {
-        int maxDeviceIdLength = lpwanUserPasswordService.maxDeviceIdLength();
-
-        assertThat(maxDeviceIdLength).isEqualTo(256 - "credentials.loriot.device.".length());
-        assertThat(DEVICE_USER_KEY.length() - DEVICE_ID.length() + maxDeviceIdLength).isEqualTo(256);
-    }
-
-    /** The {@code credentials.} prefix is what makes the platform encrypt the value. */
-    @Test
-    void shouldStoreUnderACredentialsKeyThatIsScopedToTheDeviceId() {
-        lpwanUserPasswordService.saveDeviceUser(CATEGORY, DEVICE_ID, USER_NAME, PASSWORD);
-
-        verify(tenantOptionApi).save(optionCaptor.capture());
-        assertThat(optionCaptor.getValue().getCategory()).isEqualTo(APP_NAME);
-        assertThat(optionCaptor.getValue().getKey()).isEqualTo(DEVICE_USER_KEY);
-    }
-
-    /**
      * The category decides whether the platform hands the value back decrypted, and it is not always the
-     * application name - so the caller's category is what both read and write have to use.
+     * application name - so the caller's category is what the read uses.
      */
     @Test
-    void shouldStoreAndReadUnderTheCategoryTheCallerGives() {
+    void shouldReadUnderTheCategoryTheCallerGives() {
         when(tenantOptionApi.getOption(new OptionPK("a-different-category", DEVICE_USER_KEY)))
                 .thenReturn(OptionRepresentation.asOptionRepresentation("a-different-category", DEVICE_USER_KEY,
                         "{\"username\":\"" + USER_NAME + "\",\"password\":\"" + PASSWORD + "\"}"));
 
-        lpwanUserPasswordService.saveDeviceUser("a-different-category", DEVICE_ID, USER_NAME, PASSWORD);
-
-        verify(tenantOptionApi).save(optionCaptor.capture());
-        assertThat(optionCaptor.getValue().getCategory()).isEqualTo("a-different-category");
         assertThat(lpwanUserPasswordService.getDeviceUser("a-different-category", DEVICE_ID))
                 .map(StoredDeviceUser::userName).contains(USER_NAME);
+    }
+
+    /** Keyed by device id under {@code credentials.}, which is what makes the platform encrypt it. */
+    @Test
+    void shouldReadTheKeyScopedToTheDeviceId() {
+        stubStoredValue("{\"username\":\"" + USER_NAME + "\",\"password\":\"" + PASSWORD + "\"}");
+
+        lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID);
+
+        verify(tenantOptionApi).getOption(new OptionPK(APP_NAME, DEVICE_USER_KEY));
     }
 
     /**
@@ -116,52 +92,16 @@ class LpwanDeviceUserStorageTest {
     }
 
     /**
-     * Omitting the category cannot compile, so only one that names nothing is left to guard against - it
-     * would store where nothing can be read back.
+     * Omitting the category cannot compile, so only one that names nothing is left to guard against - nothing
+     * could ever be read from it.
      */
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {"   "})
     void shouldRefuseACategoryThatNamesNothing(String category) {
-        assertThatThrownBy(() -> lpwanUserPasswordService.saveDeviceUser(category, DEVICE_ID, USER_NAME, PASSWORD))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("context path");
         assertThatThrownBy(() -> lpwanUserPasswordService.getDeviceUser(category, DEVICE_ID))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("context path");
-    }
-
-    /** Two device ids must not overwrite each other's account. */
-    @Test
-    void shouldKeepAccountsOfDifferentDeviceIdsApart() {
-        lpwanUserPasswordService.saveDeviceUser(CATEGORY, "first", USER_NAME, PASSWORD);
-        lpwanUserPasswordService.saveDeviceUser(CATEGORY, "second", USER_NAME, PASSWORD);
-
-        verify(tenantOptionApi, org.mockito.Mockito.times(2)).save(optionCaptor.capture());
-        assertThat(optionCaptor.getAllValues())
-                .extracting(OptionRepresentation::getKey)
-                .containsExactly("credentials.loriot.device.first", "credentials.loriot.device.second");
-    }
-
-    /** One option, so that a user name can never be stored without its password or the other way round. */
-    @Test
-    void shouldStoreUserNameAndPasswordInASingleOption() {
-        lpwanUserPasswordService.saveDeviceUser(CATEGORY, DEVICE_ID, USER_NAME, PASSWORD);
-
-        verify(tenantOptionApi).save(optionCaptor.capture());
-        assertThat(optionCaptor.getValue().getValue())
-                .contains(USER_NAME)
-                .contains(PASSWORD);
-    }
-
-    /** Pins the stored format: renaming a record component would make stored accounts unreadable. */
-    @Test
-    void shouldStoreTheDocumentedPropertyNames() {
-        lpwanUserPasswordService.saveDeviceUser(CATEGORY, DEVICE_ID, USER_NAME, PASSWORD);
-
-        verify(tenantOptionApi).save(optionCaptor.capture());
-        assertThat(optionCaptor.getValue().getValue())
-                .isEqualTo("{\"username\":\"" + USER_NAME + "\",\"password\":\"" + PASSWORD + "\"}");
     }
 
     /** A record's generated toString would print the password; it must not reach a log line. */
@@ -174,11 +114,10 @@ class LpwanDeviceUserStorageTest {
                 .doesNotContain(PASSWORD);
     }
 
+    /** Pins the stored format 6.0.x wrote: user name and password in one option, under these property names. */
     @Test
-    void shouldReadBackWhatWasStored() {
-        lpwanUserPasswordService.saveDeviceUser(CATEGORY, DEVICE_ID, USER_NAME, PASSWORD);
-        verify(tenantOptionApi).save(optionCaptor.capture());
-        stubStoredValue(optionCaptor.getValue().getValue());
+    void shouldReadTheStoredFormat() {
+        stubStoredValue("{\"username\":\"" + USER_NAME + "\",\"password\":\"" + PASSWORD + "\"}");
 
         Optional<StoredDeviceUser> deviceUser = lpwanUserPasswordService.getDeviceUser(CATEGORY, DEVICE_ID);
 
@@ -204,8 +143,8 @@ class LpwanDeviceUserStorageTest {
     }
 
     /**
-     * Absent means "safe to provision from scratch", and a value we cannot parse is no evidence of that -
-     * it may name an account in use, which a caller could then delete or reset.
+     * Absent means "no such account", and a value we cannot parse is no evidence of that - it may name an
+     * account in use.
      */
     @Test
     void shouldRefuseToReadAnUnparseableValueAsAbsent() {
@@ -216,7 +155,7 @@ class LpwanDeviceUserStorageTest {
                 .hasMessageContaining("could not be read");
     }
 
-    /** The caller must be able to tell "password lost" from "no account" - only the latter may be re-provisioned. */
+    /** The caller must be able to tell "password lost" from "no account". */
     @Test
     void shouldReportAnAccountWhosePasswordIsMissing() {
         stubStoredValue("{\"username\":\"" + USER_NAME + "\"}");

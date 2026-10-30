@@ -7,6 +7,7 @@ package com.cumulocity.lpwan.handler;
 
 import com.cumulocity.lpwan.exception.InputDataValidationException;
 import com.cumulocity.lpwan.exception.LpwanServiceException;
+import com.cumulocity.lpwan.exception.LpwanUserManagementNotPermittedException;
 import com.cumulocity.lpwan.exception.LpwanUserNotFoundException;
 import com.cumulocity.rest.representation.ErrorDetails;
 import com.cumulocity.rest.representation.ErrorMessageRepresentation;
@@ -70,6 +71,20 @@ public class LpwanExceptionsHandler {
     public ResponseEntity<ErrorMessageRepresentation> handleLpwanUserNotFoundException(LpwanUserNotFoundException exception) {
         log.error(exception.getMessage(), exception);
         return buildErrorResponse(exception, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * This method handles the custom <b>{@link com.cumulocity.lpwan.exception.LpwanUserManagementNotPermittedException}</b>.
+     *
+     * @param exception       represents the LpwanUserManagementNotPermittedException
+     * @return ResponseEntity <code>HttpStatus.FORBIDDEN</code>
+     * @see com.cumulocity.lpwan.exception.LpwanUserManagementNotPermittedException {@link com.cumulocity.lpwan.exception.LpwanUserManagementNotPermittedException}
+     */
+    @ExceptionHandler(value = LpwanUserManagementNotPermittedException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorMessageRepresentation> handleLpwanUserManagementNotPermittedException(LpwanUserManagementNotPermittedException exception) {
+        log.error(exception.getMessage(), exception);
+        return buildErrorResponse(exception, HttpStatus.FORBIDDEN);
     }
 
     /**
