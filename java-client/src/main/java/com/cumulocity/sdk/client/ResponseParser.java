@@ -21,6 +21,7 @@
 package com.cumulocity.sdk.client;
 
 import com.cumulocity.model.idtype.GId;
+import com.cumulocity.rest.representation.BulkRequestDetails;
 import com.cumulocity.rest.representation.ErrorMessageRepresentation;
 import com.cumulocity.rest.representation.ResourceRepresentation;
 import org.jsoup.Jsoup;
@@ -85,15 +86,40 @@ public class ResponseParser {
                 return;
             }
         }
-        throw new SDKException(status, getErrorMessage(response, status));
+        boolean hasEntity = response.hasEntity();
+        ErrorMessageRepresentation error = readJsonError(response, hasEntity);
+        String errorMessage = getErrorMessage(response, status, hasEntity, error);
+        BulkRequestDetails bulkRequest = error == null ? null : error.getBulkRequest();
+        if (bulkRequest != null) {
+            throw new BulkRequestException(status, errorMessage, bulkRequest.getFailedIndex(), bulkRequest.getFragmentType());
+        }
+        throw new SDKException(status, errorMessage);
+    }
+
+    // The entity stream is closed once it was read, so whether there is an entity must be determined by the caller before reading.
+    private ErrorMessageRepresentation readJsonError(Response response, boolean hasEntity) {
+        if (!hasEntity || !isJsonResponse(response)) {
+            return null;
+        }
+        try {
+            return read(response, ErrorMessageRepresentation.class);
+        } catch (Exception e) {
+            LOG.error("Failed to parse error message", e);
+            return null;
+        }
     }
 
     protected String getErrorMessage(Response response, int status) {
+        boolean hasEntity = response.hasEntity();
+        return getErrorMessage(response, status, hasEntity, readJsonError(response, hasEntity));
+    }
+
+    private String getErrorMessage(Response response, int status, boolean hasEntity, ErrorMessageRepresentation error) {
         String errorMessage = "Http status code: " + status;
         String responseHeader = "";
 
-        if (response.hasEntity()) {
-            String errorRepresentation = getErrorRepresentation(response);
+        if (hasEntity) {
+            String errorRepresentation = error != null ? error.toString() : getErrorRepresentation(response);
             if (errorRepresentation == null) {
                 errorRepresentation = NO_ERROR_REPRESENTATION;
             }

@@ -21,6 +21,7 @@ package com.cumulocity.sdk.client;
 
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.BaseResourceRepresentation;
+import com.cumulocity.rest.representation.BulkRequestDetails;
 import com.cumulocity.rest.representation.ErrorMessageRepresentation;
 import com.cumulocity.rest.representation.inventory.InventoryRepresentation;
 import org.assertj.core.api.Assertions;
@@ -118,6 +119,61 @@ public class ResponseParserTest {
         // Then
         Assertions.assertThat(thrown).isInstanceOf(SDKException.class)
                 .hasMessage("Http status code: " + ERROR_STATUS + "\n" + errorRepresentation);
+    }
+
+    @Test
+    public void shouldThrowBulkRequestExceptionWhenErrorContainsBulkRequest() {
+        // Given
+        when(response.getStatus()).thenReturn(409);
+        BulkRequestDetails bulkRequest = new BulkRequestDetails();
+        bulkRequest.setFailedIndex(3);
+        bulkRequest.setFragmentType("c8y_BatchId_1");
+        ErrorMessageRepresentation errorRepresentation = new ErrorMessageRepresentation();
+        errorRepresentation.setBulkRequest(bulkRequest);
+        when(response.hasEntity()).thenReturn(true);
+        when(response.getMediaType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
+        when(response.readEntity(ErrorMessageRepresentation.class)).thenReturn(errorRepresentation);
+
+        // When
+        Throwable thrown = catchThrowable(() -> parser.parse(response, BaseResourceRepresentation.class, EXPECTED_STATUS));
+
+        // Then
+        Assertions.assertThat(thrown).isInstanceOf(BulkRequestException.class)
+                .hasMessage("Http status code: 409\n" + errorRepresentation);
+        BulkRequestException bulkException = (BulkRequestException) thrown;
+        Assertions.assertThat(bulkException.getHttpStatus()).isEqualTo(409);
+        Assertions.assertThat(bulkException.getFailedIndex()).isEqualTo(3);
+        Assertions.assertThat(bulkException.getFragmentType()).isEqualTo("c8y_BatchId_1");
+    }
+
+    @Test
+    public void shouldNotAccessClosedEntityStreamWhenBuildingErrorMessage() {
+        // Given: like a real response, hasEntity() fails once the entity stream has been read
+        when(response.getStatus()).thenReturn(ERROR_STATUS);
+        when(response.hasEntity()).thenReturn(true).thenThrow(new IllegalStateException("Entity input stream has already been closed."));
+        when(response.getMediaType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
+        when(response.readEntity(ErrorMessageRepresentation.class)).thenReturn(new ErrorMessageRepresentation());
+
+        // When
+        Throwable thrown = catchThrowable(() -> parser.parse(response, BaseResourceRepresentation.class, EXPECTED_STATUS));
+
+        // Then
+        Assertions.assertThat(thrown).isExactlyInstanceOf(SDKException.class);
+    }
+
+    @Test
+    public void shouldThrowPlainSdkExceptionWhenErrorHasNoBulkRequest() {
+        // Given
+        when(response.getStatus()).thenReturn(ERROR_STATUS);
+        when(response.hasEntity()).thenReturn(true);
+        when(response.getMediaType()).thenReturn(MediaType.APPLICATION_JSON_TYPE);
+        when(response.readEntity(ErrorMessageRepresentation.class)).thenReturn(new ErrorMessageRepresentation());
+
+        // When
+        Throwable thrown = catchThrowable(() -> parser.parse(response, BaseResourceRepresentation.class, EXPECTED_STATUS));
+
+        // Then
+        Assertions.assertThat(thrown).isExactlyInstanceOf(SDKException.class);
     }
 
     @Test

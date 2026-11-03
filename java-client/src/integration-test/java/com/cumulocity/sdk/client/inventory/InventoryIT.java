@@ -30,7 +30,10 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.cumulocity.sdk.client.PagingParam;
 import com.cumulocity.sdk.client.QueryParam;
@@ -42,10 +45,12 @@ import c8y.ThreePhaseElectricitySensor;
 
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.builder.ManagedObjectRepresentationBuilder;
+import com.cumulocity.rest.representation.identity.ExternalIDRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectCollectionRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectReferenceCollectionRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectReferenceRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
+import com.cumulocity.sdk.client.BulkRequestException;
 import com.cumulocity.sdk.client.SDKException;
 import com.cumulocity.sdk.client.common.JavaSdkITBase;
 import java.util.ArrayList;
@@ -57,6 +62,17 @@ import static org.assertj.core.api.HamcrestCondition.matching;
 public class InventoryIT extends JavaSdkITBase {
 
     private static final int NOT_FOUND = 404;
+
+    private static final int CONFLICT = 409;
+
+    private static final int UNPROCESSABLE_ENTITY = 422;
+
+    private static final String EXTERNAL_ID_TYPE = "bulk_test_external_id";
+
+    // 50 is the maximum size of a bulk request
+    private static final int LARGE_BULK_SIZE = 50;
+
+    private static final String LARGE_PAYLOAD = "x".repeat(100 * 1024);
 
     private InventoryApi inventory;
 
@@ -258,6 +274,148 @@ public class InventoryIT extends JavaSdkITBase {
             });
         }
         return tasks;
+    }
+
+    @Test
+    public void createManagedObjectsInBulk() {
+        // Given
+        ManagedObjectCollectionRepresentation toCreate = new ManagedObjectCollectionRepresentation();
+        toCreate.getManagedObjects().add(aSampleMo().withName("bulk1").build());
+        toCreate.getManagedObjects().add(aSampleMo().withName("bulk2").build());
+
+        // When
+        ManagedObjectCollectionRepresentation created = inventory.createBulk(toCreate);
+
+        // Then
+        assertThat(created.getManagedObjects()).hasSize(2);
+        assertThat(created.getManagedObjects()).extracting(ManagedObjectRepresentation::getName).containsExactly("bulk1", "bulk2");
+        assertThat(created.getManagedObjects()).allSatisfy(mo -> assertThat(mo.getId()).isNotNull());
+    }
+
+    @Test
+    public void updateManagedObjectsInBulk() {
+        // Given
+        ManagedObjectRepresentation mo1 = inventory.create(aSampleMo().withName("bulk1").build());
+        ManagedObjectRepresentation mo2 = inventory.create(aSampleMo().withName("bulk2").build());
+        ManagedObjectCollectionRepresentation toUpdate = new ManagedObjectCollectionRepresentation();
+        toUpdate.getManagedObjects().add(aSampleMo().withID(mo1.getId()).withName("bulk1-updated").build());
+        toUpdate.getManagedObjects().add(aSampleMo().withID(mo2.getId()).withName("bulk2-updated").build());
+
+        // When
+        ManagedObjectCollectionRepresentation updated = inventory.updateBulk(toUpdate);
+
+        // Then
+        assertThat(updated.getManagedObjects()).extracting(ManagedObjectRepresentation::getName)
+                .containsExactly("bulk1-updated", "bulk2-updated");
+        assertThat(inventory.get(mo1.getId()).getName()).isEqualTo("bulk1-updated");
+        assertThat(inventory.get(mo2.getId()).getName()).isEqualTo("bulk2-updated");
+    }
+
+    @Test
+    public void tryToUpdateNonExistentManagedObjectInBulk() {
+        // Given
+        ManagedObjectRepresentation existing = inventory.create(aSampleMo().withName("bulk1").build());
+        ManagedObjectCollectionRepresentation toUpdate = new ManagedObjectCollectionRepresentation();
+        toUpdate.getManagedObjects().add(aSampleMo().withID(existing.getId()).withName("bulk1-updated").build());
+        toUpdate.getManagedObjects().add(aSampleMo().withID(new GId("1")).withName("missing").build());
+
+        // When
+        Throwable thrown = catchThrowable(() -> inventory.updateBulk(toUpdate));
+
+        // Then
+        assertThat(thrown).isInstanceOf(BulkRequestException.class);
+        BulkRequestException bulkException = (BulkRequestException) thrown;
+        assertThat(bulkException.getHttpStatus()).isEqualTo(NOT_FOUND);
+        assertThat(bulkException.getFailedIndex()).isEqualTo(1);
+        assertThat(inventory.get(existing.getId()).getName()).isEqualTo("bulk1");
+    }
+
+    @Test
+    public void tryToCreateManagedObjectsInBulkWithExternalIdBoundBeforeTheRequest() {
+        // Given
+        String externalIdValue = "bound-before-request-" + UUID.randomUUID();
+        ManagedObjectRepresentation existing = inventory.create(aSampleMo().build());
+        platform.getIdentityApi().create(anExternalId(EXTERNAL_ID_TYPE, externalIdValue, existing));
+        String type = "bulk_create_conflict";
+        ManagedObjectCollectionRepresentation toCreate = new ManagedObjectCollectionRepresentation();
+        toCreate.getManagedObjects().add(aSampleMo().withName("bulk1").withType(type).build());
+        toCreate.getManagedObjects().add(withExternalId(aSampleMo().withName("bulk2").withType(type).build(), externalIdValue));
+
+        // When
+        Throwable thrown = catchThrowable(() -> inventory.createBulk(toCreate));
+
+        // Then
+        assertThat(thrown).isInstanceOf(BulkRequestException.class);
+        BulkRequestException bulkException = (BulkRequestException) thrown;
+        assertThat(bulkException.getHttpStatus()).isEqualTo(CONFLICT);
+        assertThat(bulkException.getFailedIndex()).isEqualTo(1);
+        assertThat(bulkException.getFragmentType()).isNull();
+        assertThat(inventory.countManagedObjectsByFilter(new InventoryFilter().byType(type))).isZero();
+    }
+
+    @Test
+    public void tryToUpdateManagedObjectsInBulkWithExternalIds() {
+        // Given
+        ManagedObjectRepresentation existing = inventory.create(aSampleMo().withName("bulk1").build());
+        ManagedObjectCollectionRepresentation toUpdate = new ManagedObjectCollectionRepresentation();
+        toUpdate.getManagedObjects()
+                .add(withExternalId(aSampleMo().withID(existing.getId()).withName("bulk1-updated").build(), "not-supported"));
+
+        // When
+        Throwable thrown = catchThrowable(() -> inventory.updateBulk(toUpdate));
+
+        // Then
+        assertThat(thrown).isInstanceOf(BulkRequestException.class);
+        BulkRequestException bulkException = (BulkRequestException) thrown;
+        assertThat(bulkException.getHttpStatus()).isEqualTo(UNPROCESSABLE_ENTITY);
+        assertThat(bulkException.getFailedIndex()).isEqualTo(0);
+        assertThat(bulkException.getFragmentType()).isNull();
+        assertThat(inventory.get(existing.getId()).getName()).isEqualTo("bulk1");
+    }
+
+    @Test
+    public void tryToCreateManagedObjectsInBulkFailingWhileTheLastOneIsWritten() throws Exception {
+        // Given: large managed objects take time to write. Meanwhile the external id of the last one is bound to another managed object
+        String type = "bulk_create_race_" + UUID.randomUUID();
+        String externalIdValue = "bound-during-request-" + UUID.randomUUID();
+        ManagedObjectRepresentation binder = inventory.create(aSampleMo().withName("binder").build());
+        ManagedObjectCollectionRepresentation toCreate = new ManagedObjectCollectionRepresentation();
+        for (int i = 0; i < LARGE_BULK_SIZE; i++) {
+            ManagedObjectRepresentation mo = aSampleMo().withName("bulk" + i).withType(type).build();
+            mo.setProperty("payload", Map.of("data", LARGE_PAYLOAD));
+            toCreate.getManagedObjects().add(i == LARGE_BULK_SIZE - 1 ? withExternalId(mo, externalIdValue) : mo);
+        }
+        AtomicReference<Throwable> binderFailure = new AtomicReference<>();
+        Thread binderThread = new Thread(() -> {
+            try {
+                long deadline = System.currentTimeMillis() + 60_000;
+                while (System.currentTimeMillis() < deadline
+                        && inventory.countManagedObjectsByFilter(new InventoryFilter().byType(type)) == 0) {
+                    Thread.sleep(1);
+                }
+                platform.getIdentityApi().create(anExternalId(EXTERNAL_ID_TYPE, externalIdValue, binder));
+            } catch (Throwable t) {
+                binderFailure.set(t);
+            }
+        });
+
+        // When
+        binderThread.start();
+        Throwable thrown = catchThrowable(() -> inventory.createBulk(toCreate));
+        binderThread.join();
+
+        // Then
+        assertThat(binderFailure.get()).isNull();
+        assertThat(thrown).isInstanceOf(BulkRequestException.class);
+        BulkRequestException bulkException = (BulkRequestException) thrown;
+        assertThat(bulkException.getHttpStatus()).isEqualTo(CONFLICT);
+        assertThat(bulkException.getFailedIndex()).isEqualTo(LARGE_BULK_SIZE - 1);
+        assertThat(bulkException.getFragmentType()).startsWith("c8y_BatchId_");
+        List<ManagedObjectRepresentation> created = inventory
+                .getManagedObjectsByFilter(new InventoryFilter().byFragmentType(bulkException.getFragmentType()))
+                .get(LARGE_BULK_SIZE).getManagedObjects();
+        assertThat(created).extracting(ManagedObjectRepresentation::getName).contains("bulk0");
+        assertThat(created).hasSize(inventory.countManagedObjectsByFilter(new InventoryFilter().byType(type)));
     }
 
     @Test
@@ -579,6 +737,19 @@ public class InventoryIT extends JavaSdkITBase {
 
     private static ManagedObjectRepresentationBuilder aSampleMo() {
         return anMoRepresentationLike(MO_REPRESENTATION);
+    }
+
+    private static ManagedObjectRepresentation withExternalId(ManagedObjectRepresentation mo, String externalId) {
+        mo.setProperty("externalIds", List.of(Map.of("type", EXTERNAL_ID_TYPE, "externalId", externalId)));
+        return mo;
+    }
+
+    private static ExternalIDRepresentation anExternalId(String type, String externalId, ManagedObjectRepresentation mo) {
+        ExternalIDRepresentation rep = new ExternalIDRepresentation();
+        rep.setType(type);
+        rep.setExternalId(externalId);
+        rep.setManagedObject(mo);
+        return rep;
     }
 
     private static <T> Set<T> asSet(T... items) {
