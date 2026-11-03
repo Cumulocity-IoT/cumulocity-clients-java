@@ -130,9 +130,10 @@ public interface InventoryApi {
      * {@link BulkRequestException#getFragmentType() fragmentType} names a fragment that each created managed object carries with its
      * position in the request. To complete the request without duplicates:
      * <ol>
-     * <li>Find the created managed objects with {@code getManagedObjectsByFilter(new InventoryFilter().byFragmentType(fragmentType))}.
-     * If the lookup fails, retry the lookup, never the bulk request.</li>
-     * <li>Send again only the positions that the lookup did not return. This includes
+     * <li>Find the created managed objects with
+     * {@code getManagedObjectsByFilter(new InventoryFilter().byFragmentType(fragmentType)).get().allPages()}. Read all pages, because one
+     * page holds only part of them. If the lookup fails, retry the lookup, never the bulk request.</li>
+     * <li>Only after the lookup has read all pages: send again only the positions that the lookup did not return. This includes
      * {@link BulkRequestException#getFailedIndex() failedIndex}, which may have been created.</li>
      * <li>A managed object that the lookup returned, including the one at {@code failedIndex}, may be missing its external ids or its
      * group assignment, for example if the failure was caused by one of its external ids. Do not create it again. Bind the missing external
