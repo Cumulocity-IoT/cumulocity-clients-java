@@ -1,5 +1,9 @@
 package com.cumulocity.agent.packaging;
 
+import com.cumulocity.agent.packaging.image.DaemonImageBuilder;
+import com.cumulocity.agent.packaging.image.ImageBuildSettings;
+import com.cumulocity.agent.packaging.image.ImageBuilder;
+import com.cumulocity.agent.packaging.microservice.MicroserviceDockerClient;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -14,6 +18,8 @@ import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Proxy;
+import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.apache.maven.shared.filtering.MavenResourcesExecution;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 
@@ -22,9 +28,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.io.Files.asByteSink;
@@ -141,6 +153,22 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
 
     @Parameter(property = "package.docker.registryPass")
     protected String registryPass;
+
+    @Component
+    protected MicroserviceDockerClient dockerClient;
+
+    @Parameter(defaultValue = "${basedir}/src/main/configuration/cumulocity.json")
+    protected File manifestFile;
+
+    @Parameter(property = "microservice.package.dockerBuildNetwork")
+    protected String dockerBuildNetwork;
+
+    @Parameter(property= "microservice.package.dockerBuildTimeout",defaultValue = "360")
+    public int dockerBuildTimeout = 360;
+
+    protected ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
+            .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+            .enable(SerializationFeature.INDENT_OUTPUT).build();
 
 
     protected void copyFromProjectSubdirectoryAndReplacePlaceholders(Resource src, File destination, boolean override) throws Exception {
@@ -296,5 +324,112 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
 
     protected String getDefaultTargetFilename() {
         return String.format(TARGET_FILENAME_PATTERN_DEFAULT_ARCH, name, project.getVersion());
+    }
+
+    protected File filterResourceFile(File source) throws IOException, MavenFilteringException {
+        final File filteredDir = new File(build, File.separator + "filtered-resources");
+        final MavenResourcesExecution execution = new MavenResourcesExecution(
+                ImmutableList.of(resource(source)),
+                filteredDir,
+                project,
+                encoding,
+                ImmutableList.of(),
+                ImmutableList.of(),
+                mavenSession);
+        createDirectories(filteredDir.toPath());
+        execution.setOverwrite(true);
+        mavenResourcesFiltering.filterResources(execution);
+        return new File(filteredDir, File.separator + source.getName());
+    }
+
+    protected Resource resource(File file) {
+        Resource resource = new Resource();
+        resource.setDirectory(file.getParent());
+        resource.setFiltering(true);
+        resource.setIncludes(ImmutableList.of(file.getName()));
+        resource.setExcludes(ImmutableList.of());
+        return resource;
+    }
+
+    /**
+     * Copies the jar, the plugin docker templates, project configuration and project docker files to the docker
+     * build context, replacing placeholders.
+     */
+    protected void prepareDockerWorkDir() throws Exception {
+        final File dockerWorkResources = new File(dockerWorkDir, "resources");
+        // copy artifact to docker work directory
+        cleanDirectory(dockerWorkResources);
+        copyArtifact(dockerWorkResources);
+
+        // copy content of plugin src/main/resources/docker folder to docker work directory replacing placeholders
+        final File buildTmp = new File(build, "tmp");
+        copyFromPluginSubdirectory("docker", buildTmp);
+        copyFromProjectSubdirectoryAndReplacePlaceholders(resource(buildTmp.getAbsolutePath()), dockerWorkDir, false);
+        cleanDirectory(buildTmp);
+
+        // copy content of project src/main/configuration to docker work directory replacing placeholders
+        copyFromProjectSubdirectoryAndReplacePlaceholders(resource(srcConfigurationDir.getAbsolutePath()), new File(dockerWorkDir, "etc"), true);
+
+        // copy content of project src/main/docker to docker work directory replacing placeholders
+        copyFromProjectSubdirectoryAndReplacePlaceholders(resource(srcDockerDir.getAbsolutePath()), dockerWorkDir, true);
+    }
+
+    protected Map<String, String> configureProxyBuildArguments() {
+        String httpProxy = null;
+        String httpsProxy = null;
+
+        //loop about Proxy settings
+        for (Proxy proxy : mavenSession.getSettings().getProxies() ) {
+            if ( proxy.isActive() ) {
+                String pS = proxy.getProtocol() + "://" + proxy.getHost() + ":" + proxy.getPort();
+                getLog().info( "Found Proxy settings: " + pS );
+                if ( proxy.getProtocol().equals( "http" ) )
+                    httpProxy = pS;
+                if ( proxy.getProtocol().equals( "https" ) )
+                    httpsProxy = pS;
+            }
+        }
+
+        if (httpsProxy == null && httpProxy != null )
+            httpsProxy = httpProxy;
+
+        if (httpProxy == null && httpsProxy != null )
+            httpProxy = httpsProxy;
+
+        Map<String, String> buildArgs = Maps.newHashMap();
+
+        if (httpProxy != null ) {
+            buildArgs.put("HTTP_PROXY", httpProxy);
+            buildArgs.put("http_proxy", httpProxy);
+        }
+
+        if (httpsProxy != null ) {
+            buildArgs.put("HTTPS_PROXY", httpsProxy);
+            buildArgs.put("https_proxy", httpsProxy);
+        }
+
+        return buildArgs;
+    }
+
+    /**
+     * The image builder of the selected build method.
+     */
+    protected ImageBuilder imageBuilder() {
+        return new DaemonImageBuilder(dockerClient, imageBuildSettings().build());
+    }
+
+    protected ImageBuildSettings.ImageBuildSettingsBuilder imageBuildSettings() {
+        return ImageBuildSettings.builder()
+                .imageName(name)
+                .version(project.getVersion())
+                .dockerWorkDir(dockerWorkDir)
+                .buildDir(build)
+                .buildArgs(configureProxyBuildArguments())
+                .network(dockerBuildNetwork)
+                .timeoutSeconds(dockerBuildTimeout)
+                .pullRegistryUrl(registryUrl)
+                .pullRegistryUser(registryUser)
+                .pullRegistryPass(registryPass)
+                .baseImage(baseImage);
     }
 }
