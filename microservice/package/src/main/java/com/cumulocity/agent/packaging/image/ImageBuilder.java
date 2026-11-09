@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Builds and pushes the microservice image. Each build method decides how many images it creates for the target
- * platforms: {@link DaemonImageBuilder} one per platform.
+ * platforms: {@link DaemonImageBuilder} one per platform, {@link BuildxImageBuilder} one for all platforms.
  */
 public interface ImageBuilder {
 

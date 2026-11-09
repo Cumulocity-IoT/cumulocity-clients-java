@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * One built image for one microservice zip. The {@link #writer} is valid only during {@link ImagePackager#write}: the
- * image builder may remove what it needs afterwards.
+ * image builder may remove what it needs (e.g. the buildx builder or temporary credentials) afterwards.
  */
 @Value
 public class PackagedImage {

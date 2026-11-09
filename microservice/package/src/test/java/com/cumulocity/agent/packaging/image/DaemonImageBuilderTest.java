@@ -57,6 +57,8 @@ class DaemonImageBuilderTest {
                 .imageWaitTimeoutSeconds(7)
                 .deleteImage(true)
                 .baseImage("alpine:3")
+                .dockerCli("docker")
+                .builderNamePrefix("c8y-service")
                 .build();
         lenient().doAnswer(invocation -> {
             OutputStream out = invocation.getArgument(1);

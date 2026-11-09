@@ -1,12 +1,14 @@
 package com.cumulocity.agent.packaging;
 
 
+import com.cumulocity.agent.packaging.image.BuildxImageBuilder;
 import com.cumulocity.agent.packaging.image.DaemonImageBuilder;
 import com.cumulocity.agent.packaging.image.ImageBuildSettings;
 import com.cumulocity.agent.packaging.image.ImageBuilder;
 import com.cumulocity.agent.packaging.image.ImagePackager;
 import com.cumulocity.agent.packaging.image.PackagedImage;
 import com.cumulocity.agent.packaging.microservice.MicroserviceDockerClient;
+import com.cumulocity.agent.packaging.microservice.buildx.BuildxClient;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
@@ -85,6 +87,9 @@ public class PackageMojoTest {
 
     @Mock
     Artifact artifact;
+
+    @Mock
+    BuildxClient buildxClient;
 
     @Mock
     MicroserviceDockerClient dockerClient;
@@ -227,7 +232,11 @@ public class PackageMojoTest {
     @Test
     public void testDockerDaemonIsUsedByDefault() {
         doCallRealMethod().when(packageMojo).imageBuilder();
+        packageMojo.useBuildx = false;
         assertInstanceOf(DaemonImageBuilder.class, packageMojo.imageBuilder());
+
+        packageMojo.useBuildx = true;
+        assertInstanceOf(BuildxImageBuilder.class, packageMojo.imageBuilder());
     }
 
     @Test
@@ -246,9 +255,12 @@ public class PackageMojoTest {
         assertEquals("host", settings.getNetwork());
         assertEquals(360, settings.getTimeoutSeconds());
         assertTrue(settings.isNoCache(), "no build cache by default");
+        assertFalse(settings.isFailOnJavaVersionMismatch());
         assertFalse(settings.isDeleteImage());
         assertEquals(360, settings.getImageWaitTimeoutSeconds());
         assertEquals("alpine:3", settings.getBaseImage());
+        assertEquals("c8y-" + ARTIFACT_NAME, settings.getBuilderNamePrefix());
+        assertEquals("docker", settings.getDockerCli());
         assertFalse(settings.toString().contains("secret"), "the password is not printed");
     }
 

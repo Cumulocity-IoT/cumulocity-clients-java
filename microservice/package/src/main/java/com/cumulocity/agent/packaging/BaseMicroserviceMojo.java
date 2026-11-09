@@ -1,9 +1,11 @@
 package com.cumulocity.agent.packaging;
 
+import com.cumulocity.agent.packaging.image.BuildxImageBuilder;
 import com.cumulocity.agent.packaging.image.DaemonImageBuilder;
 import com.cumulocity.agent.packaging.image.ImageBuildSettings;
 import com.cumulocity.agent.packaging.image.ImageBuilder;
 import com.cumulocity.agent.packaging.microservice.MicroserviceDockerClient;
+import com.cumulocity.agent.packaging.microservice.buildx.BuildxClient;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.*;
@@ -155,6 +157,16 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
     @Component
     protected MicroserviceDockerClient dockerClient;
 
+    @Component
+    protected BuildxClient buildxClient;
+
+    /**
+     * Builds images with {@code docker buildx} instead of the docker daemon API. With several target platforms buildx
+     * builds one multi-platform image; the docker daemon builds a separate image and zip for each platform.
+     */
+    @Parameter(property = "microservice.package.buildx", defaultValue = "false")
+    protected boolean useBuildx;
+
     @Parameter(defaultValue = "${basedir}/src/main/configuration/cumulocity.json")
     protected File manifestFile;
 
@@ -174,11 +186,24 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
     @Parameter(property = "microservice.package.dockerBuildNoCache", defaultValue = "true")
     protected boolean dockerBuildNoCache = true;
 
+    /**
+     * Fails the build when the platforms of a multi-platform image (docker buildx) have different Java versions.
+     * Otherwise a warning is logged.
+     */
+    @Parameter(property = "microservice.package.failOnJavaVersionMismatch", defaultValue = "false")
+    protected boolean failOnJavaVersionMismatch;
+
     @Parameter(property = "microservice.package.dockerBuildNetwork")
     protected String dockerBuildNetwork;
 
     @Parameter(property = "microservice.package.dockerBuildTimeout", defaultValue = "360")
     public int dockerBuildTimeout = 360;
+
+    /**
+     * Docker CLI binary used to run {@code docker buildx}.
+     */
+    @Parameter(property = "microservice.package.dockerCli", defaultValue = "docker")
+    protected String dockerCli = "docker";
 
     protected ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
             .enable(MapperFeature.DEFAULT_VIEW_INCLUSION)
@@ -457,10 +482,14 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
     }
 
     /**
-     * The image builder of the selected build method.
+     * The image builder of the selected build method: docker buildx or the docker daemon.
      */
     protected ImageBuilder imageBuilder() {
-        return new DaemonImageBuilder(dockerClient, imageBuildSettings().build());
+        ImageBuildSettings settings = imageBuildSettings().build();
+        if (useBuildx) {
+            return new BuildxImageBuilder(buildxClient, settings, this::ensureDockerWorkDir);
+        }
+        return new DaemonImageBuilder(dockerClient, settings);
     }
 
     protected ImageBuildSettings.ImageBuildSettingsBuilder imageBuildSettings() {
@@ -473,10 +502,29 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
                 .network(dockerBuildNetwork)
                 .timeoutSeconds(dockerBuildTimeout)
                 .noCache(dockerBuildNoCache)
+                .failOnJavaVersionMismatch(failOnJavaVersionMismatch)
                 .pullRegistryUrl(registryUrl)
                 .pullRegistryUser(registryUser)
                 .pullRegistryPass(registryPass)
-                .baseImage(baseImage);
+                .baseImage(baseImage)
+                .dockerCli(dockerCli)
+                .builderNamePrefix("c8y-" + project.getArtifactId());
     }
 
+    /**
+     * Uses the docker build context of the {@code package} goal, or prepares it when only the jar was built.
+     */
+    private void ensureDockerWorkDir() throws MojoExecutionException {
+        if (new File(dockerWorkDir, "Dockerfile").isFile()) {
+            return;
+        }
+        if (project.getArtifact() == null || project.getArtifact().getFile() == null) {
+            throw new MojoExecutionException("Docker build context " + dockerWorkDir + " does not exist. Run the package goal first.");
+        }
+        try {
+            prepareDockerWorkDir();
+        } catch (Exception e) {
+            throw new MojoExecutionException("Cannot prepare docker build context", e);
+        }
+    }
 }

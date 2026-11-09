@@ -62,7 +62,7 @@ public class PackageMojo extends BaseMicroserviceMojo {
     protected MojoExecution mojoExecution;
 
     /**
-     * Maximum time in seconds to wait for the built image in the docker daemon.
+     * Maximum time in seconds to wait for the built image in the docker daemon. Not used with docker buildx.
      */
     @Parameter(property= "microservice.package.dockerSaveWaitTimeOut",defaultValue = "360")
     public int dockerImageInRegistryMaxWaitTime = 360;

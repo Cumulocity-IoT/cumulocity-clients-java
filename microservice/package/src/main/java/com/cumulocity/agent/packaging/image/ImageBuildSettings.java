@@ -53,6 +53,8 @@ public class ImageBuildSettings {
      */
     boolean noCache;
 
+    boolean failOnJavaVersionMismatch;
+
     /**
      * Remove the image from the docker daemon after it was written to the zip (docker daemon build).
      */
@@ -71,6 +73,18 @@ public class ImageBuildSettings {
     @ToString.Exclude
     String pullRegistryPass;
     String baseImage;
+
+    /**
+     * Docker CLI binary (docker buildx).
+     */
+    @NonNull
+    String dockerCli;
+
+    /**
+     * Prefix of temporary buildx builders, e.g. {@code c8y-my-service}.
+     */
+    @NonNull
+    String builderNamePrefix;
 
     /**
      * @return {@code <imageName>:<version>} and {@code <imageName>:latest}

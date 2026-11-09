@@ -68,8 +68,8 @@ public class DaemonImageBuilder implements ImageBuilder {
     public void push(List<TargetPlatform> platforms, DockerImage target) {
         DockerImage source = DockerImage.ofName(settings.getImageName());
         if (platforms.size() > 1) {
-            log.warn("Only the image built last ({}) is pushed, all platforms {} share the same tags.",
-                    platforms.get(platforms.size() - 1), platforms);
+            log.warn("Only the image built last ({}) is pushed, all platforms {} share the same tags. "
+                    + "Set microservice.package.buildx=true to push one multi-platform image.", platforms.get(platforms.size() - 1), platforms);
         }
         for (String tag : List.of("latest", settings.getVersion())) {
             DockerImage pushed = target.withTag(tag);

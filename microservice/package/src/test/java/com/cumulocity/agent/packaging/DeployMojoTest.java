@@ -2,6 +2,7 @@ package com.cumulocity.agent.packaging;
 
 import com.cumulocity.agent.packaging.image.ImageBuilder;
 import com.cumulocity.agent.packaging.microservice.MicroserviceDockerClient;
+import com.cumulocity.agent.packaging.microservice.buildx.BuildxClient;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
@@ -25,6 +26,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DeployMojoTest {
+
+    @Mock
+    BuildxClient buildxClient;
 
     @Mock
     MicroserviceDockerClient dockerClient;
@@ -69,7 +73,7 @@ class DeployMojoTest {
         deployMojo.execute();
 
         verify(imageBuilder, never()).push(any(), any());
-        verifyNoInteractions(dockerClient);
+        verifyNoInteractions(buildxClient, dockerClient);
     }
 
     @Test
