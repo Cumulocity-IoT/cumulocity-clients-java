@@ -64,7 +64,7 @@ public class MicroserviceDockerClientImplTest {
         pepareBuildCommandMock(false);
 
         //and I build the image with our client
-        dockerClient.buildDockerImage(dockerDir, tags, buildArgs, "amd64", networkMode, 60, new AuthConfigurations());
+        dockerClient.buildDockerImage(dockerDir, tags, buildArgs, "amd64", networkMode, 60, new AuthConfigurations(), false);
 
         //then docker was instructed to build the file and parameters are passed into the build command.
         verify(dockerClientMock, times(1)).buildImageCmd(eq(new File(dockerDir)));
@@ -77,6 +77,30 @@ public class MicroserviceDockerClientImplTest {
     }
 
     @Test
+    void buildDockerImageWithoutCache() {
+        prepareDockerClientMockForBuild();
+        pepareBuildCommandMock(false);
+        when(buildImageCmd.withNoCache(true)).thenReturn(buildImageCmd);
+        when(buildImageCmd.withPull(true)).thenReturn(buildImageCmd);
+
+        dockerClient.buildDockerImage(dockerDir, tags, buildArgs, "amd64", networkMode, 60, new AuthConfigurations(), true);
+
+        verify(buildImageCmd).withNoCache(true);
+        verify(buildImageCmd).withPull(true);
+    }
+
+    @Test
+    void buildDockerImageWithCache() {
+        prepareDockerClientMockForBuild();
+        pepareBuildCommandMock(false);
+
+        dockerClient.buildDockerImage(dockerDir, tags, buildArgs, "amd64", networkMode, 60, new AuthConfigurations(), false);
+
+        verify(buildImageCmd, never()).withNoCache(anyBoolean());
+        verify(buildImageCmd, never()).withPull(anyBoolean());
+    }
+
+    @Test
     void buildDockerImageWithError() {
 
         //When I mock the Docker java client
@@ -86,7 +110,7 @@ public class MicroserviceDockerClientImplTest {
 
         //and I build the image with our client, then the docker error is propagated
 
-        assertThrows(RuntimeException.class, () -> dockerClient.buildDockerImage(dockerDir, tags, buildArgs, "amd64", networkMode, 60, new AuthConfigurations()));
+        assertThrows(RuntimeException.class, () -> dockerClient.buildDockerImage(dockerDir, tags, buildArgs, "amd64", networkMode, 60, new AuthConfigurations(), false));
 
         verify(dockerClientMock, times(1)).buildImageCmd(eq(new File(dockerDir)));
     }

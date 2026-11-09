@@ -49,12 +49,17 @@ public class ImageBuildSettings {
     int timeoutSeconds;
 
     /**
-     * Remove the image from the docker daemon after it was written to the zip.
+     * Build every layer again and pull the base image.
+     */
+    boolean noCache;
+
+    /**
+     * Remove the image from the docker daemon after it was written to the zip (docker daemon build).
      */
     boolean deleteImage;
 
     /**
-     * Maximum time to wait for the built image in the docker daemon.
+     * Maximum time to wait for the built image in the docker daemon (docker daemon build).
      */
     int imageWaitTimeoutSeconds;
 

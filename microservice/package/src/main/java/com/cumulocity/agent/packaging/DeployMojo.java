@@ -9,6 +9,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.DEPLOY;
 import static org.apache.maven.plugins.annotations.ResolutionScope.RUNTIME;
 
+/**
+ * Pushes the microservice image to {@code agent-package.container.registry} as {@code <name>:<version>} and
+ * {@code <name>:latest}. The image built by the {@code package} goal is tagged and pushed from the local docker daemon.
+ * For several target platforms this is the image built last.
+ */
 @Mojo(name = "push", defaultPhase = DEPLOY, requiresDependencyResolution = RUNTIME, threadSafe = true)
 @Slf4j
 public class DeployMojo extends BaseMicroserviceMojo {
@@ -24,8 +29,6 @@ public class DeployMojo extends BaseMicroserviceMojo {
             return;
         }
 
-        imageBuilder().push(DockerImage.ofName(name).withRegistry(registry));
+        imageBuilder().push(getTargetPlatforms(), DockerImage.ofName(name).withRegistry(registry));
     }
-
-
 }

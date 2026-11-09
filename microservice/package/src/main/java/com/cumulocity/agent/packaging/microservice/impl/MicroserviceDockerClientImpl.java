@@ -45,9 +45,12 @@ public class MicroserviceDockerClientImpl extends AbstractLogEnabled implements 
     private final static ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @SneakyThrows
-    synchronized public void buildDockerImage(String dockerDirectory, Set<String> tags, Map<String, String> buildArgs, String platform, String networkMode, Integer dockerBuildTimeout, AuthConfigurations pullConfiguration) {
+    synchronized public void buildDockerImage(String dockerDirectory, Set<String> tags, Map<String, String> buildArgs, String platform, String networkMode, Integer dockerBuildTimeout, AuthConfigurations pullConfiguration, boolean noCache) {
 
         BuildImageCmd buildImageCmd = dockerClient.buildImageCmd(new File(dockerDirectory)).withTags(tags).withPlatform(platform).withBuildAuthConfigs(pullConfiguration);
+        if (noCache) {
+            buildImageCmd = buildImageCmd.withNoCache(true).withPull(true);
+        }
         for (Map.Entry<String, String> buildArgument : buildArgs.entrySet()) {
             buildImageCmd = buildImageCmd.withBuildArg(buildArgument.getKey(), buildArgument.getValue());
         }
@@ -56,7 +59,7 @@ public class MicroserviceDockerClientImpl extends AbstractLogEnabled implements 
             buildImageCmd = buildImageCmd.withNetworkMode(networkMode);
         }
 
-        log.info("Building Docker image. Docker dir={},tags={}, build arguments={}, platform={}", dockerDirectory, tags, buildArgs, platform);
+        log.info("Building Docker image. Docker dir={},tags={}, build arguments={}, platform={}, noCache={}", dockerDirectory, tags, buildArgs, platform, noCache);
         ImageBuildCompletionWaiter imageBuildCompletionWaiter = new ImageBuildCompletionWaiter();
         buildImageCmd.exec(imageBuildCompletionWaiter);
         log.info("Waiting for image build to complete (timeout={}s)", dockerBuildTimeout);

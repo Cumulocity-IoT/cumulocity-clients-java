@@ -1,24 +1,21 @@
 package com.cumulocity.agent.packaging;
 
 import com.cumulocity.agent.packaging.image.ImageBuildSettings;
-import com.cumulocity.agent.packaging.image.ImageWriter;
 import com.cumulocity.agent.packaging.image.PackagedImage;
 import com.cumulocity.model.DataSize;
 import com.cumulocity.model.Resources;
 import com.cumulocity.model.application.MicroserviceManifest;
 import tools.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 
 import jakarta.validation.ConstraintViolation;
@@ -29,6 +26,7 @@ import jakarta.validation.ValidatorFactory;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -54,15 +52,18 @@ public class PackageMojo extends BaseMicroserviceMojo {
     @Parameter(property = "package.name", defaultValue = "${project.artifactId}")
     protected String image;
 
+    /**
+     * Removes the image from the local docker daemon after it was saved to the microservice zip (docker daemon build).
+     */
     @Parameter(property= "microservice.package.deleteImage",defaultValue = "true")
     protected Boolean deleteImage = true;
-
-    @Parameter(property = "microservice.package.dockerBuildArchs")
-    protected String targetBuildArchs;
 
     @Parameter(defaultValue = "${mojoExecution}")
     protected MojoExecution mojoExecution;
 
+    /**
+     * Maximum time in seconds to wait for the built image in the docker daemon.
+     */
     @Parameter(property= "microservice.package.dockerSaveWaitTimeOut",defaultValue = "360")
     public int dockerImageInRegistryMaxWaitTime = 360;
 
@@ -79,17 +80,15 @@ public class PackageMojo extends BaseMicroserviceMojo {
         }
 
         if (!containerSkip) {
-
-            Iterable<String> buildTargetArchitectures = getTargetBuildArchitectures();
-            log.info("Starting docker microservice build for the following target architectures: {}", buildTargetArchitectures);
-
+            List<TargetPlatform> platforms = getTargetPlatforms();
+            log.info("Starting docker microservice build for the following target platforms: {}", platforms);
             try {
                 prepareDockerWorkDir();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new MojoExecutionException("Cannot prepare docker build context", e);
             }
             getLog().info("docker container " + project.getArtifactId() + " in network '" + (dockerBuildNetwork != null ? dockerBuildNetwork : "<default>") + "'");
-            imageBuilder().build(ImmutableList.copyOf(buildTargetArchitectures), skipMicroservicePackage ? null : this::writeMicroserviceZip);
+            imageBuilder().build(platforms, skipMicroservicePackage ? null : this::writeMicroserviceZip);
         }
     }
 
@@ -97,7 +96,7 @@ public class PackageMojo extends BaseMicroserviceMojo {
     protected ImageBuildSettings.ImageBuildSettingsBuilder imageBuildSettings() {
         return super.imageBuildSettings()
                 .imageName(image)
-                .deleteImage(deleteImage != null && deleteImage)
+                .deleteImage(deleteImage == null || deleteImage)
                 .imageWaitTimeoutSeconds(dockerImageInRegistryMaxWaitTime);
     }
 
@@ -141,87 +140,47 @@ public class PackageMojo extends BaseMicroserviceMojo {
         //@formatter:on
     }
 
-
-    @SneakyThrows
-    private Iterable<String> getTargetBuildArchitectures() {
-
-        if (Objects.nonNull(targetBuildArchs)) {
-            log.info("Using custom target build architectures from maven configuration (overriding microservice manifest): {}", targetBuildArchs);
-            return Arrays.asList(targetBuildArchs.split(","));
-        }
-
-        final File file;
-
-        try {
-            file = filterResourceFile(manifestFile);
-        } catch (IOException e) {
-            log.error("Can't read manifest file {}", manifestFile);
-            throw e;
-        } catch (MavenFilteringException e) {
-            log.error("Maven filtering exception {}", e.getMessage());
-            throw e;
-        }
-
-        Map<String, Object> jsonManifest = mapper.readValue(file, Map.class);
-
-        if (jsonManifest.containsKey(BUILD_SPEC_FRAGMENT)) {
-            DockerBuildSpec buildSpec = mapper.convertValue(jsonManifest.get(BUILD_SPEC_FRAGMENT), DockerBuildSpec.class);
-            log.info("Using build target images from build spec: {}", buildSpec.getTargetBuildArchitectures());
-            return buildSpec.getTargetBuildArchitectures();
-        } else {
-            log.info("Manifest contains no buildspec and target architectures. Using defaults");
-            return DockerBuildSpec.defaultBuildSpec().getTargetBuildArchitectures();
-        }
-
-        }
-    private DockerBuildInfo getDockerBuildInfo(String targetBuildArch) {
+    private DockerBuildInfo getDockerBuildInfo(List<TargetPlatform> platforms) {
         return DockerBuildInfo.defaultInfo()
-                .withImageArch(targetBuildArch)
+                .withImageArch(platforms.get(0).platform())
+                .withImageArchitectures(platforms.stream().map(TargetPlatform::platform).collect(Collectors.toList()))
                 .withCurrentBuildDate()
                 .withBuilderInfo(mojoExecution.getPlugin().getId())
                 .withHostArchitecture()
                 .withHostOS();
     }
 
-
-    private void writeMicroserviceZip(PackagedImage image) {
+    private void writeMicroserviceZip(PackagedImage image) throws MojoExecutionException {
+        getLog().info("microservice zip container " + project.getArtifactId());
+        String targetFilename = image.getFileNamePlatform() == null ? getDefaultTargetFilename() : getTargetFilename(image.getFileNamePlatform().platform());
+        File zip = new File(build, targetFilename);
+        log.info("Saving microservice to {}", targetFilename);
         try {
-            getLog().info("microservice zip container " + project.getArtifactId());
-            String targetFilename = getTargetFilename(image.getFileNamePlatform());
-            log.info("Saving microservice to {}", targetFilename);
             createDirectories(build.toPath());
-
-            try (final ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(
-                    new File(build, targetFilename)))) {
+            try (final ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zip))) {
                 final File file = filterResourceFile(manifestFile);
                 validateManifest(file);
-                addPlatformTaggedMicroserviceManifestToZipFile(image.getPlatforms().get(0), filterResourceFile(manifestFile), zipOutputStream);
-                saveDockerImageToZipOutputStream(image.getWriter(), zipOutputStream);
+                addPlatformTaggedMicroserviceManifestToZipFile(image.getPlatforms(), file, zipOutputStream);
+                zipOutputStream.putNextEntry(new ZipEntry(DOCKER_IMAGE_TAR));
+                try {
+                    image.getWriter().write(zipOutputStream);
+                } finally {
+                    zipOutputStream.closeEntry();
+                }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            // an incomplete zip must not be uploaded
+            FileUtils.deleteQuietly(zip);
+            throw new MojoExecutionException("Cannot create microservice package " + targetFilename, e);
         }
     }
 
-    private void saveDockerImageToZipOutputStream(ImageWriter imageWriter, ZipOutputStream zipOutputStream) throws IOException, MavenExecutionException {
-        final ZipEntry ze = new ZipEntry(DOCKER_IMAGE_TAR);
-        try {
-            zipOutputStream.putNextEntry(ze);
-            imageWriter.write(zipOutputStream);
-        } catch (Exception e) {
-            log.error("Error saving Docker image to zip file: {}", e.getMessage());
-            throw new MavenExecutionException("Image export to zip file failed", e);
-        } finally {
-            zipOutputStream.closeEntry();
-        }
-    }
-
-    private void addPlatformTaggedMicroserviceManifestToZipFile(String targetArchitecture, File manifestFile, ZipOutputStream zipOutputStream) throws IOException {
+    private void addPlatformTaggedMicroserviceManifestToZipFile(List<TargetPlatform> platforms, File manifestFile, ZipOutputStream zipOutputStream) throws IOException {
 
         log.info("Tagging microservice manifest with image platform");
         ObjectNode manifest = (ObjectNode) mapper.readTree(manifestFile);
 
-        DockerBuildInfo updated = getDockerBuildInfo(targetArchitecture);
+        DockerBuildInfo updated = getDockerBuildInfo(platforms);
         manifest.putPOJO(DOCKER_BUILD_INFO_FRAGMENT, updated);
         String jsonString = mapper.writeValueAsString(manifest);
 
@@ -274,9 +233,6 @@ public class PackageMojo extends BaseMicroserviceMojo {
         return Sets.newHashSet();
     }
 
-
-
-
     private String requireJava() {
         if ("8".equals(getJavaVersion())) {
             return "java";
@@ -289,5 +245,4 @@ public class PackageMojo extends BaseMicroserviceMojo {
         String path;
         String message;
     }
-
 }

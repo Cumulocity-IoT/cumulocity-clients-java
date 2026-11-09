@@ -6,12 +6,22 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 public class DockerBuildInfo {
 
+    /**
+     * The first platform of the image. Kept for compatibility, {@link #imageArchitectures} lists all platforms.
+     */
+    @Deprecated
     private String imageArch;
+
+    /**
+     * All platforms of the image, e.g. {@code [linux/amd64, linux/arm64]}.
+     */
+    private List<String> imageArchitectures;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private Date buildDate;
@@ -49,6 +59,11 @@ public class DockerBuildInfo {
 
     public DockerBuildInfo withImageArch(String targetArchitecture) {
         this.imageArch = targetArchitecture;
+        return this;
+    }
+
+    public DockerBuildInfo withImageArchitectures(List<String> imageArchitectures) {
+        this.imageArchitectures = imageArchitectures;
         return this;
     }
 

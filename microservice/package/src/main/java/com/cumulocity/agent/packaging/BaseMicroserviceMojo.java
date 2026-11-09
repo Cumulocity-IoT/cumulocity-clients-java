@@ -14,6 +14,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -26,10 +27,7 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -160,10 +158,26 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
     @Parameter(defaultValue = "${basedir}/src/main/configuration/cumulocity.json")
     protected File manifestFile;
 
+    /**
+     * Comma separated target platforms (amd64, arm64; other docker platforms are used as given with a warning).
+     * Overrides {@code buildSpec.targetBuildArchitectures} of the microservice manifest.
+     * <p>
+     * The former pom name {@code targetBuildArchs} is still accepted, but deprecated.
+     */
+    @Parameter(property = "microservice.package.dockerBuildArchs", alias = "targetBuildArchs")
+    protected String dockerBuildArchs;
+
+    /**
+     * Builds every layer again and pulls the base image, so all platforms install the current packages (e.g. Java).
+     * Set to {@code false} to use the docker build cache.
+     */
+    @Parameter(property = "microservice.package.dockerBuildNoCache", defaultValue = "true")
+    protected boolean dockerBuildNoCache = true;
+
     @Parameter(property = "microservice.package.dockerBuildNetwork")
     protected String dockerBuildNetwork;
 
-    @Parameter(property= "microservice.package.dockerBuildTimeout",defaultValue = "360")
+    @Parameter(property = "microservice.package.dockerBuildTimeout", defaultValue = "360")
     public int dockerBuildTimeout = 360;
 
     protected ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
@@ -326,6 +340,37 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
         return String.format(TARGET_FILENAME_PATTERN_DEFAULT_ARCH, name, project.getVersion());
     }
 
+    /**
+     * Target platforms from {@code microservice.package.dockerBuildArchs}, the manifest build spec, or amd64.
+     */
+    protected List<TargetPlatform> getTargetPlatforms() throws MojoExecutionException {
+        List<TargetPlatform> platforms = readTargetPlatforms();
+        platforms.stream().filter(platform -> !platform.isSupported()).forEach(platform ->
+                getLog().warn("Selected architecture " + platform + " may not be supported by Cumulocity. Supported architectures: "
+                        + TargetPlatform.supportedValues()));
+        return platforms;
+    }
+
+    private List<TargetPlatform> readTargetPlatforms() throws MojoExecutionException {
+        if (dockerBuildArchs != null) {
+            getLog().info("Using target build architectures from maven configuration (overriding microservice manifest): " + dockerBuildArchs);
+            return TargetPlatform.parse(Arrays.asList(dockerBuildArchs.split(",")));
+        }
+        Map<String, Object> jsonManifest;
+        try {
+            jsonManifest = mapper.readValue(filterResourceFile(manifestFile), Map.class);
+        } catch (IOException | MavenFilteringException e) {
+            throw new MojoExecutionException("Can't read manifest file " + manifestFile, e);
+        }
+        if (jsonManifest.containsKey(DockerBuildSpec.BUILD_SPEC_FRAGMENT)) {
+            DockerBuildSpec buildSpec = mapper.convertValue(jsonManifest.get(DockerBuildSpec.BUILD_SPEC_FRAGMENT), DockerBuildSpec.class);
+            getLog().info("Using target build architectures from build spec: " + buildSpec.getTargetBuildArchitectures());
+            return TargetPlatform.parse(buildSpec.getTargetBuildArchitectures());
+        }
+        getLog().info("Manifest contains no build spec. Using default target architecture " + TargetPlatform.AMD64);
+        return TargetPlatform.parse(Collections.emptyList());
+    }
+
     protected File filterResourceFile(File source) throws IOException, MavenFilteringException {
         final File filteredDir = new File(build, File.separator + "filtered-resources");
         final MavenResourcesExecution execution = new MavenResourcesExecution(
@@ -427,9 +472,11 @@ public abstract class BaseMicroserviceMojo extends AbstractMojo {
                 .buildArgs(configureProxyBuildArguments())
                 .network(dockerBuildNetwork)
                 .timeoutSeconds(dockerBuildTimeout)
+                .noCache(dockerBuildNoCache)
                 .pullRegistryUrl(registryUrl)
                 .pullRegistryUser(registryUser)
                 .pullRegistryPass(registryPass)
                 .baseImage(baseImage);
     }
+
 }

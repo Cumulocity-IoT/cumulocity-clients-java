@@ -11,7 +11,10 @@ import java.util.Set;
 public interface MicroserviceDockerClient {
     void saveDockerImage(final String image, final OutputStream outputStream) throws IOException, MavenExecutionException;
 
-    void buildDockerImage(String dockerDirectory, Set<String> tags, Map<String, String> buildArgs, String platform, String networkMode, Integer dockerClientTimeout, AuthConfigurations pullConfiguration);
+    /**
+     * @param noCache build every layer again and pull the base image
+     */
+    void buildDockerImage(String dockerDirectory, Set<String> tags, Map<String, String> buildArgs, String platform, String networkMode, Integer dockerClientTimeout, AuthConfigurations pullConfiguration, boolean noCache);
 
     void deleteAll(String image, boolean withForce);
 

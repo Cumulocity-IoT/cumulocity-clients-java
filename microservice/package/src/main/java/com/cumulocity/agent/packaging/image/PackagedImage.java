@@ -1,5 +1,6 @@
 package com.cumulocity.agent.packaging.image;
 
+import com.cumulocity.agent.packaging.TargetPlatform;
 import lombok.Value;
 
 import java.util.List;
@@ -14,13 +15,13 @@ public class PackagedImage {
     /**
      * Platforms of the image, written to {@code dockerBuildInfo} of {@code cumulocity.json}.
      */
-    List<String> platforms;
+    List<TargetPlatform> platforms;
 
     /**
-     * Platform added to the zip file name, e.g. {@code <name>-<version>-linux-arm64.zip}; {@code linux/amd64} gets the
-     * default name {@code <name>-<version>.zip}.
+     * Platform added to the zip file name, e.g. {@code <name>-<version>-linux-arm64.zip}; {@code null} for the default
+     * name {@code <name>-<version>.zip}.
      */
-    String fileNamePlatform;
+    TargetPlatform fileNamePlatform;
 
     ImageWriter writer;
 }

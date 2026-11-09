@@ -1,7 +1,7 @@
 package com.cumulocity.agent.packaging.image;
 
-import com.cumulocity.agent.packaging.DockerBuildSpec;
 import com.cumulocity.agent.packaging.DockerImage;
+import com.cumulocity.agent.packaging.TargetPlatform;
 import com.cumulocity.agent.packaging.microservice.MicroserviceDockerClient;
 import com.github.dockerjava.api.model.AuthConfig;
 import com.github.dockerjava.api.model.AuthConfigurations;
@@ -19,6 +19,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Builds images through the docker daemon API (docker-java), one image and one zip per platform.
+ * <p>
+ * The zip of {@code linux/amd64} has the default name; with several platforms the zips of the other platforms get the
+ * platform in their name. {@code push} pushes the image built last.
  */
 @Slf4j
 public class DaemonImageBuilder implements ImageBuilder {
@@ -32,20 +35,15 @@ public class DaemonImageBuilder implements ImageBuilder {
     }
 
     @Override
-    public void build(List<String> platforms, ImagePackager packager) throws MojoExecutionException {
+    public void build(List<TargetPlatform> platforms, ImagePackager packager) throws MojoExecutionException {
         // one platform after another: all platforms are built with the same tags
-        for (String targetBuildArch : platforms) {
+        for (TargetPlatform platform : platforms) {
             final String imageWithVersion = settings.getImageName() + ":" + settings.getVersion();
             final Set<String> tags = Sets.newHashSet(settings.tags());
 
-            log.info("Building microservice image for target architecture {}", targetBuildArch);
-            if (!targetBuildArch.equals(DockerBuildSpec.DEFAULT_TARGET_DOCKER_IMAGE_PLATFORM)) {
-                log.warn("Your target build architecture {} does not match the default target {}", targetBuildArch, DockerBuildSpec.DEFAULT_TARGET_DOCKER_IMAGE_PLATFORM);
-                log.warn("Currently, Cumulocity only supports hosting microservices build for {}", DockerBuildSpec.DEFAULT_TARGET_DOCKER_IMAGE_PLATFORM);
-                log.warn("Your image might be incompatible with cloud hosting!");
-            }
-            dockerClient.buildDockerImage(settings.getDockerWorkDir().getAbsolutePath(), tags, settings.getBuildArgs(), targetBuildArch,
-                    settings.getNetwork(), settings.getTimeoutSeconds(), pullCredentials());
+            log.info("Building microservice image for target platform {}", platform);
+            dockerClient.buildDockerImage(settings.getDockerWorkDir().getAbsolutePath(), tags, settings.getBuildArgs(), platform.platform(),
+                    settings.getNetwork(), settings.getTimeoutSeconds(), pullCredentials(), settings.isNoCache());
             cleanSpotifyDockerDirectory();
             if (packager == null) {
                 continue;
@@ -53,11 +51,12 @@ public class DaemonImageBuilder implements ImageBuilder {
 
             log.info("Checking if image {} is populated to registry", imageWithVersion);
             dockerClient.waitForImageInRegistry(imageWithVersion, settings.getImageWaitTimeoutSeconds());
-            packager.write(new PackagedImage(List.of(targetBuildArch), targetBuildArch,
+            TargetPlatform fileNamePlatform = platforms.size() > 1 && !TargetPlatform.AMD64.equals(platform) ? platform : null;
+            packager.write(new PackagedImage(List.of(platform), fileNamePlatform,
                     outputStream -> dockerClient.saveDockerImage(imageWithVersion, outputStream)));
 
             if (settings.isDeleteImage()) {
-                log.info("Deleting all images named {} and imageNameWithTags {}", settings.getImageName(), tags);
+                log.info("Deleting images {}", tags);
                 tags.forEach(tag -> dockerClient.deleteAll(tag, true));
             } else {
                 log.info("Skipping docker image cleanup");
@@ -66,12 +65,17 @@ public class DaemonImageBuilder implements ImageBuilder {
     }
 
     @Override
-    public void push(DockerImage target) {
+    public void push(List<TargetPlatform> platforms, DockerImage target) {
         DockerImage source = DockerImage.ofName(settings.getImageName());
+        if (platforms.size() > 1) {
+            log.warn("Only the image built last ({}) is pushed, all platforms {} share the same tags.",
+                    platforms.get(platforms.size() - 1), platforms);
+        }
         for (String tag : List.of("latest", settings.getVersion())) {
-            log.info("Publishing image to registry");
-            dockerClient.tagImage(source.withTag(tag).toString(), target.withTag(tag).toString(), tag);
-            dockerClient.pushImage(target.withTag(tag).toString());
+            DockerImage pushed = target.withTag(tag);
+            log.info("Publishing image {} to registry", pushed);
+            dockerClient.tagImage(source.withTag(tag).toString(), pushed.toString(), tag);
+            dockerClient.pushImage(pushed.toString());
         }
         cleanup(source);
         cleanup(target);
