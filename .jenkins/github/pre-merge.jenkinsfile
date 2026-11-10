@@ -195,13 +195,15 @@ def agents_verify() {
             stage('helm chart push') {
               container('helm') {
                 dir('ssl-management-agent/server/helm') {
-                  withCredentials([usernamePassword(credentialsId: 'stage-chartmuseum', passwordVariable: 'HELM_PASSWORD', usernameVariable: 'HELM_USERNAME')]) {
-                    sh "sed -i 's/^version.*/version: ${VERSIONS.currentSem}/g' Chart.yaml"
-                    sh "sed -i 's/^appVersion.*/appVersion: ${VERSIONS.currentSem}/g' Chart.yaml"
+                  withEnv(["HELM_EXPERIMENTAL_OCI=1"]) {
+                    withCredentials([usernamePassword(credentialsId: 'stage-chartmuseum', passwordVariable: 'HELM_PASSWORD', usernameVariable: 'HELM_USERNAME')]) {
+                      sh "sed -i 's/^version.*/version: ${VERSIONS.currentSem}/g' Chart.yaml"
+                      sh "sed -i 's/^appVersion.*/appVersion: ${VERSIONS.currentSem}/g' Chart.yaml"
 
-                    sh "helm package ."
-                    sh "helm repo add --username=${HELM_USERNAME} --password=${HELM_PASSWORD} ssl-management https://registry.stage.c8y.io/chartrepo/testing"
-                    sh "helm push ssl-management-${VERSIONS.currentSem}.tgz ssl-management"
+                      sh 'echo "$HELM_PASSWORD" | helm registry login registry.stage.c8y.io --username "$HELM_USERNAME" --password-stdin'
+                      sh "helm chart save . registry.stage.c8y.io/testing-charts/ssl-management:${VERSIONS.currentSem}"
+                      sh "helm chart push registry.stage.c8y.io/testing-charts/ssl-management:${VERSIONS.currentSem}"
+                    }
                   }
                 }
               }
