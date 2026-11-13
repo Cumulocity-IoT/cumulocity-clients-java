@@ -357,6 +357,13 @@ public class RestConnector implements RestOperations {
         return repFromPlatform != null ? repFromPlatform : representation;
     }
 
+    @Override
+    public <Result extends ResourceRepresentation, Param extends ResourceRepresentation> Result put(
+            String path, MediaType mediaType, Param representation, Class<Result> responseClass) throws SDKException {
+        Response response = httpPut(path, mediaType, representation);
+        return parseResponseWithoutId(responseClass, response, OK.getStatusCode(), NO_CONTENT.getStatusCode());
+    }
+
     private Builder addApplicationKeyHeader(Builder builder) {
         if (isNotBlank(platformParameters.getApplicationKey())) {
             builder = builder.header(X_CUMULOCITY_APPLICATION_KEY, platformParameters.getApplicationKey());

@@ -89,6 +89,36 @@ public class InventoryApiImplTest {
     }
 
     @Test
+    public void shouldCreateMosInBulk() {
+        // Given
+        ManagedObjectCollectionRepresentation toCreate = new ManagedObjectCollectionRepresentation();
+        ManagedObjectCollectionRepresentation created = new ManagedObjectCollectionRepresentation();
+        when(restConnector.post(INVENTORY_COLLECTION_URL, MANAGED_OBJECT_COLLECTION, MANAGED_OBJECT_COLLECTION, toCreate,
+                ManagedObjectCollectionRepresentation.class)).thenReturn(created);
+
+        // When
+        ManagedObjectCollectionRepresentation result = inventoryApiResource.createBulk(toCreate);
+
+        // Then
+        assertThat(result, sameInstance(created));
+    }
+
+    @Test
+    public void shouldUpdateMosInBulk() {
+        // Given
+        ManagedObjectCollectionRepresentation toUpdate = new ManagedObjectCollectionRepresentation();
+        ManagedObjectCollectionRepresentation updated = new ManagedObjectCollectionRepresentation();
+        when(restConnector.put(INVENTORY_COLLECTION_URL, MANAGED_OBJECT_COLLECTION, toUpdate,
+                ManagedObjectCollectionRepresentation.class)).thenReturn(updated);
+
+        // When
+        ManagedObjectCollectionRepresentation result = inventoryApiResource.updateBulk(toUpdate);
+
+        // Then
+        assertThat(result, sameInstance(updated));
+    }
+
+    @Test
     public void shouldGetMo() {
         // Given
         String gidValue = "gid_value";

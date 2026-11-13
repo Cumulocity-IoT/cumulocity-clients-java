@@ -333,6 +333,11 @@ public class FakeCredentialsSwitchingPlatform implements CredentialsSwitchingPla
             }
 
             @Override
+            public <Result extends ResourceRepresentation, Param extends ResourceRepresentation> Result put(String path, MediaType mediaType, Param representation, Class<Result> responseClass) throws SDKException {
+                throw new UnsupportedOperationException("unsuported");
+            }
+
+            @Override
             public <T extends ResourceRepresentation> T put(String path, MediaType mediaType, T representation) throws SDKException {
                 pushRequest(Request.builder()
                         .path(path)

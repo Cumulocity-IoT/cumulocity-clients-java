@@ -23,9 +23,11 @@ package com.cumulocity.sdk.client.inventory;
 import java.util.List;
 
 import com.cumulocity.model.idtype.GId;
+import com.cumulocity.rest.representation.inventory.ManagedObjectCollectionRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.inventory.SupportedMeasurementsRepresentation;
 import com.cumulocity.rest.representation.inventory.SupportedSeriesRepresentation;
+import com.cumulocity.sdk.client.BulkRequestException;
 import com.cumulocity.sdk.client.QueryParam;
 import com.cumulocity.sdk.client.SDKException;
 
@@ -79,6 +81,22 @@ public interface InventoryApi {
      */
     ManagedObjectRepresentation update(ManagedObjectRepresentation managedObjectRepresentation) throws SDKException;
 
+    /**
+     * Updates multiple managed objects (at most 50) in the platform with a single request. Every managed object must have its id set.
+     * <p>
+     * If the request fails for one of the managed objects, a {@link BulkRequestException} is thrown. Its
+     * {@link BulkRequestException#getFailedIndex() failedIndex} is the position of that managed object in the request.
+     * <p>
+     * For the limits and the validation rules, see
+     * <a href="https://cumulocity.com/api/core/#operation/putManagedObjectCollectionResource">Update multiple managed objects at once</a>
+     * in the API reference.
+     *
+     * @param managedObjects the managed objects to be updated
+     * @return the updated managed objects
+     * @throws BulkRequestException if the request failed for one of the managed objects
+     * @throws SDKException         if the managed objects could not be updated
+     */
+    ManagedObjectCollectionRepresentation updateBulk(ManagedObjectCollectionRepresentation managedObjects) throws SDKException;
 
     /**
      * Gets managed object resource by id. To get the managed object representation you have to call {@code get()} on the returned resource.
@@ -97,6 +115,25 @@ public interface InventoryApi {
      * @throws SDKException if the managed object could not be created
      */
     ManagedObjectRepresentation create(ManagedObjectRepresentation managedObject) throws SDKException;
+
+    /**
+     * Creates multiple managed objects (at most 50) in the platform with a single request. The ids of the managed objects must not be set.
+     * <p>
+     * If the request failed while writing, part of it may have been created. In this case
+     * {@link BulkRequestException#getFragmentType() fragmentType} identifies the created managed objects. To complete the request without
+     * duplicates, look them up by this fragment type and send again only the managed objects that the lookup did not return. A failure
+     * without an error body, for example a gateway timeout, can also follow a partial write.
+     * <p>
+     * For the limits, the validation rules, and the details of the recovery, see
+     * <a href="https://cumulocity.com/api/core/#operation/postManagedObjectCollectionResource">Create one or multiple managed objects</a>
+     * in the API reference.
+     *
+     * @param managedObjects the managed objects to be created
+     * @return the created managed objects with their generated ids, in the order of the request
+     * @throws BulkRequestException if the request failed for one of the managed objects
+     * @throws SDKException         if the managed objects could not be created
+     */
+    ManagedObjectCollectionRepresentation createBulk(ManagedObjectCollectionRepresentation managedObjects) throws SDKException;
 
     /**
      * Gets the all the managed object in the platform

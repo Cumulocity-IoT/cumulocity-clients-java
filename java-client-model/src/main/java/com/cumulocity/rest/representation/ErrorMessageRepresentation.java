@@ -14,6 +14,9 @@ public class ErrorMessageRepresentation extends AbstractExtensibleRepresentation
     // details     JSON-Object with ErrorDetails. Only available if in DEBUG mode.
     private ErrorDetails details;
 
+    // Only available for errors of bulk requests.
+    private BulkRequestDetails bulkRequest;
+
     @JSONProperty(ignoreIfNull = true)
     public String getError() {
         return error;
@@ -50,6 +53,15 @@ public class ErrorMessageRepresentation extends AbstractExtensibleRepresentation
         this.details = details;
     }
 
+    @JSONProperty(ignoreIfNull = true)
+    public BulkRequestDetails getBulkRequest() {
+        return bulkRequest;
+    }
+
+    public void setBulkRequest(BulkRequestDetails bulkRequest) {
+        this.bulkRequest = bulkRequest;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append('{');
@@ -57,6 +69,9 @@ public class ErrorMessageRepresentation extends AbstractExtensibleRepresentation
         sb.append("message=").append('"').append(message).append('"').append(',');
         sb.append("info=").append('"').append(info).append('"').append(',');
         sb.append("details=").append('"').append(details).append('"');
+        if (bulkRequest != null) {
+            sb.append(',').append("bulkRequest=").append(bulkRequest);
+        }
         sb.append('}');
         return sb.toString();
     }

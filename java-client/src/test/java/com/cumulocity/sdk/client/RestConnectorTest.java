@@ -272,6 +272,22 @@ public class RestConnectorTest {
         assertThat(result, sameInstance(representation));
     }
 
+    @Test
+    public void shouldParsePutResponseIntoGivenClass() {
+        // Given
+        BaseResourceRepresentation representation = new BaseResourceRepresentation() {};
+        BaseResourceRepresentation outputRepresentation = new BaseResourceRepresentation();
+        returnResponseWhenSending();
+        when(typeBuilder.put(Entity.entity(representation, mediaType))).thenReturn(response);
+        when(parser.parse(response, BaseResourceRepresentation.class, 200, 204)).thenReturn(outputRepresentation);
+
+        // When
+        BaseResourceRepresentation result = restConnector.put(PATH, mediaType, representation, BaseResourceRepresentation.class);
+
+        // Then
+        assertThat(result, sameInstance(outputRepresentation));
+    }
+
     private void returnResponseWhenPut(BaseResourceRepresentation representation) {
         returnResponseWhenSending();
         when(typeBuilder.put(Entity.entity(representation, mediaType))).thenReturn(response);

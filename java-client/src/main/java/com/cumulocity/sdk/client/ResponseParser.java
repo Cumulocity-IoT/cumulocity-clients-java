@@ -21,6 +21,7 @@
 package com.cumulocity.sdk.client;
 
 import com.cumulocity.model.idtype.GId;
+import com.cumulocity.rest.representation.BulkRequestDetails;
 import com.cumulocity.rest.representation.ErrorMessageRepresentation;
 import com.cumulocity.rest.representation.ResourceRepresentation;
 import org.jsoup.Jsoup;
@@ -85,18 +86,52 @@ public class ResponseParser {
                 return;
             }
         }
-        throw new SDKException(status, getErrorMessage(response, status));
+        if (!response.hasEntity() || !isJsonResponse(response)) {
+            throw new SDKException(status, getErrorMessage(response, status));
+        }
+        // The entity stream is closed once it was read, so the response must not be asked for its entity again from here on.
+        ErrorMessageRepresentation error = readJsonError(response);
+        if (error == null) {
+            throw new SDKException(status, formatMessage(response, status, NO_ERROR_REPRESENTATION));
+        }
+        throw createJsonException(response, status, error);
+    }
+
+    private ErrorMessageRepresentation readJsonError(Response response) {
+        try {
+            return read(response, ErrorMessageRepresentation.class);
+        } catch (Exception e) {
+            LOG.error("Failed to parse error message", e);
+            return null;
+        }
+    }
+
+    private SDKException createJsonException(Response response, int status, ErrorMessageRepresentation error) {
+        String message = formatMessage(response, status, error.toString());
+        BulkRequestDetails bulkRequest = error.getBulkRequest();
+        if (bulkRequest == null) {
+            return new SDKException(status, message);
+        }
+        return new BulkRequestException(status, message, bulkRequest);
     }
 
     protected String getErrorMessage(Response response, int status) {
-        String errorMessage = "Http status code: " + status;
-        String responseHeader = "";
-
+        String errorRepresentation = null;
         if (response.hasEntity()) {
-            String errorRepresentation = getErrorRepresentation(response);
+            errorRepresentation = getErrorRepresentation(response);
             if (errorRepresentation == null) {
                 errorRepresentation = NO_ERROR_REPRESENTATION;
             }
+        }
+        return formatMessage(response, status, errorRepresentation);
+    }
+
+    // errorRepresentation is null if the response has no entity
+    private String formatMessage(Response response, int status, String errorRepresentation) {
+        String errorMessage = "Http status code: " + status;
+        String responseHeader = "";
+
+        if (errorRepresentation != null) {
             Map<String, List<String>> responseHeadermap = response.getStringHeaders();
             if (responseHeadermap != null) {
                 for (Map.Entry<String, List<String>> entry : responseHeadermap.entrySet()) {
@@ -122,7 +157,8 @@ public class ResponseParser {
     protected String getErrorRepresentation(Response response) {
         try {
             if (isJsonResponse(response)) {
-                return read(response, ErrorMessageRepresentation.class).toString();
+                ErrorMessageRepresentation error = readJsonError(response);
+                return error == null ? null : error.toString();
             } else if(isHtmlReponse(response)){
                 String error = String.format("Received HTML error response (status=%d, content-type=%s). Skipping JSON parse.\nContent of original error message:\n",
                         response.getStatus(), Optional.ofNullable(response.getMediaType()).map(MediaType::toString).orElse("unknown"));

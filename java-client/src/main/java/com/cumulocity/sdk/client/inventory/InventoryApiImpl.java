@@ -54,6 +54,12 @@ public class InventoryApiImpl implements InventoryApi {
     }
 
     @Override
+    public ManagedObjectCollectionRepresentation createBulk(ManagedObjectCollectionRepresentation managedObjects) throws SDKException {
+        return restConnector.post(getMOCollectionUrl(), InventoryMediaType.MANAGED_OBJECT_COLLECTION,
+                InventoryMediaType.MANAGED_OBJECT_COLLECTION, managedObjects, ManagedObjectCollectionRepresentation.class);
+    }
+
+    @Override
     public ManagedObjectRepresentation get(GId id) throws SDKException {
         return restConnector.get(getMOCollectionUrl() + "/" + id.getValue(), InventoryMediaType.MANAGED_OBJECT, ManagedObjectRepresentation.class);
     }
@@ -77,6 +83,12 @@ public class InventoryApiImpl implements InventoryApi {
     @Override
     public ManagedObjectRepresentation update(ManagedObjectRepresentation managedObjectRepresentation) throws SDKException {
         return restConnector.put(getMOCollectionUrl() + "/" + managedObjectRepresentation.getId().getValue(), InventoryMediaType.MANAGED_OBJECT, managedObjectRepresentation);
+    }
+
+    @Override
+    public ManagedObjectCollectionRepresentation updateBulk(ManagedObjectCollectionRepresentation managedObjects) throws SDKException {
+        return restConnector.put(getMOCollectionUrl(), InventoryMediaType.MANAGED_OBJECT_COLLECTION, managedObjects,
+                ManagedObjectCollectionRepresentation.class);
     }
 
     @Override

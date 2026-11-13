@@ -79,5 +79,11 @@ public interface RestOperations extends AutoCloseable {
     @SuppressWarnings("unchecked")
     <T extends ResourceRepresentation> T put(String path, MediaType mediaType, T representation) throws SDKException;
 
+    <Result extends ResourceRepresentation, Param extends ResourceRepresentation> Result put(
+            String path, 
+            MediaType mediaType, 
+            Param representation, 
+            Class<Result> responseClass) throws SDKException;
+
     void delete(String path) throws SDKException;
 }
