@@ -64,7 +64,7 @@
         <netty.version>4.2.19.Final</netty.version> <!-- bound with spring-boot.version (includes fix for CVE-2026-73508 in netty-codec-dns) -->
         <nimbusds.version>10.9</nimbusds.version>
         <spring-boot.version>4.1.2</spring-boot.version>
-        <svenson.version>1.5.8</svenson.version>
+        <svenson.version>1.6.2</svenson.version>
         <tootallnate.websocket.version>1.6.0</tootallnate.websocket.version>
 
         <exclude.test.groups>com.cumulocity.test.category.IntegrationTest</exclude.test.groups>
