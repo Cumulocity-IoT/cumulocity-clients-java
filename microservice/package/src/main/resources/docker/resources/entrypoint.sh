@@ -52,4 +52,6 @@ echo "otel_agent_attach = ${otel_agent_attach}"
 
 mkdir -p /var/log/@package.name@; echo "heap dumps  /var/log/@package.name@/heap-dump-<pid>.hprof"
 
-java ${jvm_opts} ${jvm_gc} ${jvm_mem} ${proxy_params}  ${otel_agent_attach} -jar /data/@package.name@.jar ${arguments}
+security_params="-XX:-UseBASE64Intrinsics"
+
+java ${jvm_opts} ${jvm_gc} ${jvm_mem} ${proxy_params} ${security_params} ${otel_agent_attach} -jar /data/@package.name@.jar ${arguments}
